@@ -17,7 +17,7 @@ import {
   getExecutiveStatus,
   getAuditLogs,
   cloneWeekAssignments,
-  getCatalog,
+  getCachedCatalog,
   addCatalogBatch,
   removeCatalogBatch,
   updateCatalogBatch,
@@ -40,7 +40,7 @@ import {
 import { createSession, deleteSession } from './session';
 import { getCurrentUser } from './auth';
 import { Role, User } from '@/types';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 // Every mutating/sensitive action below re-derives the acting user from the
@@ -78,7 +78,7 @@ export async function getAppData(weekStartDate?: string, selectedDate?: string) 
     getAllUsers(),
     getOrCreateRosterWeek(weekStartDate),
     getAllLeaveRequests(),
-    getCatalog(),
+    getCachedCatalog(),
     getExecutiveStatus(todayStr),
   ]);
 
@@ -204,9 +204,14 @@ export async function cloneWeekAction(currentWeekStart: string) {
   return result;
 }
 
+// Every catalog mutation below also calls updateTag('catalog') to bust
+// getCachedCatalog()'s cache immediately (read-your-own-writes) -- otherwise
+// an edit here wouldn't show up anywhere else in the app until the cache's
+// 60s TTL expired.
 export async function addBatchAction(name: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
   const res = await addCatalogBatch(name, actor.id);
+  updateTag('catalog');
   revalidatePath('/');
   return res;
 }
@@ -214,6 +219,7 @@ export async function addBatchAction(name: string) {
 export async function removeBatchAction(name: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
   const res = await removeCatalogBatch(name, actor.id);
+  updateTag('catalog');
   revalidatePath('/');
   return res;
 }
@@ -221,6 +227,7 @@ export async function removeBatchAction(name: string) {
 export async function updateBatchAction(oldName: string, newName: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
   const res = await updateCatalogBatch(oldName, newName, actor.id);
+  updateTag('catalog');
   revalidatePath('/');
   return res;
 }
@@ -228,6 +235,7 @@ export async function updateBatchAction(oldName: string, newName: string) {
 export async function addRoomAction(name: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
   const res = await addCatalogRoom(name, actor.id);
+  updateTag('catalog');
   revalidatePath('/');
   return res;
 }
@@ -235,6 +243,7 @@ export async function addRoomAction(name: string) {
 export async function removeRoomAction(name: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
   const res = await removeCatalogRoom(name, actor.id);
+  updateTag('catalog');
   revalidatePath('/');
   return res;
 }
@@ -242,6 +251,7 @@ export async function removeRoomAction(name: string) {
 export async function updateRoomAction(oldName: string, newName: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
   const res = await updateCatalogRoom(oldName, newName, actor.id);
+  updateTag('catalog');
   revalidatePath('/');
   return res;
 }
@@ -249,6 +259,7 @@ export async function updateRoomAction(oldName: string, newName: string) {
 export async function addModuleAction(name: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
   const res = await addCatalogModule(name, actor.id);
+  updateTag('catalog');
   revalidatePath('/');
   return res;
 }
@@ -256,6 +267,7 @@ export async function addModuleAction(name: string) {
 export async function removeModuleAction(name: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
   const res = await removeCatalogModule(name, actor.id);
+  updateTag('catalog');
   revalidatePath('/');
   return res;
 }
@@ -263,6 +275,7 @@ export async function removeModuleAction(name: string) {
 export async function updateModuleAction(oldName: string, newName: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
   const res = await updateCatalogModule(oldName, newName, actor.id);
+  updateTag('catalog');
   revalidatePath('/');
   return res;
 }

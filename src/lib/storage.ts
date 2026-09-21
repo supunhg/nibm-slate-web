@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { unstable_cache } from 'next/cache';
 import { Prisma, Role as PrismaRole, LeaveStatus as PrismaLeaveStatus } from '@prisma/client';
 import { prisma } from './prisma';
 import {
@@ -871,6 +872,16 @@ export async function getCatalog(): Promise<AcademicCatalog> {
   const row = await getOrCreateCatalogRow();
   return { batches: row.batches, rooms: row.rooms, modules: row.modules };
 }
+
+// Batches/rooms/modules change rarely but getAppData() re-fetches the
+// catalog on every single page load/refresh. Cache it for a minute and
+// invalidate immediately on any catalog mutation (see the *Action functions
+// in actions.ts calling updateTag('catalog')), so edits still show up right
+// away instead of waiting out the TTL.
+export const getCachedCatalog = unstable_cache(getCatalog, ['academic-catalog'], {
+  revalidate: 60,
+  tags: ['catalog'],
+});
 
 export async function addCatalogBatch(name: string, actorId?: string): Promise<{ success: boolean; error?: string }> {
   const trimmed = name.trim();
