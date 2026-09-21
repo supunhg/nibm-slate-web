@@ -46,7 +46,7 @@ async function main() {
   try {
     // 1. Verify Cadre Count
     const instructors = await getInstructors();
-    assert(instructors.length === 8, `Cadre count should be exactly 8 instructors (found: ${instructors.length})`);
+    assert(instructors.length === 9, `Cadre count should be exactly 9 instructors (found: ${instructors.length})`);
 
     // 2. Collision Rule: Double Booking Prevention
     const testDate = `2030-05-${Math.floor(Math.random() * 20 + 10)}`; // Unique future test date
@@ -115,12 +115,12 @@ async function main() {
     // inst1 is on Duty (09:00-12:00)
     // inst2 is on Leave
     // inst3 has night duty (daytime is free)
-    // inst4..inst8 (5 instructors) are not assigned to Morning slot
-    // Total cadre = 8. In Morning slot: 1 On Duty, 1 On Leave => 6 Free Standby!
+    // inst4..inst9 (6 instructors) are not assigned to Morning slot
+    // Total cadre = 9. In Morning slot: 1 On Duty, 1 On Leave => 7 Free Standby!
     const report = await getExecutiveStatus(testDate, 'Morning (09:00 - 12:00)');
     assert(report.onDuty.length === 1, `On duty count matches (Expected: 1, Found: ${report.onDuty.length})`);
     assert(report.onLeave.length === 1, `On leave count matches (Expected: 1, Found: ${report.onLeave.length})`);
-    assert(report.freeStandby.length === 6, `Free standby count matches (Expected: 6, Found: ${report.freeStandby.length})`);
+    assert(report.freeStandby.length === 7, `Free standby count matches (Expected: 7, Found: ${report.freeStandby.length})`);
     assert(
       report.nightDutyInstructor?.id === inst3.id,
       `Night duty officer correctly identified (${report.nightDutyInstructor?.fullName})`

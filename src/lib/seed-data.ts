@@ -18,6 +18,16 @@ export const INITIAL_USERS: (User & { passwordHash: string })[] = [
     passwordHash: DEMO_PASSWORD_HASH,
   },
   {
+    id: 'user-sandali',
+    fullName: 'Sandali',
+    email: 'sandali@nibm.lk',
+    username: 'sandali',
+    role: 'DEMONSTRATOR',
+    avatarColor: 'bg-rose-600',
+    isActive: true,
+    passwordHash: DEMO_PASSWORD_HASH,
+  },
+  {
     id: 'user-thisara',
     fullName: 'Dr. Thisara',
     email: 'thisara@nibm.lk',
