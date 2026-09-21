@@ -132,8 +132,8 @@ export async function getAllUsers(): Promise<User[]> {
 // Matched by username (the stable, admin-assigned identifier) rather than a
 // hardcoded id, since real accounts get a generated UUID id.
 const SHARED_KIOSK_USERNAME = 'instructors';
-export async function getInstructors(): Promise<User[]> {
-  const users = await getAllUsers();
+export async function getInstructors(preloadedUsers?: User[]): Promise<User[]> {
+  const users = preloadedUsers ?? (await getAllUsers());
   return users.filter(
     (u) =>
       (u.role === 'INSTRUCTOR' || u.role === 'DEMONSTRATOR') &&
