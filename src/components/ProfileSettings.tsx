@@ -16,14 +16,16 @@ const ROLE_LABELS: Record<User['role'], string> = {
 interface ProfileSettingsProps {
   currentUser: User;
   onUpdated: () => void;
+  isRefreshing?: boolean;
 }
 
-export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, onUpdated }) => {
+export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, onUpdated, isRefreshing }) => {
   const [email, setEmail] = useState(currentUser.email || '');
   const [phone, setPhone] = useState(currentUser.phone || '');
   const [contactError, setContactError] = useState<string | null>(null);
   const [contactSuccess, setContactSuccess] = useState(false);
   const [savingContact, setSavingContact] = useState(false);
+  const busyContact = savingContact || !!isRefreshing;
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -38,14 +40,15 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
     setContactSuccess(false);
     setSavingContact(true);
     const res = await updateProfileAction({ email, phone });
-    setSavingContact(false);
 
     if (!res.success) {
+      setSavingContact(false);
       setContactError(res.error);
       return;
     }
     setContactSuccess(true);
     onUpdated();
+    setSavingContact(false);
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -140,10 +143,10 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
           </div>
           <button
             type="submit"
-            disabled={savingContact}
-            className="text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-5 py-2.5 rounded-lg transition-colors cursor-pointer"
+            disabled={busyContact}
+            className="text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-lg transition-colors cursor-pointer"
           >
-            {savingContact ? 'Saving...' : 'Save Contact Info'}
+            {busyContact ? 'Saving...' : 'Save Contact Info'}
           </button>
         </form>
       </div>
@@ -200,7 +203,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
           <button
             type="submit"
             disabled={savingPassword}
-            className="text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-5 py-2.5 rounded-lg transition-colors cursor-pointer"
+            className="text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-lg transition-colors cursor-pointer"
           >
             {savingPassword ? 'Saving...' : 'Update Password'}
           </button>

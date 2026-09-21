@@ -8,13 +8,15 @@ import { AppLogo } from './AppLogo';
 interface LoginPageProps {
   onLoginSuccess: () => void;
   onOpenPublicBoard: () => void;
+  isRefreshing?: boolean;
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onOpenPublicBoard }) => {
+export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onOpenPublicBoard, isRefreshing }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const busy = submitting || !!isRefreshing;
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,13 +24,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onOpenPubl
     setSubmitting(true);
 
     const res = await loginAction(username, password);
-    setSubmitting(false);
 
     if (!res.success) {
+      setSubmitting(false);
       setError(res.error);
       return;
     }
+    // Kick off the session refresh; `isRefreshing` (from the parent's
+    // useTransition) takes over keeping the button disabled/labelled until
+    // the refetch finishes and this page unmounts, so we never flip back to
+    // an idle-looking "Sign In" while the DB round-trip is still in flight.
     onLoginSuccess();
+    setSubmitting(false);
   };
 
   return (
@@ -122,10 +129,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onOpenPubl
 
             <button
               type="submit"
-              disabled={submitting}
-              className="w-full flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium text-sm py-2.5 px-4 rounded-lg transition-colors cursor-pointer"
+              disabled={busy}
+              className="w-full flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm py-2.5 px-4 rounded-lg transition-colors cursor-pointer"
             >
-              <span>{submitting ? 'Signing In...' : 'Sign In'}</span>
+              <span>{busy ? 'Signing In...' : 'Sign In'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>

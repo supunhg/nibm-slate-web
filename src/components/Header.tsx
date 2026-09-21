@@ -1,15 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from '@/types';
-import { Shield, Calendar, Users, Clock, LogOut, ShieldCheck } from 'lucide-react';
+import { Shield, Calendar, Users, Clock, LogOut, Loader2, ShieldCheck } from 'lucide-react';
 import { AppLogo } from './AppLogo';
 
 export type AppTab = 'executive' | 'weekly' | 'planner' | 'instructor' | 'leaves' | 'admin' | 'profile';
 
 interface HeaderProps {
   currentUser: User;
-  onLogout: () => void;
+  onLogout: () => Promise<void>;
   activeTab: AppTab;
   onSelectTab: (tab: AppTab) => void;
   pendingLeavesCount: number;
@@ -22,6 +22,19 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectTab,
   pendingLeavesCount,
 }) => {
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogoutClick = async () => {
+    setLoggingOut(true);
+    try {
+      await onLogout();
+    } catch {
+      // logoutAction redirects on success (no error here); only a genuine
+      // failure reaches this catch, so re-enable the button to allow retry.
+      setLoggingOut(false);
+    }
+  };
+
   const isInstructor = currentUser.role === 'INSTRUCTOR';
   const isExecutive = currentUser.role === 'EXECUTIVE';
   const isDemonstrator = currentUser.role === 'DEMONSTRATOR';
@@ -87,12 +100,17 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Logout Button */}
             <button
-              onClick={onLogout}
-              className="flex items-center space-x-1 text-xs text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-slate-800 px-3 py-2 rounded-lg transition-colors cursor-pointer"
+              onClick={handleLogoutClick}
+              disabled={loggingOut}
+              className="flex items-center space-x-1 text-xs text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-slate-800 px-3 py-2 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               title="Sign Out"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Sign Out</span>
+              {loggingOut ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <LogOut className="w-3.5 h-3.5" />
+              )}
+              <span className="hidden sm:inline">{loggingOut ? 'Signing Out...' : 'Sign Out'}</span>
             </button>
           </div>
         </div>
