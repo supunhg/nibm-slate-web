@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, RosterWeek, DutyAssignment, NightShift, LeaveRequest, ExecutiveStatusReport, AcademicCatalog } from '@/types';
 import { Header, AppTab } from '@/components/Header';
@@ -41,6 +41,13 @@ function defaultTabForRole(user: User | null): AppTab {
 
 export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUser }) => {
   const router = useRouter();
+  // router.refresh() re-runs the server component (a handful of sequential
+  // DB round-trips) but is otherwise invisible on its own -- useTransition
+  // gives us `isSessionRefreshing` so login/password-change/profile screens
+  // can keep showing a pending state for the *entire* refresh, not just the
+  // fast server-action call that precedes it.
+  const [isSessionRefreshing, startSessionRefresh] = useTransition();
+  const refreshSession = () => startSessionRefresh(() => router.refresh());
   const [data, setData] = useState(initialData);
   const [isPublicMode, setIsPublicMode] = useState(false);
   const [activeTab, setActiveTab] = useState<AppTab>(() => defaultTabForRole(initialCurrentUser));
@@ -94,7 +101,8 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
   if (!currentUser) {
     return (
       <LoginPage
-        onLoginSuccess={() => router.refresh()}
+        onLoginSuccess={refreshSession}
+        isRefreshing={isSessionRefreshing}
         onOpenPublicBoard={() => setIsPublicMode(true)}
       />
     );
@@ -102,7 +110,13 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
 
   // 3. Forced password change for admin-issued temp-password accounts
   if (currentUser.mustChangePassword) {
-    return <ChangePasswordScreen currentUser={currentUser} onDone={() => router.refresh()} />;
+    return (
+      <ChangePasswordScreen
+        currentUser={currentUser}
+        onDone={refreshSession}
+        isRefreshing={isSessionRefreshing}
+      />
+    );
   }
 
   const pendingLeaves = data.leaveRequests.filter((l) => l.status === 'PENDING');
@@ -199,7 +213,11 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
 
           {/* 6. My Profile: every signed-in user can edit their own contact info */}
           {activeTab === 'profile' && (
-            <ProfileSettings currentUser={currentUser} onUpdated={() => router.refresh()} />
+            <ProfileSettings
+              currentUser={currentUser}
+              onUpdated={refreshSession}
+              isRefreshing={isSessionRefreshing}
+            />
           )}
         </main>
 
