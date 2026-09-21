@@ -192,7 +192,7 @@ The following core roadmap and enterprise features are fully implemented and ver
 
 ## 8. Development Ground Rules for AI Agents & Engineers
 
-- **Preserve Mathematical Invariants**: Under no circumstance should a change violate the $N = 8$ cadre rule or allow an instructor to be double-booked or scheduled while on approved leave.
+- **Preserve Mathematical Invariants**: Under no circumstance should a change violate the $N = 9$ cadre rule or allow an instructor to be double-booked or scheduled while on approved leave.
 - **Maintain Zero-Warning Cleanliness**: Always verify `npm run lint` and `npm run build` after completing edits.
 - **Zero Raw Passwords**: All credential mutations must be validated with current password verification and hashed with `bcrypt.hash(password, 10)`.
 - **Database Safety**: All destructive or multi-record mutations in `src/lib/storage.ts` or `src/lib/actions.ts` must execute inside `prisma.$transaction`.
