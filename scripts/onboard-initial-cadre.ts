@@ -11,6 +11,7 @@ import { Role } from '@prisma/client';
 
 const CADRE: Array<{ fullName: string; username: string; role: Role; jobTitle?: string }> = [
   { fullName: 'Yasith', username: 'yasith', role: 'DEMONSTRATOR' },
+  { fullName: 'Sandali', username: 'sandali', role: 'DEMONSTRATOR' },
   { fullName: 'Dr. Thisara', username: 'thisara', role: 'EXECUTIVE' },
   {
     fullName: 'Instructors Portal (General Access)',

@@ -674,6 +674,22 @@ export async function setNightShift(
   return { success: true };
 }
 
+export async function removeNightShift(shiftDate: string, actorId?: string): Promise<boolean> {
+  const removed = await prisma.nightShift.findUnique({
+    where: { shiftDate },
+    include: { instructor: true },
+  });
+  if (!removed) return false;
+
+  await prisma.nightShift.delete({ where: { shiftDate } });
+  await logAudit('NIGHT_DUTY_REMOVED', 'NightShift', {
+    userId: actorId,
+    targetId: removed.id,
+    metadata: `${removed.instructor?.fullName || 'Instructor'} removed from night duty on ${shiftDate}`,
+  });
+  return true;
+}
+
 // ----------------------------------------------------
 // Leave Requests (Dual Approval: Yasith & Dr. Thisara)
 // ----------------------------------------------------

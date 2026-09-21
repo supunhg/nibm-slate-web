@@ -35,6 +35,7 @@ import {
   addDutyAction,
   deleteDutyAction,
   setNightShiftAction,
+  removeNightShiftAction,
   publishRosterAction,
   cloneWeekAction,
   addBatchAction,
@@ -265,9 +266,15 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
     }
   };
 
-  // Set night shift instructor
+  // Set (or clear) night shift instructor
   const handleSetNightShift = async (shiftDate: string, newInstructorId: string) => {
-    if (!newInstructorId) return;
+    if (!newInstructorId) {
+      if (await confirm({ message: 'Remove night duty for this date?', confirmLabel: 'Remove', danger: true })) {
+        await removeNightShiftAction(shiftDate);
+        onRefresh();
+      }
+      return;
+    }
     const res = await setNightShiftAction(rosterWeek.id, shiftDate, newInstructorId);
     if (!res.success) {
       await notify(res.error || 'Failed to set night duty.');
@@ -1139,7 +1146,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                     onChange={(e) => handleSetNightShift(day.dateStr, e.target.value)}
                     className="w-full text-xs bg-slate-800 border border-slate-700 text-slate-200 rounded px-1.5 py-1 focus:outline-none cursor-pointer"
                   >
-                    <option value="">Select Instructor...</option>
+                    <option value="">{nightShift ? 'Remove night duty...' : 'Select Instructor...'}</option>
                     {allInstructors.map((inst) => {
                       const onLeave = isInstructorOnLeave(inst.id, day.dateStr);
                       return (

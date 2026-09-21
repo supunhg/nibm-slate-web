@@ -11,6 +11,7 @@ import {
   addDutyAssignment,
   deleteDutyAssignment,
   setNightShift,
+  removeNightShift,
   publishRosterWeek,
   createLeaveRequest,
   reviewLeaveRequest,
@@ -188,6 +189,13 @@ export async function setNightShiftAction(rosterWeekId: string, shiftDate: strin
   const res = await setNightShift(rosterWeekId, shiftDate, instructorId, undefined, actor.id);
   revalidatePath('/');
   return res;
+}
+
+export async function removeNightShiftAction(shiftDate: string) {
+  const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
+  const success = await removeNightShift(shiftDate, actor.id);
+  revalidatePath('/');
+  return { success };
 }
 
 export async function publishRosterAction(weekId: string) {
