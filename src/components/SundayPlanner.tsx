@@ -430,6 +430,14 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
   // Inline "save to list" from the Assign Teaching Duty form itself -- lets
   // a demonstrator type a one-off module/room and permanently add it to the
   // catalog without leaving the form to open the separate manager.
+  const handleSaveBatchInline = async () => {
+    setCatalogBusy(true);
+    const res = await addBatchAction(batchName);
+    setCatalogBusy(false);
+    if (res.success) onRefresh();
+    else await notify(res.error || 'Failed to save batch to the catalog.');
+  };
+
   const handleSaveModuleInline = async () => {
     setCatalogBusy(true);
     const res = await addModuleAction(moduleName);
@@ -1223,14 +1231,35 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
                   Batch Code / Group
                 </label>
-                <input
-                  type="text"
-                  placeholder="e.g. DSE 24.1F or CCS Batch"
-                  value={batchName}
-                  onChange={(e) => setBatchName(e.target.value)}
-                  className="w-full text-sm border border-slate-700 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  required
-                />
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    list="batch-catalog-options"
+                    placeholder="e.g. DSE 24.1F or CCS Batch"
+                    value={batchName}
+                    onChange={(e) => setBatchName(e.target.value)}
+                    className="flex-1 min-w-0 text-sm bg-slate-900 border border-slate-700 text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    required
+                  />
+                  {batchName.trim() &&
+                    !catalog.batches.some((b) => b.toLowerCase() === batchName.trim().toLowerCase()) && (
+                      <button
+                        type="button"
+                        onClick={handleSaveBatchInline}
+                        disabled={catalogBusy}
+                        title="Save this batch to the catalog permanently"
+                        className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-800 hover:bg-emerald-600 disabled:opacity-50 text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Save</span>
+                      </button>
+                    )}
+                </div>
+                <datalist id="batch-catalog-options">
+                  {catalog.batches.map((b) => (
+                    <option key={b} value={b} />
+                  ))}
+                </datalist>
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {catalog.batches.map((b) => (
                     <button
