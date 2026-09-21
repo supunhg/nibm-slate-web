@@ -77,7 +77,7 @@ export const INITIAL_USERS: (User & { passwordHash: string })[] = [
     fullName: 'Kithnuka',
     email: 'kithnuka@nibm.lk',
     username: 'kithnuka',
-    role: 'INSTRUCTOR',
+    role: 'DEMONSTRATOR',
     phone: '076 783 3449',
     avatarColor: 'bg-amber-600',
     isActive: true,

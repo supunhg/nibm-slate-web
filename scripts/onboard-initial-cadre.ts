@@ -21,7 +21,7 @@ const CADRE: Array<{ fullName: string; username: string; role: Role; jobTitle?: 
   { fullName: 'Nithara', username: 'nithara', role: 'INSTRUCTOR' },
   { fullName: 'Nipun', username: 'nipun', role: 'INSTRUCTOR' },
   { fullName: 'Gimasha', username: 'gimasha', role: 'INSTRUCTOR' },
-  { fullName: 'Kithnuka', username: 'kithnuka', role: 'INSTRUCTOR' },
+  { fullName: 'Kithnuka', username: 'kithnuka', role: 'DEMONSTRATOR' },
   { fullName: 'Binal', username: 'binal', role: 'INSTRUCTOR' },
   { fullName: 'Poorna', username: 'poorna', role: 'INSTRUCTOR' },
   { fullName: 'Supun', username: 'supun', role: 'INSTRUCTOR', jobTitle: 'Technical Assistant' },
