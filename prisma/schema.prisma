@@ -94,6 +94,8 @@ model DutyAssignment {
   updatedAt    DateTime   @updatedAt
 
   @@unique([dutyDate, startTime, instructorId])
+  @@index([rosterWeekId])
+  @@index([instructorId])
 }
 
 model NightShift {
@@ -110,6 +112,8 @@ model NightShift {
   // Exactly one night-duty officer per date -- setNightShift() replaces
   // whoever previously held that date rather than adding a second row.
   @@unique([shiftDate])
+  @@index([rosterWeekId])
+  @@index([instructorId])
 }
 
 model LeaveRequest {
@@ -126,6 +130,13 @@ model LeaveRequest {
   reviewComment String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+
+  // Serves the leave-precedence check hit on every duty/night-shift
+  // assignment (instructorId + status + date range) and the executive
+  // dashboard's daily on-leave lookup (status + date range).
+  @@index([instructorId, status, startDate, endDate])
+  @@index([status, startDate, endDate])
+  @@index([reviewedById])
 }
 
 model AuditLog {
@@ -137,6 +148,10 @@ model AuditLog {
   targetId     String?
   metadata     String?
   createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([action])
 }
 
 // Singleton row (id is always "singleton") holding the dynamic academic
