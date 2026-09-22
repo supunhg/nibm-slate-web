@@ -427,12 +427,15 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   <div className="space-y-1 text-xs text-slate-400">
                     <div className="flex items-center space-x-1.5 font-medium text-slate-200">
                       <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
-                      <span>{assignment.moduleName}</span>
+                      <span>{assignment.moduleName ?? assignment.dutyType}</span>
                     </div>
+                    {assignment.notes && <p className="italic">{assignment.notes}</p>}
                     <div className="flex items-center justify-between text-slate-500 pt-1">
-                      <span className="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded font-semibold text-[11px]">
-                        Batch: {assignment.batchName}
-                      </span>
+                      {assignment.batchName && (
+                        <span className="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded font-semibold text-[11px]">
+                          Batch: {assignment.batchName}
+                        </span>
+                      )}
                       {assignment.roomLab && (
                         <span className="flex items-center space-x-1 text-slate-500 text-[11px]">
                           <MapPin className="w-3 h-3 text-slate-400" />

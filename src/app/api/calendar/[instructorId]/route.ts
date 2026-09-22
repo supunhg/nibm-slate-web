@@ -54,14 +54,15 @@ function foldLine(line: string): string {
 }
 
 function buildDutyEvent(a: DutyAssignment, dtstamp: string): string {
-  const description = `${a.slotLabel}\nNIBM Instructor Roster`;
+  const summary = a.batchName || a.moduleName ? `${a.batchName || ''} — ${a.moduleName || ''}` : a.dutyType;
+  const description = [a.slotLabel, a.notes, 'NIBM Instructor Roster'].filter(Boolean).join('\n');
   return [
     'BEGIN:VEVENT',
     foldLine(`UID:duty-${a.id}@nibm-instructor-roster`),
     `DTSTAMP:${dtstamp}`,
     `DTSTART:${toICSDateUTC(a.dutyDate, a.startTime)}`,
     `DTEND:${toICSDateUTC(a.dutyDate, a.endTime)}`,
-    foldLine(`SUMMARY:${escapeICSText(`${a.batchName} — ${a.moduleName}`)}`),
+    foldLine(`SUMMARY:${escapeICSText(summary)}`),
     ...(a.roomLab ? [foldLine(`LOCATION:${escapeICSText(a.roomLab)}`)] : []),
     foldLine(`DESCRIPTION:${escapeICSText(description)}`),
     'END:VEVENT',

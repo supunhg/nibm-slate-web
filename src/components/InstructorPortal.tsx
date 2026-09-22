@@ -297,7 +297,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                   <span className="text-xs font-semibold text-indigo-400 block mt-0.5 truncate">
                     {shift.instructorName}
                   </span>
-                  {shift.instructorPhone && (
+                  {shift.instructorPhone && shift.instructorId !== currentUser.id && (
                     <a
                       href={`tel:${shift.instructorPhone.replace(/\s+/g, '')}`}
                       className="inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-white mt-1 bg-slate-900 px-2 py-0.5 rounded font-medium cursor-pointer transition-colors"
@@ -363,7 +363,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                           <UserCheck className="w-3.5 h-3.5 text-purple-600" />
                           <span>{a.instructorName}</span>
                         </div>
-                        {a.instructorPhone && (
+                        {a.instructorPhone && a.instructorId !== currentUser.id && (
                           <a
                             href={`tel:${a.instructorPhone.replace(/\s+/g, '')}`}
                             className="inline-flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-400 bg-purple-500/15 hover:bg-purple-500/25 px-2 py-0.5 rounded font-bold cursor-pointer transition-colors"
@@ -375,13 +375,16 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                         )}
                       </div>
 
-                      <h4 className="font-bold text-slate-200 text-sm">{a.moduleName}</h4>
+                      <h4 className="font-bold text-slate-200 text-sm">{a.moduleName ?? a.dutyType}</h4>
+                      {a.notes && <p className="text-xs text-slate-400 italic mt-1">{a.notes}</p>}
                     </div>
 
                     <div className="flex items-center justify-between text-xs text-slate-400 mt-4 pt-2.5 border-t border-slate-800">
-                      <span className="font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded text-[11px]">
-                        Batch: {a.batchName}
-                      </span>
+                      {a.batchName && (
+                        <span className="font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded text-[11px]">
+                          Batch: {a.batchName}
+                        </span>
+                      )}
                       {a.roomLab && (
                         <span className="flex items-center space-x-1 text-slate-500 font-medium text-[11px]">
                           <MapPin className="w-3.5 h-3.5 text-slate-400" />
@@ -428,7 +431,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
               {/* Select which instructor is applying */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Instructor Name (Cadre of 8)
+                  Instructor Name (Cadre of {allInstructors.length})
                 </label>
                 <select
                   value={applicantId}
@@ -436,7 +439,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                   className="w-full text-sm bg-slate-900 border border-slate-700 text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
                   required
                 >
-                  <option value="">Select your name from the 8 instructors...</option>
+                  <option value="">Select your name from the {allInstructors.length} instructors...</option>
                   {allInstructors.map((inst) => (
                     <option key={inst.id} value={inst.id}>
                       {inst.fullName} (@{inst.username})

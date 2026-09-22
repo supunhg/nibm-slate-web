@@ -35,10 +35,11 @@ export interface DutyAssignment {
   slotLabel: string; // "Morning (09:00 - 12:00)", "Afternoon (13:00 - 16:00)", "Sunday CCS (16:30 - 17:30)", etc.
   startTime: string; // "09:00", "13:00", "16:30"
   endTime: string;   // "12:00", "16:00", "17:30"
-  batchName: string; // e.g. "DSE 24.1F", "CCS", "DCSD 23.2"
-  moduleName: string;// e.g. "Database Systems", "Software Architecture"
+  dutyType: string;  // e.g. "Teaching Duty", "CGU (Career Guidance Unit Call Handling)", "Lab Inspection"
+  batchName?: string;// e.g. "DSE 24.1F", "CCS", "DCSD 23.2" -- only set for Teaching Duty
+  moduleName?: string;// e.g. "Database Systems", "Software Architecture" -- only set for Teaching Duty
   roomLab?: string;  // e.g. "Lab 02", "Hardware Lab"
-  notes?: string;
+  notes?: string;    // free-text details, used in place of batch/module for non-Teaching-Duty types
 }
 
 export interface NightShift {
@@ -114,4 +115,5 @@ export interface AcademicCatalog {
   batches: string[];
   rooms: string[];
   modules: string[];
+  dutyTypes: string[];
 }

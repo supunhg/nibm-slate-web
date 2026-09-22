@@ -86,8 +86,11 @@ model DutyAssignment {
   slotLabel    String
   startTime    String
   endTime      String
-  batchName    String
-  moduleName   String
+  // Free-text presets; only Teaching Duty uses batch/module -- other duty
+  // types (CGU call handling, lab inspection, ...) use `notes` instead.
+  dutyType     String     @default("Teaching Duty")
+  batchName    String?
+  moduleName   String?
   roomLab      String?
   notes        String?
   createdAt    DateTime   @default(now())
@@ -157,8 +160,9 @@ model AuditLog {
 // Singleton row (id is always "singleton") holding the dynamic academic
 // catalog of student batches and lecture rooms/labs.
 model Catalog {
-  id      String   @id @default("singleton")
-  batches String[]
-  rooms   String[]
-  modules String[] @default([])
+  id        String   @id @default("singleton")
+  batches   String[]
+  rooms     String[]
+  modules   String[] @default([])
+  dutyTypes String[] @default([])
 }

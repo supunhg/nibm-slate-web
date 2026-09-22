@@ -553,12 +553,14 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                             className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-2 shadow-2xs hover:shadow-xs transition-shadow"
                           >
                             <div className="text-xs font-bold text-blue-300 line-clamp-2 leading-snug">
-                              {duty.moduleName}
+                              {duty.moduleName ?? duty.dutyType}
                             </div>
                             <div className="mt-1 flex items-center justify-between text-[11px]">
-                              <span className="bg-blue-500/25 text-blue-400 font-bold px-1.5 py-0.2 rounded text-[10px]">
-                                {duty.batchName}
-                              </span>
+                              {duty.batchName && (
+                                <span className="bg-blue-500/25 text-blue-400 font-bold px-1.5 py-0.2 rounded text-[10px]">
+                                  {duty.batchName}
+                                </span>
+                              )}
                               {duty.roomLab && (
                                 <span className="text-slate-400 font-medium text-[10px] flex items-center gap-0.5">
                                   <MapPin className="w-2.5 h-2.5 text-slate-400" />
@@ -566,6 +568,9 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                                 </span>
                               )}
                             </div>
+                            {duty.notes && (
+                              <div className="mt-1 text-[10px] text-slate-400 italic line-clamp-2">{duty.notes}</div>
+                            )}
                             <div className="mt-1.5 pt-1 border-t border-blue-100 flex items-center space-x-1 text-[11px] font-semibold text-slate-200">
                               <div className="w-4 h-4 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-[9px]">
                                 {duty.instructorName ? duty.instructorName.substring(0, 1) : 'I'}
@@ -602,12 +607,14 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                             className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-2 shadow-2xs hover:shadow-xs transition-shadow"
                           >
                             <div className="text-xs font-bold text-amber-300 line-clamp-2 leading-snug">
-                              {duty.moduleName}
+                              {duty.moduleName ?? duty.dutyType}
                             </div>
                             <div className="mt-1 flex items-center justify-between text-[11px]">
-                              <span className="bg-amber-500/25 text-amber-400 font-bold px-1.5 py-0.2 rounded text-[10px]">
-                                {duty.batchName}
-                              </span>
+                              {duty.batchName && (
+                                <span className="bg-amber-500/25 text-amber-400 font-bold px-1.5 py-0.2 rounded text-[10px]">
+                                  {duty.batchName}
+                                </span>
+                              )}
                               {duty.roomLab && (
                                 <span className="text-slate-400 font-medium text-[10px] flex items-center gap-0.5">
                                   <MapPin className="w-2.5 h-2.5 text-slate-400" />
@@ -615,6 +622,9 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                                 </span>
                               )}
                             </div>
+                            {duty.notes && (
+                              <div className="mt-1 text-[10px] text-slate-400 italic line-clamp-2">{duty.notes}</div>
+                            )}
                             <div className="mt-1.5 pt-1 border-t border-amber-100 flex items-center space-x-1 text-[11px] font-semibold text-slate-200">
                               <div className="w-4 h-4 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center text-[9px]">
                                 {duty.instructorName ? duty.instructorName.substring(0, 1) : 'I'}
@@ -647,18 +657,23 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                               className="bg-purple-500/15 border border-purple-500/20 rounded-lg p-2 shadow-2xs"
                             >
                               <div className="text-xs font-bold text-purple-300 leading-snug">
-                                {duty.moduleName}
+                                {duty.moduleName ?? duty.dutyType}
                               </div>
                               <div className="mt-1 flex items-center justify-between text-[11px]">
-                                <span className="bg-purple-500/25 text-purple-400 font-black px-1.5 py-0.2 rounded text-[10px]">
-                                  {duty.batchName}
-                                </span>
+                                {duty.batchName && (
+                                  <span className="bg-purple-500/25 text-purple-400 font-black px-1.5 py-0.2 rounded text-[10px]">
+                                    {duty.batchName}
+                                  </span>
+                                )}
                                 {duty.roomLab && (
                                   <span className="text-slate-400 font-medium text-[10px]">
                                     {duty.roomLab}
                                   </span>
                                 )}
                               </div>
+                              {duty.notes && (
+                                <div className="mt-1 text-[10px] text-slate-400 italic line-clamp-2">{duty.notes}</div>
+                              )}
                               <div className="mt-1.5 pt-1 border-t border-purple-500/20 flex items-center space-x-1 text-[11px] font-semibold text-purple-300">
                                 <div className="w-4 h-4 rounded-full bg-purple-700 text-white font-bold flex items-center justify-center text-[9px]">
                                   {duty.instructorName ? duty.instructorName.substring(0, 1) : 'I'}

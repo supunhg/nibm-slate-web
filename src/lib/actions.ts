@@ -28,6 +28,9 @@ import {
   addCatalogModule,
   removeCatalogModule,
   updateCatalogModule,
+  addCatalogDutyType,
+  removeCatalogDutyType,
+  updateCatalogDutyType,
   verifyCredentials,
   createUser,
   changePassword,
@@ -283,6 +286,30 @@ export async function removeModuleAction(name: string) {
 export async function updateModuleAction(oldName: string, newName: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
   const res = await updateCatalogModule(oldName, newName, actor.id);
+  updateTag('catalog');
+  revalidatePath('/');
+  return res;
+}
+
+export async function addDutyTypeAction(name: string) {
+  const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
+  const res = await addCatalogDutyType(name, actor.id);
+  updateTag('catalog');
+  revalidatePath('/');
+  return res;
+}
+
+export async function removeDutyTypeAction(name: string) {
+  const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
+  const res = await removeCatalogDutyType(name, actor.id);
+  updateTag('catalog');
+  revalidatePath('/');
+  return res;
+}
+
+export async function updateDutyTypeAction(oldName: string, newName: string) {
+  const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
+  const res = await updateCatalogDutyType(oldName, newName, actor.id);
   updateTag('catalog');
   revalidatePath('/');
   return res;
