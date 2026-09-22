@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "tsx --env-file=.env scripts/verify-domain-rules.ts",
-    "db:seed": "tsx --env-file=.env scripts/seed.ts"
+    "db:seed": "tsx --env-file=.env scripts/seed.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@neon/config": "^1.7.2",
