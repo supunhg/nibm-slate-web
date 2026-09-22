@@ -417,8 +417,9 @@ function mapDuty(a: Prisma.DutyAssignmentGetPayload<{ include: { instructor: tru
     slotLabel: a.slotLabel,
     startTime: a.startTime,
     endTime: a.endTime,
-    batchName: a.batchName,
-    moduleName: a.moduleName,
+    dutyType: a.dutyType,
+    batchName: a.batchName ?? undefined,
+    moduleName: a.moduleName ?? undefined,
     roomLab: a.roomLab ?? undefined,
     notes: a.notes ?? undefined,
   };
@@ -447,8 +448,9 @@ export interface AddDutyInput {
   slotLabel: string;
   startTime: string;
   endTime: string;
-  batchName: string;
-  moduleName: string;
+  dutyType: string;
+  batchName?: string;
+  moduleName?: string;
   roomLab?: string;
   notes?: string;
 }
@@ -457,17 +459,25 @@ export async function addDutyAssignment(
   input: AddDutyInput,
   actorId?: string
 ): Promise<{ success: boolean; assignment?: DutyAssignment; error?: string }> {
-  const instructor = await getUserById(input.instructorId);
+  // These three reads are independent of each other -- firing them together
+  // instead of one round-trip at a time is most of what "assigning a duty
+  // takes time" was: 3 sequential DB round-trips collapse into 1 wait.
+  const [instructor, hasApprovedLeave, collision] = await Promise.all([
+    getUserById(input.instructorId),
+    prisma.leaveRequest.findFirst({
+      where: {
+        instructorId: input.instructorId,
+        status: 'APPROVED',
+        startDate: { lte: input.dutyDate },
+        endDate: { gte: input.dutyDate },
+      },
+    }),
+    prisma.dutyAssignment.findFirst({
+      where: { dutyDate: input.dutyDate, instructorId: input.instructorId, startTime: input.startTime },
+    }),
+  ]);
 
   // 1. Check Leave Precedence Rule
-  const hasApprovedLeave = await prisma.leaveRequest.findFirst({
-    where: {
-      instructorId: input.instructorId,
-      status: 'APPROVED',
-      startDate: { lte: input.dutyDate },
-      endDate: { gte: input.dutyDate },
-    },
-  });
   if (hasApprovedLeave) {
     return {
       success: false,
@@ -476,9 +486,6 @@ export async function addDutyAssignment(
   }
 
   // 2. Check Collision Rule: instructor already booked for this slot
-  const collision = await prisma.dutyAssignment.findFirst({
-    where: { dutyDate: input.dutyDate, instructorId: input.instructorId, startTime: input.startTime },
-  });
   if (collision) {
     return {
       success: false,
@@ -491,10 +498,12 @@ export async function addDutyAssignment(
     include: { instructor: true },
   });
 
+  const dutyLabel =
+    input.batchName || input.moduleName ? `${input.batchName || ''} / ${input.moduleName || ''}` : input.dutyType;
   await logAudit('DUTY_ASSIGNED', 'DutyAssignment', {
     userId: actorId,
     targetId: created.id,
-    metadata: `${instructor?.fullName || ''}: ${input.batchName} / ${input.moduleName} on ${input.dutyDate} (${input.startTime}-${input.endTime})`,
+    metadata: `${instructor?.fullName || ''}: ${dutyLabel} on ${input.dutyDate} (${input.startTime}-${input.endTime})`,
   });
   return { success: true, assignment: mapDuty(created) };
 }
@@ -507,10 +516,12 @@ export async function deleteDutyAssignment(assignmentId: string, actorId?: strin
   if (!removed) return false;
 
   await prisma.dutyAssignment.delete({ where: { id: assignmentId } });
+  const removedLabel =
+    removed.batchName || removed.moduleName ? `${removed.batchName || ''} / ${removed.moduleName || ''}` : removed.dutyType;
   await logAudit('DUTY_REMOVED', 'DutyAssignment', {
     userId: actorId,
     targetId: assignmentId,
-    metadata: `${removed.instructor?.fullName || 'Instructor'}: ${removed.batchName} / ${removed.moduleName} on ${removed.dutyDate} (${removed.startTime}-${removed.endTime})`,
+    metadata: `${removed.instructor?.fullName || 'Instructor'}: ${removedLabel} on ${removed.dutyDate} (${removed.startTime}-${removed.endTime})`,
   });
   return true;
 }
@@ -562,8 +573,9 @@ export async function cloneWeekAssignments(currentWeekStart: string, actorId?: s
         slotLabel: a.slotLabel,
         startTime: a.startTime,
         endTime: a.endTime,
-        batchName: a.batchName,
-        moduleName: a.moduleName,
+        dutyType: a.dutyType,
+        batchName: a.batchName ?? undefined,
+        moduleName: a.moduleName ?? undefined,
         roomLab: a.roomLab ?? undefined,
         notes: a.notes ?? undefined,
       },
@@ -886,7 +898,7 @@ async function getOrCreateCatalogRow() {
 
 export async function getCatalog(): Promise<AcademicCatalog> {
   const row = await getOrCreateCatalogRow();
-  return { batches: row.batches, rooms: row.rooms, modules: row.modules };
+  return { batches: row.batches, rooms: row.rooms, modules: row.modules, dutyTypes: row.dutyTypes };
 }
 
 // Batches/rooms/modules change rarely but getAppData() re-fetches the
@@ -1054,6 +1066,59 @@ export async function updateCatalogModule(
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', {
     userId: actorId,
     metadata: `Renamed module "${oldName}" to "${trimmed}"`,
+  });
+  return { success: true };
+}
+
+export async function addCatalogDutyType(name: string, actorId?: string): Promise<{ success: boolean; error?: string }> {
+  const trimmed = name.trim();
+  if (!trimmed) return { success: false, error: 'Duty type name cannot be empty.' };
+
+  const row = await getOrCreateCatalogRow();
+  if (row.dutyTypes.some((d) => d.toLowerCase() === trimmed.toLowerCase())) {
+    return { success: false, error: `Duty type "${trimmed}" already exists.` };
+  }
+  await prisma.catalog.update({ where: { id: CATALOG_ID }, data: { dutyTypes: { push: trimmed } } });
+  await logAudit('CATALOG_UPDATED', 'AcademicCatalog', { userId: actorId, metadata: `Added duty type "${trimmed}"` });
+  return { success: true };
+}
+
+export async function removeCatalogDutyType(name: string, actorId?: string): Promise<{ success: boolean; error?: string }> {
+  const row = await getOrCreateCatalogRow();
+  if (!row.dutyTypes.includes(name)) return { success: false, error: `Duty type "${name}" not found.` };
+
+  await prisma.catalog.update({
+    where: { id: CATALOG_ID },
+    data: { dutyTypes: row.dutyTypes.filter((d) => d !== name) },
+  });
+  await logAudit('CATALOG_UPDATED', 'AcademicCatalog', { userId: actorId, metadata: `Removed duty type "${name}"` });
+  return { success: true };
+}
+
+export async function updateCatalogDutyType(
+  oldName: string,
+  newName: string,
+  actorId?: string
+): Promise<{ success: boolean; error?: string }> {
+  const trimmed = newName.trim();
+  if (!trimmed) return { success: false, error: 'Duty type name cannot be empty.' };
+
+  const row = await getOrCreateCatalogRow();
+  if (!row.dutyTypes.includes(oldName)) return { success: false, error: `Duty type "${oldName}" not found.` };
+  if (
+    trimmed.toLowerCase() !== oldName.toLowerCase() &&
+    row.dutyTypes.some((d) => d.toLowerCase() === trimmed.toLowerCase())
+  ) {
+    return { success: false, error: `Duty type "${trimmed}" already exists.` };
+  }
+
+  await prisma.catalog.update({
+    where: { id: CATALOG_ID },
+    data: { dutyTypes: row.dutyTypes.map((d) => (d === oldName ? trimmed : d)) },
+  });
+  await logAudit('CATALOG_UPDATED', 'AcademicCatalog', {
+    userId: actorId,
+    metadata: `Renamed duty type "${oldName}" to "${trimmed}"`,
   });
   return { success: true };
 }

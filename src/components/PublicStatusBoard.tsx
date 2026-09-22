@@ -213,13 +213,18 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
 
                     <div className="text-xs text-slate-300 font-medium flex items-center space-x-1.5 mt-1">
                       <BookOpen className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                      <span>{assignment.moduleName}</span>
+                      <span>{assignment.moduleName ?? assignment.dutyType}</span>
                     </div>
+                    {assignment.notes && (
+                      <p className="text-xs text-slate-400 italic mt-1">{assignment.notes}</p>
+                    )}
 
                     <div className="flex items-center justify-between text-xs text-slate-400 mt-2.5 pt-2 border-t border-slate-800">
-                      <span className="text-[11px] font-bold text-indigo-300 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/40">
-                        Batch: {assignment.batchName}
-                      </span>
+                      {assignment.batchName && (
+                        <span className="text-[11px] font-bold text-indigo-300 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/40">
+                          Batch: {assignment.batchName}
+                        </span>
+                      )}
                       {assignment.roomLab && (
                         <span className="flex items-center space-x-1 text-slate-400 text-[11px]">
                           <MapPin className="w-3 h-3 text-slate-500" />

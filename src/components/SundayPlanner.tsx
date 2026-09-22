@@ -47,6 +47,9 @@ import {
   addModuleAction,
   removeModuleAction,
   updateModuleAction,
+  addDutyTypeAction,
+  removeDutyTypeAction,
+  updateDutyTypeAction,
 } from '@/lib/actions';
 import { useDialog } from './DialogProvider';
 
@@ -82,9 +85,11 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
 
   // Form state
   const [instructorId, setInstructorId] = useState<string>('');
+  const [dutyType, setDutyType] = useState<string>('Teaching Duty');
   const [batchName, setBatchName] = useState<string>('');
   const [moduleName, setModuleName] = useState<string>('');
   const [roomLab, setRoomLab] = useState<string>('Lab 01');
+  const [dutyNotes, setDutyNotes] = useState<string>('');
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [publishMessage, setPublishMessage] = useState<string | null>(null);
@@ -160,8 +165,10 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
   const handleOpenAddModal = (dateStr: string, slotLabel: string, startTime: string, endTime: string) => {
     setModalData({ date: dateStr, slotLabel, startTime, endTime });
     setInstructorId('');
+    setDutyType(catalog.dutyTypes[0] || 'Teaching Duty');
     setBatchName('');
     setModuleName('');
+    setDutyNotes('');
     setRepeatForOtherSlot(false);
     setFormError(null);
     setModalOpen(true);
@@ -182,9 +189,11 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
       slotLabel: targetSlotLabel,
       startTime: targetStartTime,
       endTime: targetEndTime,
+      dutyType: assignment.dutyType,
       batchName: assignment.batchName,
       moduleName: assignment.moduleName,
       roomLab: assignment.roomLab,
+      notes: assignment.notes,
     });
     setIsSubmitting(false);
 
@@ -203,17 +212,22 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
       setFormError('Please select an instructor');
       return;
     }
-    if (!batchName.trim()) {
+    const isTeaching = dutyType === 'Teaching Duty';
+    if (isTeaching && !batchName.trim()) {
       setFormError('Please enter a batch name');
       return;
     }
-    if (!moduleName.trim()) {
+    if (isTeaching && !moduleName.trim()) {
       setFormError('Please enter a module name');
       return;
     }
 
     setIsSubmitting(true);
     setFormError(null);
+
+    const dutyFields = isTeaching
+      ? { batchName: batchName.trim(), moduleName: moduleName.trim(), notes: undefined }
+      : { batchName: undefined, moduleName: undefined, notes: dutyNotes.trim() || undefined };
 
     const res = await addDutyAction({
       rosterWeekId: rosterWeek.id,
@@ -222,9 +236,9 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
       slotLabel: modalData.slotLabel,
       startTime: modalData.startTime,
       endTime: modalData.endTime,
-      batchName: batchName.trim(),
-      moduleName: moduleName.trim(),
+      dutyType,
       roomLab: roomLab.trim(),
+      ...dutyFields,
     });
 
     if (!res.success) {
@@ -247,9 +261,9 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
         slotLabel: otherSlotLabel,
         startTime: otherStartTime,
         endTime: otherEndTime,
-        batchName: batchName.trim(),
-        moduleName: moduleName.trim(),
+        dutyType,
         roomLab: roomLab.trim(),
+        ...dutyFields,
       });
     }
 
@@ -337,6 +351,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
   const [newBatchName, setNewBatchName] = useState('');
   const [newRoomName, setNewRoomName] = useState('');
   const [newModuleName, setNewModuleName] = useState('');
+  const [newDutyTypeName, setNewDutyTypeName] = useState('');
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [catalogBusy, setCatalogBusy] = useState(false);
 
@@ -427,6 +442,32 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
     onRefresh();
   };
 
+  const handleAddDutyType = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCatalogBusy(true);
+    setCatalogError(null);
+    const res = await addDutyTypeAction(newDutyTypeName);
+    setCatalogBusy(false);
+    if (!res.success) {
+      setCatalogError(res.error || 'Failed to add duty type');
+      return;
+    }
+    setNewDutyTypeName('');
+    onRefresh();
+  };
+
+  const handleRemoveDutyType = async (name: string) => {
+    setCatalogBusy(true);
+    setCatalogError(null);
+    const res = await removeDutyTypeAction(name);
+    setCatalogBusy(false);
+    if (!res.success) {
+      setCatalogError(res.error || 'Failed to remove duty type');
+      return;
+    }
+    onRefresh();
+  };
+
   // Inline "save to list" from the Assign Teaching Duty form itself -- lets
   // a demonstrator type a one-off module/room and permanently add it to the
   // catalog without leaving the form to open the separate manager.
@@ -458,12 +499,12 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
   // one shared bit of state since it's the same edit-in-place flow for all
   // three lists, just dispatched to a different action per kind.
   const [editingCatalogItem, setEditingCatalogItem] = useState<{
-    kind: 'batch' | 'room' | 'module';
+    kind: 'batch' | 'room' | 'module' | 'dutyType';
     original: string;
   } | null>(null);
   const [editCatalogValue, setEditCatalogValue] = useState('');
 
-  const handleStartEditCatalogItem = (kind: 'batch' | 'room' | 'module', name: string) => {
+  const handleStartEditCatalogItem = (kind: 'batch' | 'room' | 'module' | 'dutyType', name: string) => {
     setEditingCatalogItem({ kind, original: name });
     setEditCatalogValue(name);
     setCatalogError(null);
@@ -484,7 +525,9 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
         ? await updateBatchAction(original, editCatalogValue)
         : kind === 'room'
           ? await updateRoomAction(original, editCatalogValue)
-          : await updateModuleAction(original, editCatalogValue);
+          : kind === 'module'
+            ? await updateModuleAction(original, editCatalogValue)
+            : await updateDutyTypeAction(original, editCatalogValue);
     setCatalogBusy(false);
     if (!res.success) {
       setCatalogError(res.error || 'Failed to update entry.');
@@ -525,7 +568,11 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
         const items: string[] = dutyAssignments
           .filter((a) => a.instructorId === instId && a.dutyDate === day.dateStr)
           .sort((a, b) => a.startTime.localeCompare(b.startTime))
-          .map((a) => `${a.startTime}-${a.endTime} ${a.batchName} — ${a.moduleName}${a.roomLab ? ` (${a.roomLab})` : ''}`);
+          .map((a) => {
+            const label = a.batchName || a.moduleName ? `${a.batchName || ''} — ${a.moduleName || ''}` : a.dutyType;
+            const details = a.notes ? ` [${a.notes}]` : '';
+            return `${a.startTime}-${a.endTime} ${label}${a.roomLab ? ` (${a.roomLab})` : ''}${details}`;
+          });
 
         if (nightShifts.some((s) => s.instructorId === instId && s.shiftDate === day.dateStr)) {
           items.push('🌙 Night Duty');
@@ -773,7 +820,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
             </h3>
           </div>
           <span className="text-xs text-slate-500">
-            Keep distribution balanced across all 8 instructors
+            Keep distribution balanced across all {allInstructors.length} instructors
           </span>
         </div>
 
@@ -932,12 +979,17 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                               <div className="font-bold text-emerald-300 truncate pr-12">
                                 {assignment.instructorName}
                               </div>
-                              <div className="text-[11px] font-semibold text-emerald-400 truncate">
-                                {assignment.batchName}
-                              </div>
+                              {assignment.batchName && (
+                                <div className="text-[11px] font-semibold text-emerald-400 truncate">
+                                  {assignment.batchName}
+                                </div>
+                              )}
                               <div className="text-[10px] text-slate-400 truncate">
-                                {assignment.moduleName}
+                                {assignment.moduleName ?? assignment.dutyType}
                               </div>
+                              {assignment.notes && (
+                                <div className="text-[9px] text-slate-500 italic truncate">{assignment.notes}</div>
+                              )}
                               {assignment.roomLab && (
                                 <div className="text-[9px] text-slate-500 mt-0.5">
                                   📍 {assignment.roomLab}
@@ -1041,12 +1093,17 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                               <div className="font-bold text-blue-300 truncate pr-12">
                                 {assignment.instructorName}
                               </div>
-                              <div className="text-[11px] font-semibold text-blue-400 truncate">
-                                {assignment.batchName}
-                              </div>
+                              {assignment.batchName && (
+                                <div className="text-[11px] font-semibold text-blue-400 truncate">
+                                  {assignment.batchName}
+                                </div>
+                              )}
                               <div className="text-[10px] text-slate-400 truncate">
-                                {assignment.moduleName}
+                                {assignment.moduleName ?? assignment.dutyType}
                               </div>
+                              {assignment.notes && (
+                                <div className="text-[9px] text-slate-500 italic truncate">{assignment.notes}</div>
+                              )}
                               {assignment.roomLab && (
                                 <div className="text-[9px] text-slate-500 mt-0.5">
                                   📍 {assignment.roomLab}
@@ -1123,12 +1180,17 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                             <div className="font-bold text-purple-300 truncate pr-3">
                               {assignment.instructorName}
                             </div>
-                            <div className="text-[11px] font-semibold text-purple-400 truncate">
-                              {assignment.batchName}
-                            </div>
+                            {assignment.batchName && (
+                              <div className="text-[11px] font-semibold text-purple-400 truncate">
+                                {assignment.batchName}
+                              </div>
+                            )}
                             <div className="text-[10px] text-slate-300 truncate">
-                              {assignment.moduleName}
+                              {assignment.moduleName ?? assignment.dutyType}
                             </div>
+                            {assignment.notes && (
+                              <div className="text-[9px] text-slate-400 italic truncate">{assignment.notes}</div>
+                            )}
                             {assignment.roomLab && (
                               <div className="text-[9px] text-slate-500 mt-0.5">
                                 📍 {assignment.roomLab}
@@ -1182,7 +1244,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
           <div className="bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-800 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div>
-                <h3 className="text-lg font-bold text-slate-100">Assign Teaching Duty</h3>
+                <h3 className="text-lg font-bold text-slate-100">Assign {dutyType || 'Duty'}</h3>
                 <p className="text-xs text-slate-500 mt-0.5">
                   {modalData.date} • {modalData.slotLabel}
                 </p>
@@ -1206,7 +1268,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
               {/* Select Instructor */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
-                  Assigned Instructor (Cadre of 8)
+                  Assigned Instructor (Cadre of {allInstructors.length})
                 </label>
                 <select
                   value={instructorId}
@@ -1226,101 +1288,137 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                 </select>
               </div>
 
-              {/* Free-form Batch Name + Quick Suggestion Tags */}
+              {/* Duty Type: determines whether Batch/Module or free-text Details show below */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
-                  Batch Code / Group
+                  Duty Type
                 </label>
-                <div className="flex gap-1.5">
-                  <input
-                    type="text"
-                    list="batch-catalog-options"
-                    placeholder="e.g. DSE 24.1F or CCS Batch"
-                    value={batchName}
-                    onChange={(e) => setBatchName(e.target.value)}
-                    className="flex-1 min-w-0 text-sm bg-slate-900 border border-slate-700 text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    required
-                  />
-                  {batchName.trim() &&
-                    !catalog.batches.some((b) => b.toLowerCase() === batchName.trim().toLowerCase()) && (
-                      <button
-                        type="button"
-                        onClick={handleSaveBatchInline}
-                        disabled={catalogBusy}
-                        title="Save this batch to the catalog permanently"
-                        className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-800 hover:bg-emerald-600 disabled:opacity-50 text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Save</span>
-                      </button>
-                    )}
-                </div>
-                <datalist id="batch-catalog-options">
-                  {catalog.batches.map((b) => (
-                    <option key={b} value={b} />
+                <select
+                  value={dutyType}
+                  onChange={(e) => setDutyType(e.target.value)}
+                  className="w-full text-sm bg-slate-900 border border-slate-700 text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                  required
+                >
+                  {catalog.dutyTypes.map((dt) => (
+                    <option key={dt} value={dt}>
+                      {dt}
+                    </option>
                   ))}
-                </datalist>
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {catalog.batches.map((b) => (
-                    <button
-                      key={b}
-                      type="button"
-                      onClick={() => setBatchName(b)}
-                      className="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded-md transition-colors"
-                    >
-                      {b}
-                    </button>
-                  ))}
-                </div>
+                </select>
               </div>
 
-              {/* Module: pick from the catalog, type a custom one, or save a new one */}
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
-                  Module / Subject
-                </label>
-                <div className="flex gap-1.5">
-                  <input
-                    type="text"
-                    list="module-catalog-options"
-                    placeholder="e.g. Database Management Systems"
-                    value={moduleName}
-                    onChange={(e) => setModuleName(e.target.value)}
-                    className="flex-1 min-w-0 text-sm bg-slate-900 border border-slate-700 text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    required
+              {dutyType === 'Teaching Duty' ? (
+                <>
+                  {/* Free-form Batch Name + Quick Suggestion Tags */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+                      Batch Code / Group
+                    </label>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        list="batch-catalog-options"
+                        placeholder="e.g. DSE 24.1F or CCS Batch"
+                        value={batchName}
+                        onChange={(e) => setBatchName(e.target.value)}
+                        className="flex-1 min-w-0 text-sm bg-slate-900 border border-slate-700 text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        required
+                      />
+                      {batchName.trim() &&
+                        !catalog.batches.some((b) => b.toLowerCase() === batchName.trim().toLowerCase()) && (
+                          <button
+                            type="button"
+                            onClick={handleSaveBatchInline}
+                            disabled={catalogBusy}
+                            title="Save this batch to the catalog permanently"
+                            className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-800 hover:bg-emerald-600 disabled:opacity-50 text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Save</span>
+                          </button>
+                        )}
+                    </div>
+                    <datalist id="batch-catalog-options">
+                      {catalog.batches.map((b) => (
+                        <option key={b} value={b} />
+                      ))}
+                    </datalist>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {catalog.batches.map((b) => (
+                        <button
+                          key={b}
+                          type="button"
+                          onClick={() => setBatchName(b)}
+                          className="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded-md transition-colors"
+                        >
+                          {b}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Module: pick from the catalog, type a custom one, or save a new one */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+                      Module / Subject
+                    </label>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        list="module-catalog-options"
+                        placeholder="e.g. Database Management Systems"
+                        value={moduleName}
+                        onChange={(e) => setModuleName(e.target.value)}
+                        className="flex-1 min-w-0 text-sm bg-slate-900 border border-slate-700 text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        required
+                      />
+                      {moduleName.trim() &&
+                        !catalog.modules.some((m) => m.toLowerCase() === moduleName.trim().toLowerCase()) && (
+                          <button
+                            type="button"
+                            onClick={handleSaveModuleInline}
+                            disabled={catalogBusy}
+                            title="Save this module to the catalog permanently"
+                            className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-800 hover:bg-emerald-600 disabled:opacity-50 text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Save</span>
+                          </button>
+                        )}
+                    </div>
+                    <datalist id="module-catalog-options">
+                      {catalog.modules.map((m) => (
+                        <option key={m} value={m} />
+                      ))}
+                    </datalist>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {catalog.modules.slice(0, 4).map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => setModuleName(m)}
+                          className="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded-md transition-colors truncate max-w-[200px]"
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+                    Details
+                  </label>
+                  <textarea
+                    value={dutyNotes}
+                    onChange={(e) => setDutyNotes(e.target.value)}
+                    placeholder={`e.g. ${dutyType === 'Lab Inspection' ? 'Quarterly check, Lab 03' : 'Fielding calls 9-12'}`}
+                    rows={3}
+                    className="w-full text-sm bg-slate-900 border border-slate-700 text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
                   />
-                  {moduleName.trim() &&
-                    !catalog.modules.some((m) => m.toLowerCase() === moduleName.trim().toLowerCase()) && (
-                      <button
-                        type="button"
-                        onClick={handleSaveModuleInline}
-                        disabled={catalogBusy}
-                        title="Save this module to the catalog permanently"
-                        className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-800 hover:bg-emerald-600 disabled:opacity-50 text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Save</span>
-                      </button>
-                    )}
                 </div>
-                <datalist id="module-catalog-options">
-                  {catalog.modules.map((m) => (
-                    <option key={m} value={m} />
-                  ))}
-                </datalist>
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {catalog.modules.slice(0, 4).map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setModuleName(m)}
-                      className="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded-md transition-colors truncate max-w-[200px]"
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              )}
 
               {/* Room/Lab: pick from the catalog, type a custom one, or save a new one */}
               <div>
@@ -1518,7 +1616,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
             onClick={() => setCatalogModalOpen(false)}
             className="absolute inset-0 cursor-default"
           />
-          <div className="relative bg-slate-900 rounded-2xl max-w-4xl w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl border border-slate-800 animate-in fade-in zoom-in-95 duration-150">
+          <div className="relative bg-slate-900 rounded-2xl max-w-6xl w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl border border-slate-800 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div>
                 <div className="flex items-center space-x-2 text-slate-500 text-xs font-bold uppercase tracking-wider">
@@ -1527,7 +1625,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                 </div>
                 <h3 className="text-lg font-bold text-slate-100">Academic Catalog Manager</h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Manage the student batches, modules, and lecture rooms/labs offered as presets when assigning duties.
+                  Manage the student batches, modules, lecture rooms/labs, and duty types offered as presets when assigning duties.
                 </p>
               </div>
               <button
@@ -1545,7 +1643,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
               </div>
             )}
 
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Batches Section */}
               <div>
                 <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
@@ -1805,6 +1903,96 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                               disabled={catalogBusy}
                               className="shrink-0 text-slate-400 hover:text-rose-600 disabled:opacity-50 cursor-pointer transition-colors"
                               title={`Remove ${m}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    )
+                  )}
+                </div>
+              </div>
+
+              {/* Duty Types Section */}
+              <div>
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+                  Duty Types ({catalog.dutyTypes.length})
+                </h4>
+                <form onSubmit={handleAddDutyType} className="flex gap-1.5 mb-3">
+                  <input
+                    type="text"
+                    value={newDutyTypeName}
+                    onChange={(e) => setNewDutyTypeName(e.target.value)}
+                    placeholder="e.g. Exam Invigilation"
+                    className="flex-1 min-w-0 text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={catalogBusy || !newDutyTypeName.trim()}
+                    className="shrink-0 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </form>
+                <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                  {catalog.dutyTypes.length === 0 ? (
+                    <p className="text-xs text-slate-400 italic">No duty types yet. Add one above.</p>
+                  ) : (
+                    catalog.dutyTypes.map((dt) =>
+                      editingCatalogItem?.kind === 'dutyType' && editingCatalogItem.original === dt ? (
+                        <div
+                          key={dt}
+                          className="flex items-center justify-between gap-1.5 bg-slate-800/60 border border-emerald-500/60 rounded-lg px-2.5 py-1.5"
+                        >
+                          <input
+                            type="text"
+                            value={editCatalogValue}
+                            onChange={(e) => setEditCatalogValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveEditCatalogItem();
+                              if (e.key === 'Escape') handleCancelEditCatalogItem();
+                            }}
+                            autoFocus
+                            className="flex-1 min-w-0 text-xs bg-slate-950 border border-slate-700 text-white rounded px-2 py-1 focus:outline-none"
+                          />
+                          <button
+                            onClick={handleSaveEditCatalogItem}
+                            disabled={catalogBusy}
+                            className="shrink-0 text-emerald-400 hover:text-emerald-300 disabled:opacity-50 cursor-pointer"
+                            title="Save"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={handleCancelEditCatalogItem}
+                            disabled={catalogBusy}
+                            className="shrink-0 text-slate-400 hover:text-slate-200 disabled:opacity-50 cursor-pointer"
+                            title="Cancel"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          key={dt}
+                          className="flex items-center justify-between bg-slate-800/60 border border-slate-800 rounded-lg px-2.5 py-1.5"
+                        >
+                          <span className="text-xs font-semibold text-slate-300 truncate">{dt}</span>
+                          <div className="flex items-center gap-2 ml-2 shrink-0">
+                            <button
+                              onClick={() => handleStartEditCatalogItem('dutyType', dt)}
+                              disabled={catalogBusy}
+                              className="text-slate-400 hover:text-blue-400 disabled:opacity-50 cursor-pointer transition-colors"
+                              title={`Edit ${dt}`}
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleRemoveDutyType(dt)}
+                              disabled={catalogBusy}
+                              className="shrink-0 text-slate-400 hover:text-rose-600 disabled:opacity-50 cursor-pointer transition-colors"
+                              title={`Remove ${dt}`}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>

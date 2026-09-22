@@ -60,6 +60,7 @@ async function main() {
       slotLabel: 'Morning (09:00 - 12:00)',
       startTime: '09:00',
       endTime: '12:00',
+      dutyType: 'Teaching Duty',
       batchName: 'DSE 24.1F',
       moduleName: 'Database Systems',
     });
@@ -73,6 +74,7 @@ async function main() {
       slotLabel: 'Morning (09:00 - 12:00)',
       startTime: '09:00',
       endTime: '12:00',
+      dutyType: 'Teaching Duty',
       batchName: 'DCSD 24.1P',
       moduleName: 'Algorithms',
     });
@@ -96,6 +98,7 @@ async function main() {
       slotLabel: 'Afternoon (13:00 - 16:00)',
       startTime: '13:00',
       endTime: '16:00',
+      dutyType: 'Teaching Duty',
       batchName: 'HDCN 23.2',
       moduleName: 'Networks',
     });
