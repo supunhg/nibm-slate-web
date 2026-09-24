@@ -16,6 +16,7 @@ import {
   Phone,
   CalendarPlus,
   Link2,
+  Download,
 } from 'lucide-react';
 import { submitLeaveAction } from '@/lib/actions';
 import { useDialog } from './DialogProvider';
@@ -49,11 +50,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
   // for a real individual account, and the full roster for the shared kiosk.
   const [selectedInstructorId, setSelectedInstructorId] = useState<string>(isSharedKiosk ? 'ALL' : currentUser.id);
 
-  // Leave Form State -- pre-filled with the signed-in instructor's own name
-  // so they don't have to find themselves in the list every time; the
-  // shared kiosk account still starts blank since it applies on anyone's
-  // behalf.
-  const [applicantId, setApplicantId] = useState<string>(isSharedKiosk ? '' : currentUser.id);
+  // Leave Form State -- filed strictly for the currently authenticated instructor
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [reason, setReason] = useState<string>('');
@@ -72,8 +69,11 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
   const getGoogleCalendarSubscribeUrl = (instId: string): string | null => {
     const feedUrl = getCalendarFeedUrl(instId);
     if (!feedUrl) return null;
-    const webcalUrl = feedUrl.replace(/^https?:\/\//, 'webcal://');
-    return `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcalUrl)}`;
+    return `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(feedUrl)}`;
+  };
+
+  const getDownloadIcsUrl = (instId: string): string => {
+    return `/api/calendar/${instId}`;
   };
 
   const handleCopyFeedLink = async (instId: string) => {
@@ -86,6 +86,34 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
     } catch {
       await notify('Could not copy link. Long-press the Subscribe button and copy the URL manually.');
     }
+  };
+
+  // 1-Click direct add to Google Calendar for a specific lecture/session
+  const getGoogleCalendarEventUrl = (a: DutyAssignment): string => {
+    const summary = a.batchName || a.moduleName ? `${a.batchName || ''} — ${a.moduleName || ''}` : a.dutyType;
+    const details = [a.slotLabel, a.notes, 'NIBM Instructor Roster'].filter(Boolean).join('\n');
+    const location = a.roomLab || '';
+
+    // Sri Lanka is UTC+5:30 with no DST
+    const toUTC = (dateStr: string, timeStr: string) => {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const [hour, minute] = timeStr.split(':').map(Number);
+      const utcMs = Date.UTC(year, month - 1, day, hour, minute) - 5.5 * 60 * 60 * 1000;
+      return new Date(utcMs).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    };
+
+    const startUTC = toUTC(a.dutyDate, a.startTime);
+    const endUTC = toUTC(a.dutyDate, a.endTime);
+
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: summary,
+      dates: `${startUTC}/${endUTC}`,
+      details,
+      location,
+    });
+
+    return `https://calendar.google.com/calendar/render?${params.toString()}`;
   };
 
   // Filter assignments based on dropdown selection
@@ -112,10 +140,6 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
 
   const handleApplyLeave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!applicantId) {
-      setErrorMessage('Please select which instructor is applying for leave');
-      return;
-    }
     if (!startDate) {
       setErrorMessage('Please pick a start date');
       return;
@@ -134,15 +158,13 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
     setErrorMessage(null);
 
     try {
-      await submitLeaveAction(applicantId, startDate, end, reason.trim());
-      const inst = allInstructors.find((i) => i.id === applicantId);
+      await submitLeaveAction(currentUser.id, startDate, end, reason.trim());
       setSuccessMessage(
-        `Holiday application for ${inst?.fullName || 'Instructor'} submitted! It's now awaiting review in the Leave Approvals queue.`
+        `Holiday application submitted! It's now awaiting review in the Leave Approvals queue.`
       );
       setReason('');
       setStartDate('');
       setEndDate('');
-      setApplicantId(isSharedKiosk ? '' : currentUser.id);
       onRefresh();
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch {
@@ -187,7 +209,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
               onChange={(e) => setSelectedInstructorId(e.target.value)}
               className="text-xs bg-slate-900 border border-slate-700 text-white font-semibold rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
             >
-              <option value="ALL">All 8 Instructors (Full Team Roster)</option>
+              <option value="ALL">All {allInstructors.length} Instructors (Full Cadre Roster)</option>
               {allInstructors.map((inst) => (
                 <option key={inst.id} value={inst.id}>
                   {inst.fullName}
@@ -196,21 +218,30 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
             </select>
 
             {selectedInstructorId !== 'ALL' ? (
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <a
                   href={getGoogleCalendarSubscribeUrl(selectedInstructorId) || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-1.5 text-[11px] font-bold bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-xl transition-colors cursor-pointer"
-                  title="Opens Google Calendar's 'Add by URL' subscription flow"
+                  title="Subscribe to entire live calendar in Google Calendar"
                 >
                   <CalendarPlus className="w-3.5 h-3.5" />
                   <span>Subscribe to Google Calendar</span>
                 </a>
+                <a
+                  href={getDownloadIcsUrl(selectedInstructorId)}
+                  download={`nibm-roster-${selectedInstructorId}.ics`}
+                  className="flex items-center space-x-1.5 text-[11px] font-bold bg-slate-900 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-xl transition-colors cursor-pointer"
+                  title="Download .ics file to import directly into Google Calendar, Outlook, or Apple Calendar"
+                >
+                  <Download className="w-3.5 h-3.5 text-slate-300" />
+                  <span>Download .ics</span>
+                </a>
                 <button
                   type="button"
                   onClick={() => handleCopyFeedLink(selectedInstructorId)}
-                  title="Copy the iCal feed link (for Apple Calendar / Outlook)"
+                  title="Copy the iCal feed link (for Apple Calendar / Outlook / webcal)"
                   className={`flex items-center justify-center w-8 h-8 rounded-xl transition-colors cursor-pointer ${
                     feedLinkCopied
                       ? 'bg-emerald-600 text-white'
@@ -226,6 +257,15 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
               </span>
             )}
           </div>
+          {selectedInstructorId !== 'ALL' && (
+            <div className="mt-2.5 p-2.5 bg-slate-950/60 border border-slate-800 rounded-xl flex items-start gap-2 text-[11px] text-slate-300">
+              <Calendar className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
+              <p>
+                <span className="font-semibold text-white">Google Calendar Sync Notice: </span>
+                Google Calendar refreshes subscribed URL calendars automatically every 8–24 hours. For an <span className="text-emerald-400 font-semibold">immediate update</span>, click <span className="font-semibold text-blue-300">+ Google Cal</span> on any session below or use <span className="font-semibold text-slate-200">Download .ics</span> to import directly.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Sub Navigation */}
@@ -379,18 +419,30 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                       {a.notes && <p className="text-xs text-slate-400 italic mt-1">{a.notes}</p>}
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-slate-400 mt-4 pt-2.5 border-t border-slate-800">
-                      {a.batchName && (
-                        <span className="font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded text-[11px]">
-                          Batch: {a.batchName}
-                        </span>
-                      )}
-                      {a.roomLab && (
-                        <span className="flex items-center space-x-1 text-slate-500 font-medium text-[11px]">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{a.roomLab}</span>
-                        </span>
-                      )}
+                    <div className="flex items-center justify-between text-xs text-slate-400 mt-4 pt-2.5 border-t border-slate-800 gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {a.batchName && (
+                          <span className="font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded text-[11px]">
+                            Batch: {a.batchName}
+                          </span>
+                        )}
+                        {a.roomLab && (
+                          <span className="flex items-center space-x-1 text-slate-500 font-medium text-[11px]">
+                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                            <span>{a.roomLab}</span>
+                          </span>
+                        )}
+                      </div>
+                      <a
+                        href={getGoogleCalendarEventUrl(a)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                        title="Instantly add this session to your personal Google Calendar"
+                      >
+                        <CalendarPlus className="w-3 h-3" />
+                        <span>+ Google Cal</span>
+                      </a>
                     </div>
                   </div>
                 ))}
@@ -409,7 +461,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
               Apply for Holiday / Leave
             </h3>
             <p className="text-xs text-slate-500 mb-5">
-              Select your name and enter your leave request. It will appear in the Leave Approvals queue for the
+              Enter your leave request dates and reason. It will appear in the Leave Approvals queue for the
               Demonstrator, Executive, or Admin to review.
             </p>
 
@@ -428,24 +480,20 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
             )}
 
             <form onSubmit={handleApplyLeave} className="space-y-4">
-              {/* Select which instructor is applying */}
+              {/* Applicant Name: Strictly locked to authenticated caller */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Instructor Name (Cadre of {allInstructors.length})
+                  Applicant (Your Account)
                 </label>
-                <select
-                  value={applicantId}
-                  onChange={(e) => setApplicantId(e.target.value)}
-                  className="w-full text-sm bg-slate-900 border border-slate-700 text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
-                  required
-                >
-                  <option value="">Select your name from the {allInstructors.length} instructors...</option>
-                  {allInstructors.map((inst) => (
-                    <option key={inst.id} value={inst.id}>
-                      {inst.fullName} (@{inst.username})
-                    </option>
-                  ))}
-                </select>
+                <div className="w-full text-sm bg-slate-950/80 border border-slate-700 text-slate-100 rounded-xl p-2.5 flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-bold text-white">{currentUser.fullName}</span>
+                    <span className="text-xs text-slate-400">(@{currentUser.username})</span>
+                  </div>
+                  <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded font-medium border border-purple-500/30">
+                    Self-Service Only
+                  </span>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
