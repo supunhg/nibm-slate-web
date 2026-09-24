@@ -85,7 +85,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
 
   // Form state
   const [instructorId, setInstructorId] = useState<string>('');
-  const [dutyType, setDutyType] = useState<string>('Teaching Duty');
+  const [dutyType, setDutyType] = useState<string>('');
   const [batchName, setBatchName] = useState<string>('');
   const [moduleName, setModuleName] = useState<string>('');
   const [roomLab, setRoomLab] = useState<string>('Lab 01');
@@ -165,7 +165,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
   const handleOpenAddModal = (dateStr: string, slotLabel: string, startTime: string, endTime: string) => {
     setModalData({ date: dateStr, slotLabel, startTime, endTime });
     setInstructorId('');
-    setDutyType(catalog.dutyTypes[0] || 'Teaching Duty');
+    setDutyType('');
     setBatchName('');
     setModuleName('');
     setDutyNotes('');
@@ -1345,7 +1345,11 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                       key={dt}
                       type="button"
                       onClick={() => setDutyType(dt)}
-                      className="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded-md transition-colors"
+                      className={`text-[11px] px-2 py-0.5 rounded-md transition-colors ${
+                        dutyType.trim().toLowerCase() === dt.toLowerCase()
+                          ? 'bg-emerald-600 text-white font-medium'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                      }`}
                     >
                       {dt}
                     </button>
@@ -1353,7 +1357,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                 </div>
               </div>
 
-              {dutyType.trim().toLowerCase() === 'teaching duty' ? (
+              {dutyType.trim() === '' || dutyType.trim().toLowerCase() === 'teaching duty' ? (
                 <>
                   {/* Free-form Batch Name + Quick Suggestion Tags */}
                   <div>
