@@ -212,7 +212,12 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
       setFormError('Please select an instructor');
       return;
     }
-    const isTeaching = dutyType === 'Teaching Duty';
+    const trimmedDuty = dutyType.trim();
+    if (!trimmedDuty) {
+      setFormError('Please enter a duty type');
+      return;
+    }
+    const isTeaching = trimmedDuty.toLowerCase() === 'teaching duty';
     if (isTeaching && !batchName.trim()) {
       setFormError('Please enter a batch name');
       return;
@@ -229,6 +234,8 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
       ? { batchName: batchName.trim(), moduleName: moduleName.trim(), notes: undefined }
       : { batchName: undefined, moduleName: undefined, notes: dutyNotes.trim() || undefined };
 
+    const effectiveDutyType = isTeaching ? 'Teaching Duty' : trimmedDuty;
+
     const res = await addDutyAction({
       rosterWeekId: rosterWeek.id,
       instructorId,
@@ -236,7 +243,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
       slotLabel: modalData.slotLabel,
       startTime: modalData.startTime,
       endTime: modalData.endTime,
-      dutyType,
+      dutyType: effectiveDutyType,
       roomLab: roomLab.trim(),
       ...dutyFields,
     });
@@ -261,7 +268,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
         slotLabel: otherSlotLabel,
         startTime: otherStartTime,
         endTime: otherEndTime,
-        dutyType,
+        dutyType: effectiveDutyType,
         roomLab: roomLab.trim(),
         ...dutyFields,
       });
@@ -493,6 +500,16 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
     setCatalogBusy(false);
     if (res.success) onRefresh();
     else await notify(res.error || 'Failed to save room/lab to the catalog.');
+  };
+
+  const handleSaveDutyTypeInline = async () => {
+    const trimmed = dutyType.trim();
+    if (!trimmed) return;
+    setCatalogBusy(true);
+    const res = await addDutyTypeAction(trimmed);
+    setCatalogBusy(false);
+    if (res.success) onRefresh();
+    else await notify(res.error || 'Failed to save duty type to the catalog.');
   };
 
   // Inline rename for an existing catalog entry (batch/room/module) --
@@ -1288,26 +1305,55 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                 </select>
               </div>
 
-              {/* Duty Type: determines whether Batch/Module or free-text Details show below */}
+              {/* Duty Type: pick from catalog, type custom, or save new */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
                   Duty Type
                 </label>
-                <select
-                  value={dutyType}
-                  onChange={(e) => setDutyType(e.target.value)}
-                  className="w-full text-sm bg-slate-900 border border-slate-700 text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
-                  required
-                >
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    list="duty-type-catalog-options"
+                    placeholder="e.g. Teaching Duty or CGU Call Handling"
+                    value={dutyType}
+                    onChange={(e) => setDutyType(e.target.value)}
+                    className="flex-1 min-w-0 text-sm bg-slate-900 border border-slate-700 text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    required
+                  />
+                  {dutyType.trim() &&
+                    !catalog.dutyTypes.some((dt) => dt.toLowerCase() === dutyType.trim().toLowerCase()) && (
+                      <button
+                        type="button"
+                        onClick={handleSaveDutyTypeInline}
+                        disabled={catalogBusy}
+                        title="Save this duty type to the catalog permanently"
+                        className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-800 hover:bg-emerald-600 disabled:opacity-50 text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Save</span>
+                      </button>
+                    )}
+                </div>
+                <datalist id="duty-type-catalog-options">
                   {catalog.dutyTypes.map((dt) => (
-                    <option key={dt} value={dt}>
-                      {dt}
-                    </option>
+                    <option key={dt} value={dt} />
                   ))}
-                </select>
+                </datalist>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {catalog.dutyTypes.map((dt) => (
+                    <button
+                      key={dt}
+                      type="button"
+                      onClick={() => setDutyType(dt)}
+                      className="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded-md transition-colors"
+                    >
+                      {dt}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {dutyType === 'Teaching Duty' ? (
+              {dutyType.trim().toLowerCase() === 'teaching duty' ? (
                 <>
                   {/* Free-form Batch Name + Quick Suggestion Tags */}
                   <div>

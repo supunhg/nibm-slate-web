@@ -87,7 +87,8 @@ async function main() {
     assert(leaveReq.status === 'PENDING', 'Leave request created in PENDING state');
 
     // Yasith / Dr. Thisara approves
-    const approvedLeave = await reviewLeaveRequest(leaveReq.id, 'APPROVED', 'user-yasith', 'Approved for health reason');
+    const reviewer = instructors.find((i) => i.role === 'DEMONSTRATOR')?.id || inst1.id;
+    const approvedLeave = await reviewLeaveRequest(leaveReq.id, 'APPROVED', reviewer, 'Approved for health reason');
     assert(approvedLeave.status === 'APPROVED', 'Leave transitioned to APPROVED');
 
     // Attempt assigning duty to inst2 on leave date

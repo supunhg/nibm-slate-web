@@ -318,12 +318,22 @@ export async function updateDutyTypeAction(oldName: string, newName: string) {
 // ----------------------------------------------------
 // Leave Requests
 // ----------------------------------------------------
-// Any signed-in user may submit a leave request. This intentionally does
-// NOT require instructorId === the caller: the shared "Instructors Portal"
-// kiosk account submits leave on behalf of whichever instructor is present.
-export async function submitLeaveAction(instructorId: string, startDate: string, endDate: string, reason: string) {
-  await requireAuth();
-  const leave = await createLeaveRequest(instructorId, startDate, endDate, reason);
+// Security Invariant: No user (not even an admin) can apply for leave on
+// someone else's behalf. The leave request is ALWAYS filed strictly for the
+// currently authenticated session caller.
+export async function submitLeaveAction(
+  arg1: string,
+  arg2: string,
+  arg3: string,
+  arg4?: string
+) {
+  const caller = await requireAuth();
+  // Support both (startDate, endDate, reason) and legacy (instructorId, startDate, endDate, reason)
+  const startDate = arg4 !== undefined ? arg2 : arg1;
+  const endDate = arg4 !== undefined ? arg3 : arg2;
+  const reason = arg4 !== undefined ? arg4 : arg3;
+
+  const leave = await createLeaveRequest(caller.id, startDate, endDate, reason);
   revalidatePath('/');
   return { success: true, leave };
 }

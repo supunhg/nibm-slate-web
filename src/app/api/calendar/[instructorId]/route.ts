@@ -97,6 +97,8 @@ function buildICS(instructor: User, dutyAssignments: DutyAssignment[], nightShif
     'METHOD:PUBLISH',
     foldLine(`X-WR-CALNAME:${escapeICSText(`${instructor.fullName} — NIBM Duty Roster`)}`),
     'X-WR-TIMEZONE:Asia/Colombo',
+    'REFRESH-INTERVAL;VALUE=DURATION:PT15M',
+    'X-PUBLISHED-TTL:PT15M',
     ...events,
     'END:VCALENDAR',
     '',
@@ -124,8 +126,10 @@ export async function GET(
     status: 200,
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',
-      'Content-Disposition': `attachment; filename="nibm-roster-${instructorId}.ics"`,
-      'Cache-Control': 'no-store',
+      'Content-Disposition': `inline; filename="nibm-roster-${instructorId}.ics"`,
+      'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
     },
   });
 }
