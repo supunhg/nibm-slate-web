@@ -1014,25 +1014,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                               )}
                             </div>
 
-                            {/* 1-Click Copy to Afternoon Action Button */}
-                            {!hasAfternoon ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleCopyDutyToSlot(
-                                    assignment,
-                                    '13:00',
-                                    '16:00',
-                                    'Afternoon (13:00 - 16:00)'
-                                  )
-                                }
-                                className="mt-2 w-full flex items-center justify-center space-x-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/20 py-1 px-1.5 rounded-md transition-all shadow-2xs cursor-pointer active:scale-95"
-                                title="Copy this session to Afternoon (13:00 - 16:00)"
-                              >
-                                <Copy className="w-3 h-3" />
-                                <span>Copy to Afternoon (1-4)</span>
-                              </button>
-                            ) : (
+                            {hasAfternoon && (
                               <div className="mt-1.5 text-[9px] font-semibold text-emerald-400/80 flex items-center space-x-1">
                                 <CheckCircle2 className="w-2.5 h-2.5" />
                                 <span>Also in Afternoon</span>
@@ -1128,25 +1110,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                               )}
                             </div>
 
-                            {/* 1-Click Copy to Morning Action Button */}
-                            {!hasMorning ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleCopyDutyToSlot(
-                                    assignment,
-                                    '09:00',
-                                    '12:00',
-                                    'Morning (09:00 - 12:00)'
-                                  )
-                                }
-                                className="mt-2 w-full flex items-center justify-center space-x-1 text-[10px] font-bold text-blue-400 bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/20 py-1 px-1.5 rounded-md transition-all shadow-2xs cursor-pointer active:scale-95"
-                                title="Copy this session to Morning (09:00 - 12:00)"
-                              >
-                                <Copy className="w-3 h-3" />
-                                <span>Copy to Morning (9-12)</span>
-                              </button>
-                            ) : (
+                            {hasMorning && (
                               <div className="mt-1.5 text-[9px] font-semibold text-blue-400/80 flex items-center space-x-1">
                                 <CheckCircle2 className="w-2.5 h-2.5" />
                                 <span>Also in Morning</span>
