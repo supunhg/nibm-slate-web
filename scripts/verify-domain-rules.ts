@@ -8,8 +8,14 @@ if (!process.env.TEST_DATABASE_URL || !process.env.TEST_DATABASE_URL_UNPOOLED) {
   );
   process.exit(1);
 }
-process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
-process.env.DATABASE_URL_UNPOOLED = process.env.TEST_DATABASE_URL_UNPOOLED;
+function ensureConnectTimeout(urlStr: string): string {
+  if (urlStr.includes('connect_timeout=')) return urlStr;
+  const separator = urlStr.includes('?') ? '&' : '?';
+  return `${urlStr}${separator}connect_timeout=20`;
+}
+
+process.env.DATABASE_URL = ensureConnectTimeout(process.env.TEST_DATABASE_URL);
+process.env.DATABASE_URL_UNPOOLED = ensureConnectTimeout(process.env.TEST_DATABASE_URL_UNPOOLED);
 
 async function main() {
   const {

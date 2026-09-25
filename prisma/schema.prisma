@@ -160,9 +160,10 @@ model AuditLog {
 // Singleton row (id is always "singleton") holding the dynamic academic
 // catalog of student batches and lecture rooms/labs.
 model Catalog {
-  id        String   @id @default("singleton")
-  batches   String[]
-  rooms     String[]
-  modules   String[] @default([])
-  dutyTypes String[] @default([])
+  id                 String   @id @default("singleton")
+  batches            String[]
+  rooms              String[]
+  modules            String[] @default([])
+  dutyTypes          String[] @default([])
+  autoRefreshSeconds Int      @default(5)
 }

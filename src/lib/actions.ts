@@ -31,6 +31,7 @@ import {
   addCatalogDutyType,
   removeCatalogDutyType,
   updateCatalogDutyType,
+  updateAutoRefreshInterval,
   verifyCredentials,
   createUser,
   changePassword,
@@ -74,23 +75,21 @@ async function requireAdmin(): Promise<User> {
 export async function getAppData(weekStartDate?: string, selectedDate?: string) {
   const todayStr = selectedDate || new Date().toISOString().split('T')[0];
 
-  // These five are independent of each other -- fire them together instead
-  // of one DB round-trip at a time. This runs on every login/logout/refresh
-  // (via router.refresh() re-rendering page.tsx), so serializing them was a
-  // direct multiple of Neon round-trip latency on every one of those.
-  const [users, rosterWeek, leaveRequests, catalog, executiveReport] = await Promise.all([
+  // Fetch the baseline collections concurrently
+  const [users, rosterWeek, leaveRequests, catalog] = await Promise.all([
     getAllUsers(),
     getOrCreateRosterWeek(weekStartDate),
     getAllLeaveRequests(),
     getCachedCatalog(),
-    getExecutiveStatus(todayStr),
   ]);
 
-  // These depend on `users`/`rosterWeek` above but not on each other.
-  const [instructors, dutyAssignments, nightShifts] = await Promise.all([
-    getInstructors(users),
+  const instructors = await getInstructors(users);
+
+  // Parallelize dependent queries, reusing preloaded instructors in getExecutiveStatus
+  const [dutyAssignments, nightShifts, executiveReport] = await Promise.all([
     getDutyAssignments(rosterWeek.id),
     getNightShifts(rosterWeek.id),
+    getExecutiveStatus(todayStr, undefined, instructors),
   ]);
 
   return {
@@ -310,6 +309,14 @@ export async function removeDutyTypeAction(name: string) {
 export async function updateDutyTypeAction(oldName: string, newName: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
   const res = await updateCatalogDutyType(oldName, newName, actor.id);
+  updateTag('catalog');
+  revalidatePath('/');
+  return res;
+}
+
+export async function updateAutoRefreshIntervalAction(seconds: number) {
+  const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
+  const res = await updateAutoRefreshInterval(seconds, actor.id);
   updateTag('catalog');
   revalidatePath('/');
   return res;

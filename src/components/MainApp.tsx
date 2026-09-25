@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useEffect, useRef, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, RosterWeek, DutyAssignment, NightShift, LeaveRequest, ExecutiveStatusReport, AcademicCatalog } from '@/types';
 import { Header, AppTab } from '@/components/Header';
@@ -15,7 +15,7 @@ import { ChangePasswordScreen } from '@/components/ChangePasswordScreen';
 import { AdminUserManagement } from '@/components/AdminUserManagement';
 import { ProfileSettings } from '@/components/ProfileSettings';
 import { DialogProvider } from '@/components/DialogProvider';
-import { getAppData, logoutAction } from '@/lib/actions';
+import { getAppData, logoutAction, updateAutoRefreshIntervalAction } from '@/lib/actions';
 
 interface MainAppProps {
   initialData: {
@@ -53,6 +53,36 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
   const [activeTab, setActiveTab] = useState<AppTab>(() => defaultTabForRole(initialCurrentUser));
   const [selectedWeekStart, setSelectedWeekStart] = useState<string>(data.rosterWeek.startDate);
 
+  // Auto-refresh state (defaults to system setting in catalog, e.g. 5s)
+  const defaultInterval = data.catalog.autoRefreshSeconds ?? 5;
+  const [autoRefreshSeconds, setAutoRefreshSeconds] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('slate_auto_refresh_seconds');
+      if (stored !== null) {
+        const parsed = parseInt(stored, 10);
+        if (!isNaN(parsed) && parsed >= 0) return parsed;
+      }
+    }
+    return defaultInterval;
+  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date>(() => new Date());
+
+  // Handle changing refresh interval (admin can also update global system setting)
+  const handleChangeRefreshInterval = async (seconds: number, updateGlobal = false) => {
+    setAutoRefreshSeconds(seconds);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('slate_auto_refresh_seconds', seconds.toString());
+    }
+    if (updateGlobal && (initialCurrentUser?.role === 'ADMIN' || initialCurrentUser?.role === 'DEMONSTRATOR')) {
+      try {
+        await updateAutoRefreshIntervalAction(seconds);
+      } catch (err) {
+        console.error('Failed to update global auto-refresh setting:', err);
+      }
+    }
+  };
+
   // The server resolves the session on every request; whenever a different
   // user arrives via props (login, logout, router.refresh()), reset the
   // active tab to that user's default landing tab.
@@ -78,14 +108,82 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
     }
   };
 
+  const inFlightRef = useRef(false);
+
   const handleRefresh = async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     try {
+      setIsRefreshing(true);
       const refreshed = await getAppData(selectedWeekStart);
       setData(refreshed);
+      setLastRefreshedAt(new Date());
     } catch (err) {
       console.error('Failed to refresh data:', err);
+    } finally {
+      inFlightRef.current = false;
+      setIsRefreshing(false);
     }
   };
+
+  // Background polling for sessions and night shifts (every N seconds)
+  useEffect(() => {
+    if (autoRefreshSeconds <= 0) return;
+
+    let isMounted = true;
+    const intervalMs = autoRefreshSeconds * 1000;
+
+    const intervalId = setInterval(async () => {
+      // Don't poll when tab is hidden in background
+      if (typeof document !== 'undefined' && document.hidden) return;
+      if (inFlightRef.current) return; // Prevent concurrent stacking
+      inFlightRef.current = true;
+
+      try {
+        setIsRefreshing(true);
+        const refreshed = await getAppData(selectedWeekStart);
+        if (isMounted) {
+          setData(refreshed);
+          setLastRefreshedAt(new Date());
+        }
+      } catch (err) {
+        console.error('Auto-refresh poll failed:', err);
+      } finally {
+        inFlightRef.current = false;
+        if (isMounted) {
+          setIsRefreshing(false);
+        }
+      }
+    }, intervalMs);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, [autoRefreshSeconds, selectedWeekStart]);
+
+  // Immediate refresh when tab becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible' && autoRefreshSeconds > 0) {
+        if (inFlightRef.current) return;
+        inFlightRef.current = true;
+        try {
+          setIsRefreshing(true);
+          const refreshed = await getAppData(selectedWeekStart);
+          setData(refreshed);
+          setLastRefreshedAt(new Date());
+        } catch (err) {
+          console.error('Visibility refresh failed:', err);
+        } finally {
+          inFlightRef.current = false;
+          setIsRefreshing(false);
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [autoRefreshSeconds, selectedWeekStart]);
 
   // 1. Unauthenticated Public Status Board (No Login Required)
   if (isPublicMode) {
@@ -136,6 +234,11 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
           activeTab={activeTab}
           onSelectTab={(tab) => setActiveTab(tab)}
           pendingLeavesCount={pendingLeaves.length}
+          autoRefreshSeconds={autoRefreshSeconds}
+          onChangeAutoRefreshSeconds={handleChangeRefreshInterval}
+          isRefreshing={isRefreshing}
+          onManualRefresh={handleRefresh}
+          lastRefreshedAt={lastRefreshedAt}
         />
 
         {/* Main Container: Strictly Renders Authorized Views */}
