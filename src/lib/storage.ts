@@ -156,9 +156,25 @@ export async function getInstructors(preloadedUsers?: User[]): Promise<User[]> {
 }
 
 export async function getUserById(id: string): Promise<User | undefined> {
-  const user = await prisma.user.findUnique({ where: { id } });
-  if (!user || !user.isActive) return undefined;
-  return toPublicUser(user);
+  if (memoryUsersCache) {
+    const cached = memoryUsersCache.data.find((u) => u.id === id);
+    if (cached) return cached;
+  }
+  try {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user || !user.isActive) return undefined;
+    return toPublicUser(user);
+  } catch (err) {
+    console.warn(`[getUserById] Transient DB connection error for user ${id}, retrying once:`, err);
+    try {
+      await new Promise((res) => setTimeout(res, 400));
+      const user = await prisma.user.findUnique({ where: { id } });
+      if (!user || !user.isActive) return undefined;
+      return toPublicUser(user);
+    } catch {
+      return undefined;
+    }
+  }
 }
 
 // ----------------------------------------------------
