@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useRef, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, RosterWeek, DutyAssignment, NightShift, LeaveRequest, ExecutiveStatusReport, AcademicCatalog } from '@/types';
 import { Header, AppTab } from '@/components/Header';
@@ -108,7 +108,11 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
     }
   };
 
+  const inFlightRef = useRef(false);
+
   const handleRefresh = async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     try {
       setIsRefreshing(true);
       const refreshed = await getAppData(selectedWeekStart);
@@ -117,6 +121,7 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
     } catch (err) {
       console.error('Failed to refresh data:', err);
     } finally {
+      inFlightRef.current = false;
       setIsRefreshing(false);
     }
   };
@@ -131,6 +136,8 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
     const intervalId = setInterval(async () => {
       // Don't poll when tab is hidden in background
       if (typeof document !== 'undefined' && document.hidden) return;
+      if (inFlightRef.current) return; // Prevent concurrent stacking
+      inFlightRef.current = true;
 
       try {
         setIsRefreshing(true);
@@ -142,6 +149,7 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
       } catch (err) {
         console.error('Auto-refresh poll failed:', err);
       } finally {
+        inFlightRef.current = false;
         if (isMounted) {
           setIsRefreshing(false);
         }
@@ -158,6 +166,8 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
   useEffect(() => {
     const handleVisibilityChange = async () => {
       if (typeof document !== 'undefined' && document.visibilityState === 'visible' && autoRefreshSeconds > 0) {
+        if (inFlightRef.current) return;
+        inFlightRef.current = true;
         try {
           setIsRefreshing(true);
           const refreshed = await getAppData(selectedWeekStart);
@@ -166,6 +176,7 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
         } catch (err) {
           console.error('Visibility refresh failed:', err);
         } finally {
+          inFlightRef.current = false;
           setIsRefreshing(false);
         }
       }

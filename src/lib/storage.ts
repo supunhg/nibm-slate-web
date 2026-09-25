@@ -121,10 +121,22 @@ async function logAudit(
 // ----------------------------------------------------
 // Users & Roles
 // ----------------------------------------------------
+let memoryUsersCache: { data: User[]; timestamp: number } | null = null;
+
+export function invalidateMemoryUsersCache() {
+  memoryUsersCache = null;
+}
+
 export async function getAllUsers(): Promise<User[]> {
+  const now = Date.now();
+  if (memoryUsersCache && now - memoryUsersCache.timestamp < 15000) {
+    return memoryUsersCache.data;
+  }
   await ensureAdminSeeded();
   const users = await prisma.user.findMany({ where: { isActive: true }, orderBy: { fullName: 'asc' } });
-  return users.map(toPublicUser);
+  const mapped = users.map(toPublicUser);
+  memoryUsersCache = { data: mapped, timestamp: now };
+  return mapped;
 }
 
 // The "instructors" account is a shared kiosk login (one physical terminal,
@@ -224,6 +236,7 @@ export async function createUser(
     targetId: created.id,
     metadata: `Created ${created.role} account "${created.username}" for ${created.fullName}`,
   });
+  invalidateMemoryUsersCache();
 
   return { success: true, user: toPublicUser(created), tempPassword };
 }
@@ -244,6 +257,7 @@ export async function changePassword(
     where: { id: userId },
     data: { passwordHash: bcrypt.hashSync(newPassword, SALT_ROUNDS), mustChangePassword: false },
   });
+  invalidateMemoryUsersCache();
   await logAudit('PASSWORD_CHANGED', 'User', {
     userId,
     targetId: userId,
@@ -280,6 +294,7 @@ export async function updateOwnProfile(
   }
 
   const updated = await prisma.user.update({ where: { id: userId }, data });
+  invalidateMemoryUsersCache();
   await logAudit('PROFILE_UPDATED', 'User', {
     userId,
     targetId: userId,
@@ -302,6 +317,7 @@ export async function setUserActive(
   if (!stored) return { success: false, error: 'User not found.' };
 
   await prisma.user.update({ where: { id: userId }, data: { isActive } });
+  invalidateMemoryUsersCache();
   await logAudit(isActive ? 'USER_REACTIVATED' : 'USER_DEACTIVATED', 'User', {
     userId: actorId,
     targetId: userId,
@@ -351,6 +367,7 @@ export async function deleteUserPermanently(
     metadata: `Permanently deleted ${stored.role} account "${stored.username}" (${stored.fullName})`,
   });
   await prisma.user.delete({ where: { id: userId } });
+  invalidateMemoryUsersCache();
   return { success: true };
 }
 
@@ -373,14 +390,22 @@ export async function getOrCreateRosterWeek(startDateStr?: string): Promise<Rost
   const start = startDateStr || getMondayOfCurrentWeek();
   const end = getSundayOfWeek(start);
 
-  // upsert (not findUnique-then-create) so two concurrent requests for the
-  // same new week can't both see "missing" and race on the create.
+  const existing = await prisma.rosterWeek.findUnique({
+    where: { startDate_endDate: { startDate: start, endDate: end } },
+    include: { publishedBy: true },
+  });
+  if (existing) {
+    return mapRosterWeek(existing, existing.publishedBy?.fullName);
+  }
+
+  // Fall back to upsert to ensure concurrent first-time requests do not race on create
   const week = await prisma.rosterWeek.upsert({
     where: { startDate_endDate: { startDate: start, endDate: end } },
     update: {},
     create: { id: `week-${start}`, startDate: start, endDate: end, status: 'DRAFT' },
+    include: { publishedBy: true },
   });
-  return mapRosterWeek(week);
+  return mapRosterWeek(week, week.publishedBy?.fullName);
 }
 
 export async function getAllRosterWeeks(): Promise<RosterWeek[]> {
@@ -780,8 +805,12 @@ export async function reviewLeaveRequest(
 // ----------------------------------------------------
 // Executive Status Calculator (Dr. Thisara's Cockpit)
 // ----------------------------------------------------
-export async function getExecutiveStatus(dateStr: string, slotLabelFilter?: string): Promise<ExecutiveStatusReport> {
-  const allInstructors = await getInstructors();
+export async function getExecutiveStatus(
+  dateStr: string,
+  slotLabelFilter?: string,
+  preloadedInstructors?: User[]
+): Promise<ExecutiveStatusReport> {
+  const allInstructors = preloadedInstructors ?? (await getInstructors());
 
   // 1. Identify who is on leave on this date
   const leavesOnDate = await prisma.leaveRequest.findMany({
@@ -886,9 +915,15 @@ export async function getAuditLogs(filter: AuditLogFilter = {}): Promise<AuditLo
 // ----------------------------------------------------
 // Academic Catalog (Dynamic Batches & Rooms/Labs)
 // ----------------------------------------------------
+let memoryCatalogCache: { data: AcademicCatalog; timestamp: number } | null = null;
+
+export function invalidateMemoryCatalogCache() {
+  memoryCatalogCache = null;
+}
+
 async function getOrCreateCatalogRow() {
-  // upsert (not findUnique-then-create) so two concurrent first-load
-  // requests can't both see "missing" and race on the create.
+  const existing = await prisma.catalog.findUnique({ where: { id: CATALOG_ID } });
+  if (existing) return existing;
   return prisma.catalog.upsert({
     where: { id: CATALOG_ID },
     update: {},
@@ -897,14 +932,20 @@ async function getOrCreateCatalogRow() {
 }
 
 export async function getCatalog(): Promise<AcademicCatalog> {
+  const now = Date.now();
+  if (memoryCatalogCache && now - memoryCatalogCache.timestamp < 15000) {
+    return memoryCatalogCache.data;
+  }
   const row = await getOrCreateCatalogRow();
-  return {
+  const data: AcademicCatalog = {
     batches: row.batches,
     rooms: row.rooms,
     modules: row.modules,
     dutyTypes: row.dutyTypes,
     autoRefreshSeconds: row.autoRefreshSeconds ?? 5,
   };
+  memoryCatalogCache = { data, timestamp: now };
+  return data;
 }
 
 // Batches/rooms/modules change rarely but getAppData() re-fetches the
@@ -926,6 +967,7 @@ export async function addCatalogBatch(name: string, actorId?: string): Promise<{
     return { success: false, error: `Batch "${trimmed}" already exists.` };
   }
   await prisma.catalog.update({ where: { id: CATALOG_ID }, data: { batches: { push: trimmed } } });
+  invalidateMemoryCatalogCache();
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', { userId: actorId, metadata: `Added batch "${trimmed}"` });
   return { success: true };
 }
@@ -938,6 +980,7 @@ export async function removeCatalogBatch(name: string, actorId?: string): Promis
     where: { id: CATALOG_ID },
     data: { batches: row.batches.filter((b) => b !== name) },
   });
+  invalidateMemoryCatalogCache();
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', { userId: actorId, metadata: `Removed batch "${name}"` });
   return { success: true };
 }
@@ -963,6 +1006,7 @@ export async function updateCatalogBatch(
     where: { id: CATALOG_ID },
     data: { batches: row.batches.map((b) => (b === oldName ? trimmed : b)) },
   });
+  invalidateMemoryCatalogCache();
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', {
     userId: actorId,
     metadata: `Renamed batch "${oldName}" to "${trimmed}"`,
@@ -979,6 +1023,7 @@ export async function addCatalogRoom(name: string, actorId?: string): Promise<{ 
     return { success: false, error: `Room/lab "${trimmed}" already exists.` };
   }
   await prisma.catalog.update({ where: { id: CATALOG_ID }, data: { rooms: { push: trimmed } } });
+  invalidateMemoryCatalogCache();
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', { userId: actorId, metadata: `Added room/lab "${trimmed}"` });
   return { success: true };
 }
@@ -991,6 +1036,7 @@ export async function removeCatalogRoom(name: string, actorId?: string): Promise
     where: { id: CATALOG_ID },
     data: { rooms: row.rooms.filter((r) => r !== name) },
   });
+  invalidateMemoryCatalogCache();
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', { userId: actorId, metadata: `Removed room/lab "${name}"` });
   return { success: true };
 }
@@ -1016,6 +1062,7 @@ export async function updateCatalogRoom(
     where: { id: CATALOG_ID },
     data: { rooms: row.rooms.map((r) => (r === oldName ? trimmed : r)) },
   });
+  invalidateMemoryCatalogCache();
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', {
     userId: actorId,
     metadata: `Renamed room/lab "${oldName}" to "${trimmed}"`,
@@ -1032,6 +1079,7 @@ export async function addCatalogModule(name: string, actorId?: string): Promise<
     return { success: false, error: `Module "${trimmed}" already exists.` };
   }
   await prisma.catalog.update({ where: { id: CATALOG_ID }, data: { modules: { push: trimmed } } });
+  invalidateMemoryCatalogCache();
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', { userId: actorId, metadata: `Added module "${trimmed}"` });
   return { success: true };
 }
@@ -1044,6 +1092,7 @@ export async function removeCatalogModule(name: string, actorId?: string): Promi
     where: { id: CATALOG_ID },
     data: { modules: row.modules.filter((m) => m !== name) },
   });
+  invalidateMemoryCatalogCache();
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', { userId: actorId, metadata: `Removed module "${name}"` });
   return { success: true };
 }
@@ -1069,6 +1118,7 @@ export async function updateCatalogModule(
     where: { id: CATALOG_ID },
     data: { modules: row.modules.map((m) => (m === oldName ? trimmed : m)) },
   });
+  invalidateMemoryCatalogCache();
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', {
     userId: actorId,
     metadata: `Renamed module "${oldName}" to "${trimmed}"`,
@@ -1085,6 +1135,7 @@ export async function addCatalogDutyType(name: string, actorId?: string): Promis
     return { success: false, error: `Duty type "${trimmed}" already exists.` };
   }
   await prisma.catalog.update({ where: { id: CATALOG_ID }, data: { dutyTypes: { push: trimmed } } });
+  invalidateMemoryCatalogCache();
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', { userId: actorId, metadata: `Added duty type "${trimmed}"` });
   return { success: true };
 }
@@ -1097,6 +1148,7 @@ export async function removeCatalogDutyType(name: string, actorId?: string): Pro
     where: { id: CATALOG_ID },
     data: { dutyTypes: row.dutyTypes.filter((d) => d !== name) },
   });
+  invalidateMemoryCatalogCache();
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', { userId: actorId, metadata: `Removed duty type "${name}"` });
   return { success: true };
 }
@@ -1122,6 +1174,7 @@ export async function updateCatalogDutyType(
     where: { id: CATALOG_ID },
     data: { dutyTypes: row.dutyTypes.map((d) => (d === oldName ? trimmed : d)) },
   });
+  invalidateMemoryCatalogCache();
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', {
     userId: actorId,
     metadata: `Renamed duty type "${oldName}" to "${trimmed}"`,
@@ -1139,6 +1192,7 @@ export async function updateAutoRefreshInterval(
     where: { id: CATALOG_ID },
     data: { autoRefreshSeconds: validSeconds },
   });
+  invalidateMemoryCatalogCache();
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', {
     userId: actorId,
     metadata: `Updated auto-refresh interval to ${validSeconds} seconds`,

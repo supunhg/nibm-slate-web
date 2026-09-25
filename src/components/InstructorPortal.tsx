@@ -198,9 +198,9 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
     <div className="space-y-6">
       {/* Top Banner: General Instructor Portal Header */}
       <div className="bg-slate-900 rounded-2xl p-6 text-white border border-slate-800">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 text-purple-400 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
               <Users className="w-6 h-6" />
             </div>
             <div>
@@ -218,65 +218,71 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
             </div>
           </div>
 
-          {/* Instructor Filter Dropdown */}
-          <div className="bg-slate-800/90 p-3 rounded-2xl border border-slate-700 flex flex-col sm:flex-row items-start sm:items-center gap-2">
-            <div className="flex items-center space-x-1.5 text-xs text-purple-300 font-bold">
-              <Filter className="w-3.5 h-3.5" />
-              <span>Filter View:</span>
+          {/* Right: Unified Controls & Calendar Action Center */}
+          <div className="flex flex-wrap items-center gap-2.5 bg-slate-800/80 border border-slate-700/80 rounded-2xl p-2 sm:p-2.5 shadow-sm">
+            {/* Instructor View Selector */}
+            <div className="flex items-center space-x-2 px-1">
+              <Filter className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+              <span className="text-xs text-purple-300 font-bold whitespace-nowrap">Filter View:</span>
+              <select
+                value={selectedInstructorId}
+                onChange={(e) => setSelectedInstructorId(e.target.value)}
+                className="text-xs bg-slate-900 border border-slate-700 text-white font-semibold rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+              >
+                <option value="ALL">All {allInstructors.length} Instructors (Full Cadre)</option>
+                {allInstructors.map((inst) => (
+                  <option key={inst.id} value={inst.id}>
+                    {inst.fullName}
+                  </option>
+                ))}
+              </select>
             </div>
-            <select
-              value={selectedInstructorId}
-              onChange={(e) => setSelectedInstructorId(e.target.value)}
-              className="text-xs bg-slate-900 border border-slate-700 text-white font-semibold rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
-            >
-              <option value="ALL">All {allInstructors.length} Instructors (Full Cadre Roster)</option>
-              {allInstructors.map((inst) => (
-                <option key={inst.id} value={inst.id}>
-                  {inst.fullName}
-                </option>
-              ))}
-            </select>
 
+            {selectedInstructorId !== 'ALL' && (
+              <div className="hidden sm:block h-6 w-px bg-slate-700 shrink-0" />
+            )}
+
+            {/* Calendar Export Actions */}
             {selectedInstructorId !== 'ALL' ? (
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-nowrap">
                 <a
                   href={getGoogleCalendarSubscribeUrl(selectedInstructorId) || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-1.5 text-[11px] font-bold bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-xl transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl transition-colors cursor-pointer shadow-xs whitespace-nowrap"
                   title="Subscribe to entire live calendar in Google Calendar"
                 >
                   <CalendarPlus className="w-3.5 h-3.5" />
-                  <span>Subscribe to Google Calendar</span>
+                  <span>Google Calendar</span>
                 </a>
                 <a
                   href={getDownloadIcsUrl(selectedInstructorId)}
                   download={`nibm-roster-${selectedInstructorId}.ics`}
-                  className="flex items-center space-x-1.5 text-[11px] font-bold bg-slate-900 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-xl transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold bg-slate-900 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
                   title="Download .ics file to import directly into Google Calendar, Outlook, or Apple Calendar"
                 >
-                  <Download className="w-3.5 h-3.5 text-slate-300" />
-                  <span>Download .ics</span>
+                  <Download className="w-3.5 h-3.5 text-slate-400" />
+                  <span>.ICS</span>
                 </a>
                 <button
                   type="button"
                   onClick={() => handleCopyFeedLink(selectedInstructorId)}
                   title="Copy the iCal feed link (for Apple Calendar / Outlook / webcal)"
-                  className={`flex items-center justify-center w-8 h-8 rounded-xl transition-colors cursor-pointer ${
+                  className={`inline-flex items-center justify-center w-8 h-8 rounded-xl transition-colors cursor-pointer shrink-0 border ${
                     feedLinkCopied
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-slate-900 hover:bg-slate-700 text-slate-300 border border-slate-700'
+                      ? 'bg-emerald-600 border-emerald-500 text-white'
+                      : 'bg-slate-900 hover:bg-slate-700 text-slate-300 border-slate-700'
                   }`}
                 >
                   {feedLinkCopied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
                 </button>
 
                 {/* Google Calendar sync notice: hover-and-view tooltip */}
-                <div className="relative group">
+                <div className="relative group shrink-0">
                   <button
                     type="button"
                     title="Google Calendar sync information"
-                    className="flex items-center justify-center w-8 h-8 rounded-xl bg-slate-900 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors cursor-pointer"
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-slate-900 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 transition-colors cursor-pointer"
                   >
                     <Info className="w-3.5 h-3.5 text-blue-400" />
                   </button>
@@ -295,8 +301,8 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                 </div>
               </div>
             ) : (
-              <span className="text-[11px] text-slate-400 italic px-1">
-                Select an instructor to subscribe to their calendar
+              <span className="text-[11px] text-slate-400 italic px-2">
+                Select an instructor to subscribe to calendar
               </span>
             )}
           </div>
