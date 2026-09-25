@@ -753,7 +753,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
               <span>Instructor Cadre Weekly Workload & Deployment Table</span>
             </h3>
             <p className="text-xs text-slate-300 mt-0.5">
-              Comprehensive distribution of teaching hours and night shifts for all 8 team members across this 7-day period.
+              Comprehensive distribution of teaching hours and night shifts for all {allInstructors.length} team members across this 7-day period.
             </p>
           </div>
           <span className="text-xs font-bold text-slate-300 bg-slate-700 px-2.5 py-1 rounded-full">

@@ -10,11 +10,8 @@ export const dynamic = 'force-dynamic';
 // can be converted to UTC with simple arithmetic (no VTIMEZONE needed).
 const COLOMBO_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 
-// Night shifts only record a date, not hours, so campus overnight duty is
-// modelled as an 18:00 -> 06:00(+1) block.
-const NIGHT_SHIFT_START = '18:00';
-const NIGHT_SHIFT_END = '06:00';
-
+// Night shifts do not have a fixed time or hours allocated, so they are
+// exported as all-day date events (VALUE=DATE) spanning the duty date.
 function toICSDateUTC(dateStr: string, timeStr: string): string {
   const [year, month, day] = dateStr.split('-').map(Number);
   const [hour, minute] = timeStr.split(':').map(Number);
@@ -70,14 +67,19 @@ function buildDutyEvent(a: DutyAssignment, dtstamp: string): string {
 }
 
 function buildNightShiftEvent(s: NightShift, dtstamp: string): string {
+  const dtStart = s.shiftDate.replace(/-/g, '');
+  const dtEnd = addDays(s.shiftDate, 1).replace(/-/g, '');
+
   return [
     'BEGIN:VEVENT',
     foldLine(`UID:night-${s.id}@nibm-instructor-roster`),
     `DTSTAMP:${dtstamp}`,
-    `DTSTART:${toICSDateUTC(s.shiftDate, NIGHT_SHIFT_START)}`,
-    `DTEND:${toICSDateUTC(addDays(s.shiftDate, 1), NIGHT_SHIFT_END)}`,
-    'SUMMARY:🌙 Night Duty (Overnight Stay)',
+    `DTSTART;VALUE=DATE:${dtStart}`,
+    `DTEND;VALUE=DATE:${dtEnd}`,
+    'SUMMARY:🌙 Night Duty',
     foldLine(`DESCRIPTION:${escapeICSText(s.notes || 'NIBM Night Duty / Caretaker Shift')}`),
+    'TRANSP:TRANSPARENT',
+    'X-MICROSOFT-CDO-ALLDAYEVENT:TRUE',
     'END:VEVENT',
   ].join('\r\n');
 }

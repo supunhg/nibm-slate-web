@@ -31,6 +31,7 @@ import {
   addCatalogDutyType,
   removeCatalogDutyType,
   updateCatalogDutyType,
+  updateAutoRefreshInterval,
   verifyCredentials,
   createUser,
   changePassword,
@@ -310,6 +311,14 @@ export async function removeDutyTypeAction(name: string) {
 export async function updateDutyTypeAction(oldName: string, newName: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
   const res = await updateCatalogDutyType(oldName, newName, actor.id);
+  updateTag('catalog');
+  revalidatePath('/');
+  return res;
+}
+
+export async function updateAutoRefreshIntervalAction(seconds: number) {
+  const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
+  const res = await updateAutoRefreshInterval(seconds, actor.id);
   updateTag('catalog');
   revalidatePath('/');
   return res;

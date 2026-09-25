@@ -116,4 +116,5 @@ export interface AcademicCatalog {
   rooms: string[];
   modules: string[];
   dutyTypes: string[];
+  autoRefreshSeconds?: number;
 }

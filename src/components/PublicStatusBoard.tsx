@@ -40,6 +40,20 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
     }
   };
 
+  // Auto-refresh public board every 10s for lobby/wall-display monitoring
+  React.useEffect(() => {
+    const interval = setInterval(async () => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      try {
+        const updated = await getExecutiveReportAction(selectedDate, slotFilter);
+        setReport(updated);
+      } catch (err) {
+        console.error('Public board auto-refresh failed:', err);
+      }
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [selectedDate, slotFilter]);
+
   const dayOfWeek = new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long' });
   const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
     month: 'long',

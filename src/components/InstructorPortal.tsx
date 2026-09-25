@@ -17,6 +17,7 @@ import {
   CalendarPlus,
   Link2,
   Download,
+  Info,
 } from 'lucide-react';
 import { submitLeaveAction } from '@/lib/actions';
 import { useDialog } from './DialogProvider';
@@ -111,6 +112,25 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
       dates: `${startUTC}/${endUTC}`,
       details,
       location,
+    });
+
+    return `https://calendar.google.com/calendar/render?${params.toString()}`;
+  };
+
+  // 1-Click direct add to Google Calendar for a night duty (All-day date event, no fixed time)
+  const getGoogleCalendarNightShiftUrl = (shift: NightShift): string => {
+    const summary = '🌙 Night Duty';
+    const details = [shift.notes, 'NIBM Night Duty / Caretaker Shift', 'NIBM Instructor Roster'].filter(Boolean).join('\n');
+    const startDateFormatted = shift.shiftDate.replace(/-/g, '');
+    const d = new Date(`${shift.shiftDate}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + 1);
+    const endDateFormatted = d.toISOString().split('T')[0].replace(/-/g, '');
+
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: summary,
+      dates: `${startDateFormatted}/${endDateFormatted}`,
+      details,
     });
 
     return `https://calendar.google.com/calendar/render?${params.toString()}`;
@@ -250,6 +270,29 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                 >
                   {feedLinkCopied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
                 </button>
+
+                {/* Google Calendar sync notice: hover-and-view tooltip */}
+                <div className="relative group">
+                  <button
+                    type="button"
+                    title="Google Calendar sync information"
+                    className="flex items-center justify-center w-8 h-8 rounded-xl bg-slate-900 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors cursor-pointer"
+                  >
+                    <Info className="w-3.5 h-3.5 text-blue-400" />
+                  </button>
+                  <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 p-3.5 bg-slate-950/95 border border-slate-700 rounded-xl shadow-2xl backdrop-blur-md text-[11px] text-slate-300 z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all pointer-events-none group-hover:pointer-events-auto">
+                    <div className="flex items-center gap-1.5 font-bold text-white mb-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-blue-400" />
+                      <span>Google Calendar Sync Notice</span>
+                    </div>
+                    <p className="leading-relaxed">
+                      Google Calendar refreshes subscribed URL calendars automatically every 8–24 hours.
+                    </p>
+                    <p className="leading-relaxed mt-1 text-slate-400">
+                      For an <span className="text-emerald-400 font-semibold">immediate update</span>, click <span className="font-semibold text-blue-300">+ Google Cal</span> / <span className="font-semibold text-blue-300">+ Cal</span> on any session below or use <span className="font-semibold text-slate-200">Download .ics</span> to import directly.
+                    </p>
+                  </div>
+                </div>
               </div>
             ) : (
               <span className="text-[11px] text-slate-400 italic px-1">
@@ -257,15 +300,6 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
               </span>
             )}
           </div>
-          {selectedInstructorId !== 'ALL' && (
-            <div className="mt-2.5 p-2.5 bg-slate-950/60 border border-slate-800 rounded-xl flex items-start gap-2 text-[11px] text-slate-300">
-              <Calendar className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
-              <p>
-                <span className="font-semibold text-white">Google Calendar Sync Notice: </span>
-                Google Calendar refreshes subscribed URL calendars automatically every 8–24 hours. For an <span className="text-emerald-400 font-semibold">immediate update</span>, click <span className="font-semibold text-blue-300">+ Google Cal</span> on any session below or use <span className="font-semibold text-slate-200">Download .ics</span> to import directly.
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Sub Navigation */}
@@ -314,7 +348,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                   <Moon className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-white">7-Day Night Duty Roster (Overnight Stay)</h4>
+                  <h4 className="font-semibold text-sm text-white">7-Day Night Duty Roster</h4>
                   <p className="text-xs text-slate-500">
                     Week of {rosterWeek.startDate} to {rosterWeek.endDate}
                   </p>
@@ -329,27 +363,43 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
               {displayedNightShifts.map((shift) => (
                 <div
                   key={shift.id}
-                  className="bg-slate-800/60 border border-slate-800 rounded-xl p-2.5 text-center"
+                  className="bg-slate-800/60 border border-slate-800 rounded-xl p-2.5 text-center flex flex-col justify-between"
                 >
-                  <span className="text-[10px] text-slate-500 font-semibold uppercase block">
-                    {new Date(shift.shiftDate).toLocaleDateString('en-US', { weekday: 'short' })}
-                  </span>
-                  <span className="text-xs font-semibold text-indigo-400 block mt-0.5 truncate">
-                    {shift.instructorName}
-                  </span>
-                  {shift.instructorPhone && shift.instructorId !== currentUser.id && (
-                    <a
-                      href={`tel:${shift.instructorPhone.replace(/\s+/g, '')}`}
-                      className="inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-white mt-1 bg-slate-900 px-2 py-0.5 rounded font-medium cursor-pointer transition-colors"
-                      title={`Call ${shift.instructorName}`}
-                    >
-                      <Phone className="w-2.5 h-2.5" />
-                      <span>Call</span>
-                    </a>
-                  )}
-                  <span className="text-[10px] text-slate-500 block mt-0.5">
-                    {shift.shiftDate}
-                  </span>
+                  <div>
+                    <span className="text-[10px] text-slate-500 font-semibold uppercase block">
+                      {new Date(shift.shiftDate).toLocaleDateString('en-US', { weekday: 'short' })}
+                    </span>
+                    <span className="text-xs font-semibold text-indigo-400 block mt-0.5 truncate">
+                      {shift.instructorName}
+                    </span>
+                    <span className="text-[10px] text-slate-500 block mt-0.5">
+                      {shift.shiftDate}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center gap-1 mt-1.5 flex-wrap">
+                    {shift.instructorPhone && shift.instructorId !== currentUser.id && (
+                      <a
+                        href={`tel:${shift.instructorPhone.replace(/\s+/g, '')}`}
+                        className="inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-white bg-slate-900 px-2 py-0.5 rounded font-medium cursor-pointer transition-colors"
+                        title={`Call ${shift.instructorName}`}
+                      >
+                        <Phone className="w-2.5 h-2.5" />
+                        <span>Call</span>
+                      </a>
+                    )}
+                    {shift.instructorId === currentUser.id && (
+                      <a
+                        href={getGoogleCalendarNightShiftUrl(shift)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-300 hover:text-white bg-blue-600/30 hover:bg-blue-600 border border-blue-500/30 px-1.5 py-0.5 rounded transition-all shadow-xs cursor-pointer"
+                        title="Add Night Duty to Google Calendar (All-day, no fixed time)"
+                      >
+                        <CalendarPlus className="w-2.5 h-2.5" />
+                        <span>+ Cal</span>
+                      </a>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

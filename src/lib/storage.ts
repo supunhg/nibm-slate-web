@@ -898,7 +898,13 @@ async function getOrCreateCatalogRow() {
 
 export async function getCatalog(): Promise<AcademicCatalog> {
   const row = await getOrCreateCatalogRow();
-  return { batches: row.batches, rooms: row.rooms, modules: row.modules, dutyTypes: row.dutyTypes };
+  return {
+    batches: row.batches,
+    rooms: row.rooms,
+    modules: row.modules,
+    dutyTypes: row.dutyTypes,
+    autoRefreshSeconds: row.autoRefreshSeconds ?? 5,
+  };
 }
 
 // Batches/rooms/modules change rarely but getAppData() re-fetches the
@@ -1119,6 +1125,23 @@ export async function updateCatalogDutyType(
   await logAudit('CATALOG_UPDATED', 'AcademicCatalog', {
     userId: actorId,
     metadata: `Renamed duty type "${oldName}" to "${trimmed}"`,
+  });
+  return { success: true };
+}
+
+export async function updateAutoRefreshInterval(
+  seconds: number,
+  actorId?: string
+): Promise<{ success: boolean; error?: string }> {
+  const validSeconds = Math.max(0, Math.min(300, Math.round(seconds)));
+  await getOrCreateCatalogRow();
+  await prisma.catalog.update({
+    where: { id: CATALOG_ID },
+    data: { autoRefreshSeconds: validSeconds },
+  });
+  await logAudit('CATALOG_UPDATED', 'AcademicCatalog', {
+    userId: actorId,
+    metadata: `Updated auto-refresh interval to ${validSeconds} seconds`,
   });
   return { success: true };
 }
