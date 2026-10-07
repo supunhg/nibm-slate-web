@@ -26,9 +26,14 @@ import {
   Phone,
   Mail,
   UserCheck,
+  ArrowLeft,
 } from 'lucide-react-native';
 
-export const ProfileScreen: React.FC = () => {
+interface ProfileScreenProps {
+  onBack?: () => void;
+}
+
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack }) => {
   const { user, logout, serverUrl, updateServerUrl, refreshUser } = useAuth();
 
   // Server URL Modal state (Admin only)
@@ -156,6 +161,17 @@ export const ProfileScreen: React.FC = () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {onBack && (
+        <TouchableOpacity
+          style={styles.backButtonRow}
+          onPress={onBack}
+          activeOpacity={0.7}
+        >
+          <ArrowLeft size={16} color={colors.primaryLight} />
+          <Text style={styles.backButtonText}>Back to Schedule</Text>
+        </TouchableOpacity>
+      )}
+
       {/* Profile Card */}
       <View style={styles.card}>
         <View style={styles.profileHeader}>
@@ -482,6 +498,24 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
     gap: 16,
+  },
+  backButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.card,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.cardBorderSubtle,
+    marginBottom: 4,
+  },
+  backButtonText: {
+    color: colors.primaryLight,
+    fontSize: 13,
+    fontWeight: '700',
   },
   card: {
     backgroundColor: colors.surface,

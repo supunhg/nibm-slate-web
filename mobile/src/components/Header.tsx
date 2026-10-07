@@ -2,15 +2,23 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
-import { Shield } from 'lucide-react-native';
+import { Shield, ArrowLeft } from 'lucide-react-native';
 
 interface HeaderProps {
   title?: string;
   subtitle?: string;
   onProfilePress?: () => void;
+  isBackVisible?: boolean;
+  onBackPress?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ title, subtitle, onProfilePress }) => {
+export const Header: React.FC<HeaderProps> = ({
+  title,
+  subtitle,
+  onProfilePress,
+  isBackVisible,
+  onBackPress,
+}) => {
   const { user } = useAuth();
 
   const getRoleBadgeStyle = (role?: string) => {
@@ -31,10 +39,21 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, onProfilePress 
   return (
     <View style={styles.container}>
       <View style={styles.left}>
-        {/* Brand Mark Badge */}
-        <View style={styles.logoBadge}>
-          <Text style={styles.logoText}>SLATE</Text>
-        </View>
+        {isBackVisible && onBackPress ? (
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={onBackPress}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <ArrowLeft size={20} color={colors.text} />
+          </TouchableOpacity>
+        ) : (
+          /* Brand Mark Badge */
+          <View style={styles.logoBadge}>
+            <Text style={styles.logoText}>SLATE</Text>
+          </View>
+        )}
 
         <View style={styles.textContainer}>
           <Text style={styles.title} numberOfLines={1}>
@@ -111,6 +130,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 4,
     elevation: 3,
+  },
+  backButton: {
+    backgroundColor: colors.card,
+    padding: 7,
+    borderRadius: 8,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: colors.cardBorderSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logoText: {
     color: '#ffffff',
