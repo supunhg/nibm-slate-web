@@ -49,6 +49,8 @@ data/.test-roster-store-*.json
 # mobile
 mobile/node_modules/
 mobile/.expo/
+*.apk
+*.aab
 
 # agent state
 .agent/

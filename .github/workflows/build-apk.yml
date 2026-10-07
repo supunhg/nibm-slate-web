@@ -104,5 +104,5 @@ jobs:
           fi
           gh release create "$TAG_NAME" nibm-slate.apk \
             --title "NIBM Slate Android APK ($TAG_NAME)" \
-            --notes "Standalone Android APK package for NIBM Slate Mobile Companion App. Direct installable file for all instructors and demonstrators." \
-            --clobber || true
+            --notes "Standalone Android APK package for NIBM Slate Mobile Companion App. Direct installable file for all instructors and demonstrators." || \
+          gh release upload "$TAG_NAME" nibm-slate.apk --clobber
