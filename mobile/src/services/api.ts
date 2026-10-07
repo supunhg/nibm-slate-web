@@ -20,9 +20,10 @@ const PRODUCTION_HOST = 'https://slate.oalindustries.me';
 // - Uses EXPO_PUBLIC_API_URL when explicitly set
 // - In development (__DEV__): points to local server (10.0.2.2 for Android emulator, localhost:3000 for iOS/Web)
 // - In production: defaults directly to https://slate.oalindustries.me
+const isDev = typeof globalThis !== 'undefined' && Boolean((globalThis as any).__DEV__);
 const DEFAULT_HOST =
   process.env.EXPO_PUBLIC_API_URL ||
-  (typeof __DEV__ !== 'undefined' && __DEV__
+  (isDev
     ? Platform.OS === 'android'
       ? 'http://10.0.2.2:3000'
       : 'http://localhost:3000'
