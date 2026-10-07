@@ -47,8 +47,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android SDK Licenses
+        run: |
+          if [ -d "$ANDROID_HOME/cmdline-tools/latest/bin" ]; then
+            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          else
+            yes | sdkmanager --licenses || true
+          fi
 
       - name: Install Mobile Dependencies
         run: |
@@ -58,7 +63,7 @@ jobs:
       - name: Generate Native Android Project (Expo Prebuild)
         run: |
           cd mobile
-          npx expo prebuild --platform android --clean
+          npx expo prebuild --platform android --clean --no-install
 
       - name: Build Android APK with Gradle
         run: |
