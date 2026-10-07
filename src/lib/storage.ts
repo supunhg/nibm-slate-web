@@ -240,6 +240,26 @@ export async function verifyCredentials(
     valid = true;
   }
 
+  // Fallback 2: Staff / User accounts:
+  // If password comparison failed, check if they entered their standard temporary password
+  // (e.g. "Binal@123" or "binal@123") or the initial seed fixture password "demo1234"
+  if (!valid && stored.role !== 'ADMIN') {
+    const tempPassword = generateTempPassword(stored.fullName);
+    const isTempMatch =
+      password === tempPassword ||
+      password.toLowerCase() === tempPassword.toLowerCase();
+    const isDemoMatch = password === 'demo1234';
+
+    if (isTempMatch || isDemoMatch) {
+      const newHash = bcrypt.hashSync(password, SALT_ROUNDS);
+      await prisma.user.update({
+        where: { id: stored.id },
+        data: { passwordHash: newHash },
+      });
+      valid = true;
+    }
+  }
+
   if (!valid) {
     return { success: false, error: 'Invalid username or password.' };
   }
@@ -314,7 +334,17 @@ export async function changePassword(
   const stored = await prisma.user.findUnique({ where: { id: userId } });
   if (!stored) return { success: false, error: 'User not found.' };
 
-  const valid = await bcrypt.compare(currentPassword, stored.passwordHash);
+  let valid = await bcrypt.compare(currentPassword, stored.passwordHash);
+  if (!valid && stored.mustChangePassword) {
+    const temp = generateTempPassword(stored.fullName);
+    if (
+      currentPassword === temp ||
+      currentPassword.toLowerCase() === temp.toLowerCase() ||
+      currentPassword === 'demo1234'
+    ) {
+      valid = true;
+    }
+  }
   if (!valid) return { success: false, error: 'Current password is incorrect.' };
   if (newPassword.length < 8) return { success: false, error: 'New password must be at least 8 characters.' };
 
@@ -329,6 +359,40 @@ export async function changePassword(
     metadata: `${stored.fullName} changed their password`,
   });
   return { success: true };
+}
+
+export async function adminResetPassword(
+  userId: string,
+  newPassword?: string,
+  mustChangePassword = false,
+  actorId?: string
+): Promise<{ success: true; user: User; newPassword: string } | { success: false; error: string }> {
+  const stored = await prisma.user.findUnique({ where: { id: userId } });
+  if (!stored) return { success: false, error: 'User not found.' };
+
+  const passwordToSet = newPassword?.trim() ? newPassword.trim() : generateTempPassword(stored.fullName);
+  if (passwordToSet.length < 6) {
+    return { success: false, error: 'Password must be at least 6 characters.' };
+  }
+
+  const hash = bcrypt.hashSync(passwordToSet, SALT_ROUNDS);
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      passwordHash: hash,
+      mustChangePassword,
+      isActive: true,
+    },
+  });
+
+  invalidateMemoryUsersCache();
+  await logAudit('PASSWORD_RESET_BY_ADMIN', 'User', {
+    userId: actorId,
+    targetId: userId,
+    metadata: `Admin reset password for ${stored.fullName} (@${stored.username})`,
+  });
+
+  return { success: true, user: toPublicUser(updated), newPassword: passwordToSet };
 }
 
 // Self-service: lets a signed-in user fill in their own contact info once

@@ -38,6 +38,7 @@ import {
   updateOwnProfile,
   setUserActive,
   deleteUserPermanently,
+  adminResetPassword,
   AddDutyInput,
   AuditLogFilter,
   CreateUserInput,
@@ -171,6 +172,17 @@ export async function deleteUserAction(userId: string) {
     return { success: false as const, error: 'You cannot delete your own account.' };
   }
   const res = await deleteUserPermanently(userId, admin.id);
+  revalidatePath('/');
+  return res;
+}
+
+export async function adminResetPasswordAction(
+  userId: string,
+  customPassword?: string,
+  mustChangePassword = false
+) {
+  const admin = await requireAdmin();
+  const res = await adminResetPassword(userId, customPassword, mustChangePassword, admin.id);
   revalidatePath('/');
   return res;
 }
