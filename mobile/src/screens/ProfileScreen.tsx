@@ -27,7 +27,17 @@ import {
   Mail,
   UserCheck,
   ArrowLeft,
+  ArrowDownToLine,
+  RefreshCw,
+  CheckCircle2,
+  Download,
 } from 'lucide-react-native';
+import {
+  checkAppUpdate,
+  downloadAndInstallUpdate,
+  AppUpdateCheckResult,
+  CURRENT_APP_VERSION,
+} from '../services/updates';
 
 interface ProfileScreenProps {
   onBack?: () => void;
@@ -35,6 +45,11 @@ interface ProfileScreenProps {
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack }) => {
   const { user, logout, serverUrl, updateServerUrl, refreshUser } = useAuth();
+
+  // App Update state
+  const [updateInfo, setUpdateInfo] = useState<AppUpdateCheckResult | null>(null);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [updateCheckMessage, setUpdateCheckMessage] = useState<string | null>(null);
 
   // Server URL Modal state (Admin only)
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
@@ -62,6 +77,45 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack }) => {
       setContactPhone(user.phone || '');
     }
   }, [user]);
+
+  // Check for updates on profile mount
+  useEffect(() => {
+    let isMounted = true;
+    checkAppUpdate().then((res) => {
+      if (isMounted) setUpdateInfo(res);
+    }).catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleCheckForUpdates = async () => {
+    setIsCheckingUpdate(true);
+    setUpdateCheckMessage(null);
+    try {
+      const res = await checkAppUpdate();
+      setUpdateInfo(res);
+      if (res.hasUpdate) {
+        Alert.alert(
+          'Update Available',
+          `A newer release (v${res.latestVersion}) is ready. Would you like to download and install the new APK update?`,
+          [
+            { text: 'Later', style: 'cancel' },
+            {
+              text: 'Install Now',
+              onPress: () => downloadAndInstallUpdate(res.apkUrl),
+            },
+          ]
+        );
+      } else {
+        setUpdateCheckMessage(`You are running the latest version (v${res.currentVersion})`);
+      }
+    } catch {
+      setUpdateCheckMessage('Unable to reach the update server.');
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out of NIBM Slate?', [
@@ -299,11 +353,85 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack }) => {
         </TouchableOpacity>
       </View>
 
+      {/* App Version & Updates Card */}
+      <View style={styles.card}>
+        <View style={styles.cardHeaderRow}>
+          <View style={styles.cardHeaderLeft}>
+            <ArrowDownToLine size={18} color={colors.primaryLight} style={{ marginRight: 8 }} />
+            <Text style={styles.cardTitle}>App Version & Updates</Text>
+          </View>
+          {updateInfo?.hasUpdate ? (
+            <View style={styles.updateBadge}>
+              <Text style={styles.updateBadgeText}>Update Available</Text>
+            </View>
+          ) : (
+            <View style={styles.upToDateBadge}>
+              <CheckCircle2 size={11} color={colors.success} style={{ marginRight: 3 }} />
+              <Text style={styles.upToDateBadgeText}>Up to Date</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Installed Version</Text>
+          <Text style={styles.detailValue}>v{CURRENT_APP_VERSION}</Text>
+        </View>
+
+        {updateInfo?.hasUpdate && (
+          <View style={{ marginTop: 8 }}>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Latest Release</Text>
+              <Text style={[styles.detailValue, { color: '#fbbf24', fontWeight: '800' }]}>
+                v{updateInfo.latestVersion}
+              </Text>
+            </View>
+
+            {updateInfo.releaseNotes.length > 0 && (
+              <View style={styles.releaseNotesBox}>
+                <Text style={styles.releaseNotesTitle}>What's New in v{updateInfo.latestVersion}:</Text>
+                {updateInfo.releaseNotes.map((note, idx) => (
+                  <Text key={idx} style={styles.releaseNoteItem}>• {note}</Text>
+                ))}
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={styles.downloadUpdateButton}
+              onPress={() => downloadAndInstallUpdate(updateInfo.apkUrl)}
+              activeOpacity={0.8}
+            >
+              <Download size={15} color="#ffffff" style={{ marginRight: 6 }} />
+              <Text style={styles.downloadUpdateButtonText}>Download & Install Update (APK)</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {updateCheckMessage && !updateInfo?.hasUpdate && (
+          <Text style={styles.updateStatusText}>{updateCheckMessage}</Text>
+        )}
+
+        <TouchableOpacity
+          style={styles.checkUpdateButton}
+          onPress={handleCheckForUpdates}
+          disabled={isCheckingUpdate}
+          activeOpacity={0.7}
+        >
+          {isCheckingUpdate ? (
+            <ActivityIndicator size="small" color={colors.primaryLight} style={{ marginRight: 6 }} />
+          ) : (
+            <RefreshCw size={14} color={colors.primaryLight} style={{ marginRight: 6 }} />
+          )}
+          <Text style={styles.checkUpdateButtonText}>
+            {isCheckingUpdate ? 'Checking for Updates...' : 'Check for Updates Now'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {/* System Information */}
       <View style={styles.infoBox}>
         <Sparkles size={15} color={colors.accent} style={{ marginRight: 8 }} />
         <Text style={styles.infoText}>
-          NIBM Slate Mobile v1.0 • School of Computing, NIBM
+          NIBM Slate Mobile v{CURRENT_APP_VERSION} • School of Computing, NIBM
         </Text>
       </View>
 
@@ -654,10 +782,108 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.cardBorderSubtle,
   },
-  infoText: {
-    color: colors.textSecondary,
-    fontSize: 11.5,
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  cardHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
+  },
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  updateBadge: {
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+  },
+  updateBadgeText: {
+    color: '#fbbf24',
+    fontSize: 10.5,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  upToDateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderWidth: 1,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  upToDateBadgeText: {
+    color: colors.success,
+    fontSize: 10.5,
+    fontWeight: '700',
+  },
+  releaseNotesBox: {
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: 10,
+    padding: 11,
+    borderWidth: 1,
+    borderColor: colors.cardBorderSubtle,
+    marginVertical: 10,
+    gap: 4,
+  },
+  releaseNotesTitle: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    marginBottom: 2,
+  },
+  releaseNoteItem: {
+    fontSize: 11.5,
+    color: colors.textMuted,
+    lineHeight: 16,
+  },
+  downloadUpdateButton: {
+    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginTop: 6,
+    marginBottom: 8,
+  },
+  downloadUpdateButtonText: {
+    color: '#ffffff',
+    fontSize: 12.5,
+    fontWeight: '700',
+  },
+  updateStatusText: {
+    fontSize: 11.5,
+    color: colors.success,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 2,
+  },
+  checkUpdateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: 9,
+    paddingVertical: 9,
+    borderWidth: 1,
+    borderColor: colors.cardBorderSubtle,
+    marginTop: 10,
+  },
+  checkUpdateButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.primaryLight,
   },
   logoutButton: {
     flexDirection: 'row',

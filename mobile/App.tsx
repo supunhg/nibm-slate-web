@@ -7,6 +7,9 @@ import {
   StatusBar as RNStatusBar,
   Platform,
   BackHandler,
+  TouchableOpacity,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -20,10 +23,37 @@ import { InstructorPortalScreen } from './src/screens/InstructorPortalScreen';
 import { ExecutiveCockpitScreen } from './src/screens/ExecutiveCockpitScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { ChangePasswordScreen } from './src/screens/ChangePasswordScreen';
+import { checkAppUpdate, downloadAndInstallUpdate, AppUpdateCheckResult } from './src/services/updates';
+import { Download, Sparkles, X } from 'lucide-react-native';
 
 const MainNavigator: React.FC = () => {
   const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabScreen>('schedule');
+  const [updateInfo, setUpdateInfo] = useState<AppUpdateCheckResult | null>(null);
+  const [isUpdateBannerDismissed, setIsUpdateBannerDismissed] = useState(false);
+
+  // Silently check for software/APK updates on mount and whenever app resumes to foreground
+  useEffect(() => {
+    let isMounted = true;
+    const runUpdateCheck = async () => {
+      const res = await checkAppUpdate();
+      if (isMounted && res.hasUpdate) {
+        setUpdateInfo(res);
+      }
+    };
+    runUpdateCheck();
+
+    const appStateSub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
+      if (nextState === 'active') {
+        runUpdateCheck();
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      appStateSub.remove();
+    };
+  }, []);
 
   // Handle hardware back press on Android so user returns to schedule instead of exiting app
   useEffect(() => {
@@ -74,6 +104,35 @@ const MainNavigator: React.FC = () => {
         onProfilePress={() => setActiveTab(activeTab === 'profile' ? 'schedule' : 'profile')}
       />
 
+      {/* Global In-App Update Banner */}
+      {updateInfo?.hasUpdate && !isUpdateBannerDismissed && (
+        <View style={styles.updateBanner}>
+          <View style={styles.updateBannerLeft}>
+            <Sparkles size={15} color="#fbbf24" style={{ marginRight: 6 }} />
+            <Text style={styles.updateBannerText} numberOfLines={1}>
+              Update v{updateInfo.latestVersion} available
+            </Text>
+          </View>
+          <View style={styles.updateBannerActions}>
+            <TouchableOpacity
+              style={styles.updateBannerButton}
+              onPress={() => downloadAndInstallUpdate(updateInfo.apkUrl)}
+              activeOpacity={0.8}
+            >
+              <Download size={12} color="#ffffff" style={{ marginRight: 4 }} />
+              <Text style={styles.updateBannerButtonText}>Install</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.updateBannerDismiss}
+              onPress={() => setIsUpdateBannerDismissed(true)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <X size={14} color="#94a3b8" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       <View style={styles.body}>
         {activeTab === 'schedule' && <ScheduleScreen />}
         {activeTab === 'portal' && <InstructorPortalScreen />}
@@ -100,6 +159,48 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.surface,
     paddingTop: Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) : Platform.OS === 'ios' ? 44 : 0,
+  },
+  updateBanner: {
+    backgroundColor: 'rgba(99, 102, 241, 0.18)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(99, 102, 241, 0.35)',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  updateBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 8,
+  },
+  updateBannerText: {
+    color: '#e2e8f0',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  updateBannerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  updateBannerButton: {
+    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4.5,
+    borderRadius: 8,
+  },
+  updateBannerButtonText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  updateBannerDismiss: {
+    padding: 3,
   },
   body: {
     flex: 1,
