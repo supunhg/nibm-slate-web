@@ -11,6 +11,8 @@ import {
   Modal,
   TextInput,
   Alert,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
@@ -99,6 +101,24 @@ export const ScheduleScreen: React.FC = () => {
 
   useEffect(() => {
     fetchSchedule(currentWeekStart);
+  }, [currentWeekStart, fetchSchedule]);
+
+  // Pull updates automatically when user returns to app, plus periodic background sync
+  useEffect(() => {
+    const appStateSub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
+      if (nextState === 'active') {
+        fetchSchedule(currentWeekStart, true);
+      }
+    });
+
+    const intervalId = setInterval(() => {
+      fetchSchedule(currentWeekStart, true);
+    }, 45000);
+
+    return () => {
+      appStateSub.remove();
+      clearInterval(intervalId);
+    };
   }, [currentWeekStart, fetchSchedule]);
 
   // Compute 7 days of the selected week

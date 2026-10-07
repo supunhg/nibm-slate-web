@@ -200,6 +200,15 @@ async function runMobileApiVerification() {
   assert(pubToggleRes.status === 200, 'Publish roster endpoint returns 200 OK');
   assert(pubToggleData.week && pubToggleData.week.status === 'PUBLISHED', 'Roster week status transitioned to PUBLISHED');
 
+  // 13. Mobile App Version & In-App Update Check
+  const { GET: versionGet } = await import('../src/app/api/mobile/version/route');
+  const versionRes = await versionGet();
+  const versionData = await versionRes.json();
+  assert(versionRes.status === 200, 'Version endpoint returns 200 OK');
+  assert(typeof versionData.latestVersion === 'string' && versionData.latestVersion.length > 0, 'Version response contains latestVersion string');
+  assert(typeof versionData.apkUrl === 'string' && versionData.apkUrl.includes('.apk'), 'Version response contains direct APK download URL');
+  assert(Array.isArray(versionData.releaseNotes) && versionData.releaseNotes.length > 0, 'Version response contains release notes');
+
   console.log('\n====================================================');
   console.log(`🎯 MOBILE API RESULTS: ${passed}/${total} TESTS PASSED!`);
   console.log('====================================================\n');
