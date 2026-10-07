@@ -11,9 +11,19 @@ import {
   Power,
   Trash2,
   X,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Lock,
 } from 'lucide-react';
 import { User, Role } from '@/types';
-import { listAllUsersAction, createUserAction, setUserActiveAction, deleteUserAction } from '@/lib/actions';
+import {
+  listAllUsersAction,
+  createUserAction,
+  setUserActiveAction,
+  deleteUserAction,
+  adminResetPasswordAction,
+} from '@/lib/actions';
 import { useDialog } from './DialogProvider';
 
 interface AdminUserManagementProps {
@@ -49,6 +59,83 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
   const [submitting, setSubmitting] = useState(false);
   const [createdResult, setCreatedResult] = useState<{ user: User; tempPassword: string } | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Password Reset state
+  const [resetModalUser, setResetModalUser] = useState<User | null>(null);
+  const [resetMode, setResetMode] = useState<'default' | 'custom'>('default');
+  const [customResetPassword, setCustomResetPassword] = useState('');
+  const [showCustomPassword, setShowCustomPassword] = useState(false);
+  const [mustChangeOnLogin, setMustChangeOnLogin] = useState(true);
+  const [resetSubmitting, setResetSubmitting] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetResult, setResetResult] = useState<{ user: User; newPassword: string } | null>(null);
+  const [resetCopied, setResetCopied] = useState(false);
+
+  const handleOpenResetPassword = (user: User) => {
+    setResetModalUser(user);
+    setResetMode('default');
+    setCustomResetPassword('');
+    setShowCustomPassword(false);
+    setMustChangeOnLogin(user.role !== 'ADMIN');
+    setResetSubmitting(false);
+    setResetError(null);
+    setResetResult(null);
+    setResetCopied(false);
+  };
+
+  const handleCloseResetModal = () => {
+    setResetModalUser(null);
+    setResetResult(null);
+    setResetError(null);
+    setResetCopied(false);
+  };
+
+  const handleConfirmResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetModalUser) return;
+    setResetError(null);
+
+    let passwordToSend: string | undefined = undefined;
+    if (resetMode === 'custom') {
+      if (!customResetPassword || customResetPassword.length < 6) {
+        setResetError('Custom password must be at least 6 characters.');
+        return;
+      }
+      passwordToSend = customResetPassword;
+    }
+
+    setResetSubmitting(true);
+    try {
+      const res = await adminResetPasswordAction(
+        resetModalUser.id,
+        passwordToSend,
+        mustChangeOnLogin
+      );
+      if (!res.success) {
+        setResetError(res.error);
+        setResetSubmitting(false);
+        return;
+      }
+      setResetResult({ user: res.user, newPassword: res.newPassword });
+      fetchUsers();
+    } catch (err) {
+      console.error('Failed to reset password:', err);
+      setResetError('An error occurred while resetting the password.');
+    } finally {
+      setResetSubmitting(false);
+    }
+  };
+
+  const handleCopyResetPassword = async () => {
+    if (!resetResult) return;
+    try {
+      await navigator.clipboard.writeText(resetResult.newPassword);
+      setResetCopied(true);
+      setTimeout(() => setResetCopied(false), 2500);
+    } catch {
+      await notify('Could not copy. Please copy the password manually.');
+    }
+  };
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -168,15 +255,24 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
               be asked to set their own password, and add their email and phone, on first sign-in.
             </p>
           </div>
-          {!panelOpen && (
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
             <button
-              onClick={() => setPanelOpen(true)}
-              className="flex items-center space-x-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-lg transition-colors cursor-pointer shrink-0"
+              onClick={() => handleOpenResetPassword(currentUser)}
+              className="flex items-center space-x-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3.5 py-2.5 rounded-lg transition-colors cursor-pointer"
             >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>Add Staff Member</span>
+              <KeyRound className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Change Admin Password</span>
             </button>
-          )}
+            {!panelOpen && (
+              <button
+                onClick={() => setPanelOpen(true)}
+                className="flex items-center space-x-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Add Staff Member</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -365,6 +461,14 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                 </div>
                 <div className="shrink-0 flex items-center gap-2">
                   <button
+                    onClick={() => handleOpenResetPassword(u)}
+                    title={`Reset password for ${u.fullName}`}
+                    className="flex items-center space-x-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors cursor-pointer bg-slate-800 hover:bg-indigo-600/25 text-slate-300 hover:text-indigo-300 border border-slate-700/60"
+                  >
+                    <KeyRound className="w-3 h-3 text-indigo-400" />
+                    <span>Reset Password</span>
+                  </button>
+                  <button
                     onClick={() => handleToggleActive(u)}
                     disabled={u.id === currentUser.id}
                     title={u.isActive ? 'Deactivate account' : 'Reactivate account'}
@@ -393,6 +497,174 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
           </div>
         )}
       </div>
+
+      {/* Reset Password Modal */}
+      {resetModalUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                  <KeyRound className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Reset Account Password</h3>
+                  <p className="text-[11px] text-slate-400">
+                    {resetModalUser.fullName} (@{resetModalUser.username})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleCloseResetModal}
+                className="text-slate-500 hover:text-slate-300 cursor-pointer p-1 rounded-lg hover:bg-slate-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5">
+              {resetResult ? (
+                <div className="space-y-4">
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-xs flex items-center space-x-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                    <span>
+                      Password successfully updated for <strong>{resetResult.user.fullName}</strong>.
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                      New password to relay to the user:
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-3 py-2.5 font-mono tracking-wider select-all">
+                        {resetResult.newPassword}
+                      </code>
+                      <button
+                        onClick={handleCopyResetPassword}
+                        className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-lg transition-colors cursor-pointer ${
+                          resetCopied ? 'bg-emerald-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                        }`}
+                        title="Copy password to clipboard"
+                      >
+                        {resetCopied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-slate-400">
+                    Share this password with them directly. They can now log in immediately.
+                  </p>
+
+                  <div className="pt-2">
+                    <button
+                      onClick={handleCloseResetModal}
+                      className="w-full text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-lg transition-colors cursor-pointer"
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleConfirmResetPassword} className="space-y-4">
+                  {resetError && (
+                    <div className="p-3 bg-rose-950/40 border border-rose-900/60 rounded-lg text-rose-300 text-xs flex items-center space-x-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                      <span>{resetError}</span>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-slate-400">Choose Reset Option</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setResetMode('default')}
+                        className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                          resetMode === 'default'
+                            ? 'bg-indigo-600/15 border-indigo-500 text-white'
+                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="text-xs font-semibold">Standard Temp</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">FirstName@123 formula</div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setResetMode('custom')}
+                        className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                          resetMode === 'custom'
+                            ? 'bg-indigo-600/15 border-indigo-500 text-white'
+                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="text-xs font-semibold">Custom Password</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">Set specific password</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {resetMode === 'custom' && (
+                    <div>
+                      <label className="block text-xs font-medium text-slate-400 mb-1.5">New Password</label>
+                      <div className="relative">
+                        <input
+                          type={showCustomPassword ? 'text' : 'password'}
+                          value={customResetPassword}
+                          onChange={(e) => setCustomResetPassword(e.target.value)}
+                          placeholder="Enter at least 6 characters"
+                          className="w-full text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-3 pr-9 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 placeholder:text-slate-600"
+                          required
+                          minLength={6}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCustomPassword((v) => !v)}
+                          tabIndex={-1}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer"
+                        >
+                          {showCustomPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-1">
+                    <label className="flex items-center gap-2 text-xs font-medium text-slate-400 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={mustChangeOnLogin}
+                        onChange={(e) => setMustChangeOnLogin(e.target.checked)}
+                        className="rounded border-slate-700 bg-slate-950 cursor-pointer text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span>Require password change on next sign-in</span>
+                    </label>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={handleCloseResetModal}
+                      className="text-xs font-medium text-slate-400 hover:text-slate-200 px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={resetSubmitting}
+                      className="text-xs font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-4 py-2.5 rounded-lg transition-colors cursor-pointer flex items-center space-x-1.5"
+                    >
+                      <KeyRound className="w-3.5 h-3.5" />
+                      <span>{resetSubmitting ? 'Resetting...' : 'Confirm Reset'}</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
