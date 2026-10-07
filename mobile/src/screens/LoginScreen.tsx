@@ -132,7 +132,7 @@ export const LoginScreen: React.FC = () => {
                 placeholder="Enter staff username"
                 placeholderTextColor={colors.textMuted}
                 value={username}
-                onChangeText={(text) => {
+                onChangeText={(text: string) => {
                   setUsername(text);
                   if (errorMessage) setErrorMessage(null);
                 }}
@@ -155,7 +155,7 @@ export const LoginScreen: React.FC = () => {
                 placeholder="Enter password"
                 placeholderTextColor={colors.textMuted}
                 value={password}
-                onChangeText={(text) => {
+                onChangeText={(text: string) => {
                   setPassword(text);
                   if (errorMessage) setErrorMessage(null);
                 }}
