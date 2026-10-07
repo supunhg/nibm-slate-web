@@ -2,7 +2,19 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { User } from '@/types';
-import { Shield, Calendar, Users, Clock, LogOut, Loader2, ShieldCheck, RefreshCw, Check, ChevronDown } from 'lucide-react';
+import {
+  Shield,
+  Calendar,
+  Users,
+  Clock,
+  LogOut,
+  Loader2,
+  ShieldCheck,
+  RefreshCw,
+  Check,
+  ChevronDown,
+  ArrowLeft,
+} from 'lucide-react';
 import { AppLogo } from './AppLogo';
 
 export type AppTab = 'executive' | 'weekly' | 'planner' | 'instructor' | 'leaves' | 'admin' | 'profile';
@@ -140,7 +152,12 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
 
                 {refreshMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-100">
+                  <>
+                    <div
+                      className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 sm:hidden"
+                      onClick={() => setRefreshMenuOpen(false)}
+                    />
+                    <div className="fixed inset-x-4 top-20 sm:absolute sm:inset-auto sm:right-0 sm:top-full mt-2 sm:w-64 max-w-xs mx-auto sm:mx-0 bg-slate-900/95 border border-slate-700 rounded-2xl shadow-2xl p-3 z-50 text-xs backdrop-blur-xl animate-in fade-in zoom-in-95 duration-100">
                     <div className="px-2 py-1.5 border-b border-slate-800 mb-1.5">
                       <div className="font-bold text-white flex items-center justify-between">
                         <span>Auto-Refresh Rate</span>
@@ -220,35 +237,49 @@ export const Header: React.FC<HeaderProps> = ({
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            )}
+                </>
+              )}
+            </div>
+          )}
 
-            <button
-              onClick={() => onSelectTab('profile')}
-              title="My Profile"
-              className={`flex items-center space-x-2.5 px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${
-                activeTab === 'profile'
-                  ? 'bg-slate-800 border-slate-700'
-                  : 'bg-slate-800/60 border-slate-800 hover:bg-slate-800'
-              }`}
-            >
-              <div className="w-7 h-7 rounded-md flex items-center justify-center font-semibold text-xs text-slate-300 bg-slate-700">
-                {currentUser.fullName.substring(0, 2).toUpperCase()}
-              </div>
-              <div className="text-left hidden sm:block">
-                <div className="text-xs font-medium text-white leading-tight">
-                  {currentUser.fullName}
-                </div>
-                <div className="text-[10px] text-slate-500">
-                  {currentUser.jobTitle ||
-                    (currentUser.role === 'DEMONSTRATOR' && 'Demonstrator (Roster Master)') ||
-                    (currentUser.role === 'EXECUTIVE' && 'Executive / Director') ||
-                    (currentUser.role === 'INSTRUCTOR' && 'Instructor') ||
-                    (currentUser.role === 'ADMIN' && 'System Administrator')}
-                </div>
-              </div>
-            </button>
+            {/* Profile Avatar / Settings Button */}
+            {(() => {
+              const defaultReturnTab: AppTab = isInstructor
+                ? 'instructor'
+                : (isExecutive || isDemonstrator || isAdmin)
+                ? 'executive'
+                : 'instructor';
+
+              return (
+                <button
+                  onClick={() => onSelectTab(activeTab === 'profile' ? defaultReturnTab : 'profile')}
+                  title={activeTab === 'profile' ? "Return to Schedule & Dashboard" : "My Profile & Settings"}
+                  className={`flex items-center space-x-2.5 px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${
+                    activeTab === 'profile'
+                      ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-200'
+                      : 'bg-slate-800/60 border-slate-800 hover:bg-slate-800'
+                  }`}
+                >
+                  <div className={`w-7 h-7 rounded-md flex items-center justify-center font-semibold text-xs ${
+                    activeTab === 'profile' ? 'bg-indigo-600 text-white' : 'text-slate-300 bg-slate-700'
+                  }`}>
+                    {currentUser.fullName.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div className="text-left hidden sm:block">
+                    <div className="text-xs font-medium text-white leading-tight">
+                      {currentUser.fullName}
+                    </div>
+                    <div className="text-[10px] text-slate-500">
+                      {currentUser.jobTitle ||
+                        (currentUser.role === 'DEMONSTRATOR' && 'Demonstrator (Roster Master)') ||
+                        (currentUser.role === 'EXECUTIVE' && 'Executive / Director') ||
+                        (currentUser.role === 'INSTRUCTOR' && 'Instructor') ||
+                        (currentUser.role === 'ADMIN' && 'System Administrator')}
+                    </div>
+                  </div>
+                </button>
+              );
+            })()}
 
             {/* Logout Button */}
             <button
@@ -271,6 +302,17 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Role-Restricted Navigation Tabs */}
       <div className="border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center space-x-1 overflow-x-auto py-1.5 text-sm">
+          {/* TAB: BACK TO SCHEDULE / DASHBOARD (Shown prominently when in Profile) */}
+          {activeTab === 'profile' && (
+            <button
+              onClick={() => onSelectTab(isInstructor ? 'instructor' : (isExecutive || isDemonstrator || isAdmin) ? 'executive' : 'instructor')}
+              className="flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-indigo-600 text-white shadow-md shadow-indigo-600/30 text-xs font-bold shrink-0 hover:bg-indigo-500 transition-all cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to {isInstructor ? 'My Schedule' : 'Dashboard'}</span>
+            </button>
+          )}
+
           {/* TAB: INSTRUCTOR PORTAL (Visible ONLY to Instructors) */}
           {isInstructor && (
             <button onClick={() => onSelectTab('instructor')} className={tabClass(activeTab === 'instructor')}>

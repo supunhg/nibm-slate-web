@@ -222,15 +222,15 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
           </div>
 
           {/* Right: Unified Controls & Calendar Action Center */}
-          <div className="flex flex-wrap items-center gap-2.5 bg-slate-800/80 border border-slate-700/80 rounded-2xl p-2 sm:p-2.5 shadow-sm">
+          <div className="w-full lg:w-auto flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 bg-slate-800/80 border border-slate-700/80 rounded-2xl p-2 sm:p-2.5 shadow-sm">
             {/* Instructor View Selector */}
             <div className="flex items-center space-x-2 px-1">
               <Filter className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-              <span className="text-xs text-purple-300 font-bold whitespace-nowrap">Filter View:</span>
+              <span className="text-xs text-purple-300 font-bold whitespace-nowrap">Filter:</span>
               <select
                 value={selectedInstructorId}
                 onChange={(e) => setSelectedInstructorId(e.target.value)}
-                className="text-xs bg-slate-900 border border-slate-700 text-white font-semibold rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                className="text-xs bg-slate-900 border border-slate-700 text-white font-semibold rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer flex-1 sm:flex-none"
               >
                 <option value="ALL">All {allInstructors.length} Instructors (Full Cadre)</option>
                 {allInstructors.map((inst) => (
@@ -247,7 +247,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
 
             {/* Calendar Export Actions */}
             {selectedInstructorId !== 'ALL' ? (
-              <div className="flex items-center gap-1.5 flex-nowrap">
+              <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
                 <a
                   href={getGoogleCalendarSubscribeUrl(selectedInstructorId) || '#'}
                   target="_blank"
@@ -256,7 +256,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                   title="Subscribe to entire live calendar in Google Calendar"
                 >
                   <CalendarPlus className="w-3.5 h-3.5" />
-                  <span>Google Calendar</span>
+                  <span>Google Cal</span>
                 </a>
                 <a
                   href={getDownloadIcsUrl(selectedInstructorId)}
@@ -311,37 +311,43 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
           </div>
         </div>
 
-        {/* Sub Navigation */}
-        <div className="flex items-center gap-2 mt-6 pt-4 border-t border-slate-800/80 text-sm">
+        {/* Sub Navigation: Modern Segmented Pill Bar */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-6 pt-4 border-t border-slate-800/80">
           <button
+            type="button"
             onClick={() => setActiveSubTab('schedule')}
-            className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all ${
+            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-all cursor-pointer ${
               activeSubTab === 'schedule'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-slate-300 hover:bg-slate-800/80'
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/25 ring-1 ring-purple-400/30'
+                : 'bg-slate-900/60 hover:bg-slate-800 text-slate-300 border border-slate-800/80 hover:text-white'
             }`}
           >
-            Assigned Tasks & Schedule
+            <Calendar className="w-4 h-4 shrink-0 text-purple-300" />
+            <span>Assigned Schedule</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveSubTab('applyLeave')}
-            className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all ${
+            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-all cursor-pointer ${
               activeSubTab === 'applyLeave'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-slate-300 hover:bg-slate-800/80'
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/25 ring-1 ring-purple-400/30'
+                : 'bg-slate-900/60 hover:bg-slate-800 text-slate-300 border border-slate-800/80 hover:text-white'
             }`}
           >
-            Apply for Holiday / Leave
+            <CalendarPlus className="w-4 h-4 shrink-0 text-purple-300" />
+            <span>Apply for Leave</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveSubTab('teamLeaves')}
-            className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all ${
+            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-all cursor-pointer ${
               activeSubTab === 'teamLeaves'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-slate-300 hover:bg-slate-800/80'
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/25 ring-1 ring-purple-400/30'
+                : 'bg-slate-900/60 hover:bg-slate-800 text-slate-300 border border-slate-800/80 hover:text-white'
             }`}
           >
-            Colleagues on Holiday
+            <Users className="w-4 h-4 shrink-0 text-purple-300" />
+            <span>Colleagues on Leave</span>
           </button>
         </div>
       </div>

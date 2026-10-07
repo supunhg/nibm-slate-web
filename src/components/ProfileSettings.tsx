@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Phone, Lock, CheckCircle2, AlertCircle, UserCircle, Eye, EyeOff } from 'lucide-react';
+import { Mail, Phone, Lock, CheckCircle2, AlertCircle, UserCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { User } from '@/types';
 import { updateProfileAction, changePasswordAction } from '@/lib/actions';
 
@@ -16,10 +16,11 @@ const ROLE_LABELS: Record<User['role'], string> = {
 interface ProfileSettingsProps {
   currentUser: User;
   onUpdated: () => void;
+  onBack?: () => void;
   isRefreshing?: boolean;
 }
 
-export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, onUpdated, isRefreshing }) => {
+export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, onUpdated, onBack, isRefreshing }) => {
   const [email, setEmail] = useState(currentUser.email || '');
   const [phone, setPhone] = useState(currentUser.phone || '');
   const [contactError, setContactError] = useState<string | null>(null);
@@ -84,10 +85,23 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
 
   return (
     <div className="space-y-6 max-w-2xl">
+      {onBack && (
+        <div>
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 text-xs font-bold transition-all shadow-md cursor-pointer active:scale-95 group"
+          >
+            <ArrowLeft className="w-4 h-4 text-indigo-400 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Back to Schedule & Tasks</span>
+          </button>
+        </div>
+      )}
+
       <div className="bg-slate-900 rounded-2xl p-6 text-white border border-slate-800">
         <div className="flex items-center space-x-2 text-slate-500 text-xs font-medium uppercase tracking-wider mb-1">
           <UserCircle className="w-3.5 h-3.5" />
-          <span>My Profile</span>
+          <span>My Profile & Settings</span>
         </div>
         <h2 className="text-xl font-semibold tracking-tight text-white">{currentUser.fullName}</h2>
         <p className="text-slate-400 text-sm mt-1">

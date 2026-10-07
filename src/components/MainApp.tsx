@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useTransition } from 'react';
+import React, { useState, useEffect, useRef, useTransition, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, RosterWeek, DutyAssignment, NightShift, LeaveRequest, ExecutiveStatusReport, AcademicCatalog } from '@/types';
 import { Header, AppTab } from '@/components/Header';
@@ -82,6 +82,31 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
       }
     }
   };
+
+  // Handle tab navigation with browser history support
+  const handleSelectTab = useCallback((newTab: AppTab) => {
+    setActiveTab((prev) => {
+      if (prev === newTab) return prev;
+      if (typeof window !== 'undefined') {
+        window.history.pushState({ tab: newTab }, '', window.location.pathname);
+      }
+      return newTab;
+    });
+  }, []);
+
+  // Listen to browser/hardware back button (popstate)
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state && e.state.tab) {
+        setActiveTab(e.state.tab as AppTab);
+      } else {
+        // Returned to root: navigate back to default landing tab for user's role
+        setActiveTab(defaultTabForRole(initialCurrentUser));
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [initialCurrentUser]);
 
   // The server resolves the session on every request; whenever a different
   // user arrives via props (login, logout, router.refresh()), reset the
@@ -232,7 +257,7 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
           currentUser={currentUser}
           onLogout={handleLogout}
           activeTab={activeTab}
-          onSelectTab={(tab) => setActiveTab(tab)}
+          onSelectTab={handleSelectTab}
           pendingLeavesCount={pendingLeaves.length}
           autoRefreshSeconds={autoRefreshSeconds}
           onChangeAutoRefreshSeconds={handleChangeRefreshInterval}
@@ -283,7 +308,7 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
               allInstructors={data.instructors}
               onWeekChange={handleWeekChange}
               onSelectDateForCockpit={() => {
-                setActiveTab('executive');
+                handleSelectTab('executive');
               }}
             />
           )}
@@ -319,6 +344,7 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
             <ProfileSettings
               currentUser={currentUser}
               onUpdated={refreshSession}
+              onBack={() => handleSelectTab(defaultTabForRole(currentUser))}
               isRefreshing={isSessionRefreshing}
             />
           )}

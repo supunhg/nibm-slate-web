@@ -182,13 +182,13 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
         {/* Three High-Contrast Status Buckets */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 1. ON DUTY (TEACHING) */}
-          <div className="bg-slate-800/90 rounded-2xl border border-emerald-900/60 shadow-lg flex flex-col">
-            <div className="p-4 border-b border-slate-700/80 flex items-center justify-between bg-emerald-950/40 rounded-t-2xl">
-              <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-emerald-400"></span>
+          <div className="bg-slate-900/90 rounded-2xl border border-slate-800 shadow-xl flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/70">
+              <div className="flex items-center space-x-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-xs shadow-emerald-400/50"></span>
                 <h2 className="font-bold text-white text-base">Working Now (On Duty)</h2>
               </div>
-              <span className="text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
+              <span className="text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full">
                 {report.onDuty.length} Active
               </span>
             </div>
@@ -201,49 +201,53 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                   <p className="text-xs text-slate-500">for this time period</p>
                 </div>
               ) : (
-                    report.onDuty.map(({ instructor, assignment }) => (
+                report.onDuty.map(({ instructor, assignment }) => (
                   <div
                     key={assignment.id}
-                    className="bg-slate-900/90 rounded-xl p-3.5 border border-slate-700 hover:border-emerald-500/60 transition-colors shadow-2xs"
+                    className="bg-slate-950/60 rounded-xl p-3.5 border border-slate-800/90 hover:border-slate-700 transition-all shadow-sm space-y-2.5"
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-white text-sm">{instructor.fullName}</span>
-                        {instructor.phone && (
-                          <a
-                            href={`tel:${instructor.phone.replace(/\s+/g, '')}`}
-                            className="inline-flex items-center gap-1 text-[11px] bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded font-bold transition-colors cursor-pointer"
-                            title={`Call ${instructor.fullName} (${instructor.phone})`}
-                          >
-                            <Phone className="w-2.5 h-2.5" />
-                            <span>Call</span>
-                          </a>
-                        )}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-white text-sm truncate">{instructor.fullName}</span>
+                          {instructor.phone && (
+                            <a
+                              href={`tel:${instructor.phone.replace(/\s+/g, '')}`}
+                              className="inline-flex items-center gap-1 text-[11px] bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-md font-semibold transition-colors cursor-pointer"
+                              title={`Call ${instructor.fullName} (${instructor.phone})`}
+                            >
+                              <Phone className="w-2.5 h-2.5" />
+                              <span>Call</span>
+                            </a>
+                          )}
+                        </div>
                       </div>
-                      <span className="text-[11px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60">
+                      <span className="text-[11px] font-semibold text-emerald-300 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-800/60 whitespace-nowrap shrink-0">
                         {assignment.startTime === '09:00' && assignment.endTime === '16:00'
-                          ? '09:00 - 16:00 (Full Day)'
-                          : `${assignment.startTime} - ${assignment.endTime}`}
+                          ? '09:00 – 16:00 (Full Day)'
+                          : `${assignment.startTime} – ${assignment.endTime}`}
                       </span>
                     </div>
 
-                    <div className="text-xs text-slate-300 font-medium flex items-center space-x-1.5 mt-1">
+                    <div className="text-xs text-slate-300 font-medium flex items-center space-x-1.5">
                       <BookOpen className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                      <span>{assignment.moduleName ?? assignment.dutyType}</span>
+                      <span className="truncate">{assignment.moduleName ?? assignment.dutyType}</span>
                     </div>
                     {assignment.notes && (
-                      <p className="text-xs text-slate-400 italic mt-1">{assignment.notes}</p>
+                      <p className="text-xs text-slate-400 italic">{assignment.notes}</p>
                     )}
 
-                    <div className="flex items-center justify-between text-xs text-slate-400 mt-2.5 pt-2 border-t border-slate-800">
-                      {assignment.batchName && (
-                        <span className="text-[11px] font-bold text-indigo-300 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/40">
+                    <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800/80">
+                      {assignment.batchName ? (
+                        <span className="text-[11px] font-medium text-indigo-300 bg-indigo-950/60 px-2.5 py-0.5 rounded-full border border-indigo-800/40 truncate max-w-[65%]">
                           Batch: {assignment.batchName}
                         </span>
+                      ) : (
+                        <span />
                       )}
                       {assignment.roomLab && (
-                        <span className="flex items-center space-x-1 text-slate-400 text-[11px]">
-                          <MapPin className="w-3 h-3 text-slate-500" />
+                        <span className="flex items-center space-x-1 text-slate-300 text-[11px] font-medium bg-slate-900/80 px-2 py-0.5 rounded-md border border-slate-800/60 shrink-0">
+                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                           <span>{assignment.roomLab}</span>
                         </span>
                       )}
@@ -255,13 +259,13 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
           </div>
 
           {/* 2. FREE / STANDBY (The essential query for finding who is free!) */}
-          <div className="bg-slate-800/90 rounded-2xl border border-amber-900/60 shadow-lg flex flex-col">
-            <div className="p-4 border-b border-slate-700/80 flex items-center justify-between bg-amber-950/40 rounded-t-2xl">
-              <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-amber-400"></span>
+          <div className="bg-slate-900/90 rounded-2xl border border-slate-800 shadow-xl flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/70">
+              <div className="flex items-center space-x-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-xs shadow-amber-400/50"></span>
                 <h2 className="font-bold text-white text-base">Available / Free Standby</h2>
               </div>
-              <span className="text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
+              <span className="text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-full">
                 {report.freeStandby.length} Free
               </span>
             </div>
@@ -277,20 +281,20 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                 report.freeStandby.map((instructor) => (
                   <div
                     key={instructor.id}
-                    className="bg-slate-900/80 rounded-xl p-3 border border-slate-700/80 flex items-center justify-between gap-2"
+                    className="bg-slate-950/60 rounded-xl p-3 border border-slate-800/90 hover:border-slate-700 flex items-center justify-between gap-3 transition-all"
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-xs flex items-center justify-center">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold text-xs flex items-center justify-center shrink-0">
                         {instructor.fullName.substring(0, 2).toUpperCase()}
                       </div>
-                      <div>
-                        <h3 className="font-bold text-white text-sm">{instructor.fullName}</h3>
-                        <p className="text-[11px] text-amber-300/90">
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-white text-sm truncate">{instructor.fullName}</h3>
+                        <p className="text-[11px] text-slate-400 truncate">
                           {instructor.phone || 'Available in staff room'}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       {instructor.phone && (
                         <a
                           href={`tel:${instructor.phone.replace(/\s+/g, '')}`}
@@ -301,7 +305,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                           <span>Call</span>
                         </a>
                       )}
-                      <span className="text-[10px] font-black bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30 uppercase">
+                      <span className="text-[10px] font-bold bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-md border border-amber-500/20 uppercase">
                         Free
                       </span>
                     </div>
@@ -309,19 +313,19 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                 ))
               )}
             </div>
-            <div className="p-3 bg-slate-900/60 border-t border-slate-800 text-[11px] text-slate-400 text-center rounded-b-2xl">
+            <div className="p-3 bg-slate-950/90 border-t border-slate-800 text-[11px] text-slate-400 text-center">
               Available for student queries, lab assistance, or marking.
             </div>
           </div>
 
           {/* 3. ON LEAVE (APPROVED) */}
-          <div className="bg-slate-800/90 rounded-2xl border border-rose-900/60 shadow-lg flex flex-col">
-            <div className="p-4 border-b border-slate-700/80 flex items-center justify-between bg-rose-950/40 rounded-t-2xl">
-              <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-rose-400"></span>
+          <div className="bg-slate-900/90 rounded-2xl border border-slate-800 shadow-xl flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/70">
+              <div className="flex items-center space-x-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-xs shadow-rose-400/50"></span>
                 <h2 className="font-bold text-white text-base">On Leave (Away)</h2>
               </div>
-              <span className="text-xs font-black bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2.5 py-0.5 rounded-full">
+              <span className="text-xs font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 px-3 py-1 rounded-full">
                 {report.onLeave.length} Away
               </span>
             </div>
@@ -337,15 +341,15 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                 report.onLeave.map(({ instructor, leave }) => (
                   <div
                     key={leave.id}
-                    className="bg-slate-900/80 rounded-xl p-3.5 border border-rose-900/60"
+                    className="bg-slate-950/60 rounded-xl p-3.5 border border-slate-800/90 hover:border-slate-700 transition-all space-y-1.5"
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-white text-sm">{instructor.fullName}</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span className="font-bold text-white text-sm truncate">{instructor.fullName}</span>
                         {instructor.phone && (
                           <a
                             href={`tel:${instructor.phone.replace(/\s+/g, '')}`}
-                            className="inline-flex items-center gap-1 text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2 py-0.5 rounded border border-slate-700 transition-colors"
+                            className="inline-flex items-center gap-1 text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2 py-0.5 rounded border border-slate-700 transition-colors shrink-0"
                             title={`Call ${instructor.fullName}`}
                           >
                             <Phone className="w-2.5 h-2.5" />
@@ -353,11 +357,11 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                           </a>
                         )}
                       </div>
-                      <span className="text-[10px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded uppercase">
+                      <span className="text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-md uppercase shrink-0">
                         Leave
                       </span>
                     </div>
-                    <p className="text-xs text-slate-300 italic">&quot;{leave.reason}&quot;</p>
+                    <p className="text-xs text-slate-400 italic">&quot;{leave.reason}&quot;</p>
                     <div className="text-[10px] text-slate-400 mt-2">
                       Duration: {leave.startDate} {leave.startDate !== leave.endDate && `to ${leave.endDate}`}
                     </div>

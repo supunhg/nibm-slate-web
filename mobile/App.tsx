@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,6 +6,7 @@ import {
   Text,
   StatusBar as RNStatusBar,
   Platform,
+  BackHandler,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -23,6 +24,23 @@ import { ChangePasswordScreen } from './src/screens/ChangePasswordScreen';
 const MainNavigator: React.FC = () => {
   const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabScreen>('schedule');
+
+  // Handle hardware back press on Android so user returns to schedule instead of exiting app
+  useEffect(() => {
+    const handleBackPress = () => {
+      if (activeTab === 'profile') {
+        setActiveTab('schedule');
+        return true;
+      }
+      return false;
+    };
+
+    const backSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress
+    );
+    return () => backSubscription.remove();
+  }, [activeTab]);
 
   if (isLoading) {
     return (
@@ -50,13 +68,17 @@ const MainNavigator: React.FC = () => {
 
   return (
     <View style={styles.safeArea}>
-      <Header onProfilePress={() => setActiveTab('profile')} />
+      <Header
+        isBackVisible={activeTab === 'profile'}
+        onBackPress={() => setActiveTab('schedule')}
+        onProfilePress={() => setActiveTab(activeTab === 'profile' ? 'schedule' : 'profile')}
+      />
 
       <View style={styles.body}>
         {activeTab === 'schedule' && <ScheduleScreen />}
         {activeTab === 'portal' && <InstructorPortalScreen />}
         {activeTab === 'executive' && <ExecutiveCockpitScreen />}
-        {activeTab === 'profile' && <ProfileScreen />}
+        {activeTab === 'profile' && <ProfileScreen onBack={() => setActiveTab('schedule')} />}
       </View>
 
       <TabBar currentTab={activeTab} onSelectTab={setActiveTab} />
