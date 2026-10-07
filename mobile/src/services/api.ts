@@ -17,17 +17,9 @@ const STORE_SERVER_KEY = 'nibm_slate_server_url';
 const PRODUCTION_HOST = 'https://slate.oalindustries.me';
 
 // Default API host:
-// - Uses EXPO_PUBLIC_API_URL when explicitly set
-// - In development (__DEV__): points to local server (10.0.2.2 for Android emulator, localhost:3000 for iOS/Web)
-// - In production: defaults directly to https://slate.oalindustries.me
-const isDev = typeof globalThis !== 'undefined' && Boolean((globalThis as any).__DEV__);
-const DEFAULT_HOST =
-  process.env.EXPO_PUBLIC_API_URL ||
-  (isDev
-    ? Platform.OS === 'android'
-      ? 'http://10.0.2.2:3000'
-      : 'http://localhost:3000'
-    : PRODUCTION_HOST);
+// - Defaults directly to production: https://slate.oalindustries.me
+// - Can be overridden via EXPO_PUBLIC_API_URL environment variable or via in-app server settings
+const DEFAULT_HOST = process.env.EXPO_PUBLIC_API_URL || PRODUCTION_HOST;
 
 let currentServerUrl = DEFAULT_HOST;
 let currentToken: string | null = null;
