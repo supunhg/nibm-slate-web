@@ -294,22 +294,28 @@ export const InstructorPortalScreen: React.FC = () => {
                 <View style={styles.dutyTimeChip}>
                   <Clock size={11} color={colors.primaryLight} style={{ marginRight: 4 }} />
                   <Text style={styles.dutyTimeChipText}>
-                    {duty.startTime} - {duty.endTime}
+                    {duty.startTime} – {duty.endTime}
                   </Text>
                 </View>
               </View>
-              <Text style={styles.dutyItemSlot}>{duty.slotLabel}</Text>
-              {(duty.batchName || duty.moduleName) && (
-                <Text style={styles.dutyItemBatch}>
-                  {[duty.batchName, duty.moduleName].filter(Boolean).join(' • ')}
-                </Text>
-              )}
-              {duty.roomLab && (
-                <View style={styles.dutyRoomRow}>
-                  <MapPin size={11} color={colors.accentLight} />
-                  <Text style={styles.dutyRoomText}>{duty.roomLab}</Text>
-                </View>
-              )}
+
+              <Text style={styles.dutyItemHeroTitle} numberOfLines={2}>
+                {duty.moduleName || duty.slotLabel}
+              </Text>
+
+              <View style={styles.dutyMetaRow}>
+                {duty.batchName ? (
+                  <View style={styles.batchPill}>
+                    <Text style={styles.batchPillText}>{duty.batchName}</Text>
+                  </View>
+                ) : null}
+                {duty.roomLab ? (
+                  <View style={styles.dutyRoomChip}>
+                    <MapPin size={11} color={colors.accentLight} />
+                    <Text style={styles.dutyRoomText}>{duty.roomLab}</Text>
+                  </View>
+                ) : null}
+              </View>
             </View>
           ))
         )}
@@ -470,15 +476,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   heroCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 18,
-    padding: 18,
+    backgroundColor: colors.card,
+    borderRadius: 20,
+    padding: 20,
     borderWidth: 1,
     borderColor: colors.cardBorderSubtle,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
-    shadowRadius: 6,
+    shadowRadius: 8,
     elevation: 3,
   },
   heroTopRow: {
@@ -515,14 +521,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 9,
+    paddingHorizontal: 13,
+    paddingVertical: 8.5,
+    borderRadius: 10,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.35,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowRadius: 5,
+    elevation: 3,
   },
   applyButtonText: {
     color: '#ffffff',
@@ -637,19 +643,22 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   dutyItemCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: 14,
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 15,
     borderWidth: 1,
     borderColor: colors.cardBorderSubtle,
-    borderLeftWidth: 3.5,
-    borderLeftColor: colors.primary,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 2,
   },
   dutyItemTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   dutyItemDate: {
     fontSize: 13.5,
@@ -660,43 +669,69 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surfaceElevated,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 7,
     borderWidth: 1,
     borderColor: colors.cardBorderSubtle,
   },
   dutyTimeChipText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.primaryLight,
   },
-  dutyItemSlot: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textSecondary,
+  dutyItemHeroTitle: {
+    fontSize: 15.5,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    letterSpacing: -0.2,
+    marginBottom: 8,
   },
-  dutyItemBatch: {
-    fontSize: 12,
-    color: colors.accentLight,
-    marginTop: 4,
-  },
-  dutyRoomRow: {
+  dutyMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 6,
+    gap: 8,
   },
-  dutyRoomText: {
-    fontSize: 11.5,
-    color: colors.textSecondary,
+  batchPill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    paddingHorizontal: 7.5,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  leaveCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: 15,
+  batchPillText: {
+    fontSize: 11,
+    color: colors.accentLight,
+    fontWeight: '700',
+  },
+  dutyRoomChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceElevated,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: colors.cardBorderSubtle,
+    gap: 4,
+  },
+  dutyRoomText: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  leaveCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.cardBorderSubtle,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 2,
   },
   leaveCardHeader: {
     flexDirection: 'row',

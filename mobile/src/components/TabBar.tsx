@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { colors } from '../theme/colors';
 import { TabScreen } from '../types';
 import { Calendar, UserCheck, Activity, User } from 'lucide-react-native';
@@ -41,10 +41,10 @@ export const TabBar: React.FC<TabBarProps> = ({ currentTab, onSelectTab }) => {
                 isActive && (tab.isAccent ? styles.tabItemActiveAccent : styles.tabItemActive),
               ]}
               onPress={() => onSelectTab(tab.id)}
-              activeOpacity={0.75}
+              activeOpacity={0.8}
             >
               <View style={styles.iconContainer}>
-                <Icon size={19} color={iconColor} strokeWidth={isActive ? 2.3 : 1.8} />
+                <Icon size={20} color={iconColor} strokeWidth={isActive ? 2.4 : 1.8} />
                 {isActive && (
                   <View
                     style={[
@@ -76,9 +76,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.cardBorderSubtle,
-    paddingTop: 6,
-    paddingBottom: 22,
-    paddingHorizontal: 8,
+    paddingTop: 8,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+    paddingHorizontal: 12,
   },
   tabsRow: {
     flexDirection: 'row',
@@ -88,20 +88,20 @@ const styles = StyleSheet.create({
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
+    paddingVertical: 5,
     paddingHorizontal: 14,
-    borderRadius: 14,
-    minWidth: 68,
+    borderRadius: 16,
+    minWidth: 70,
   },
   tabItemActive: {
     backgroundColor: colors.primaryGlow,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.28)',
+    borderColor: 'rgba(99, 102, 241, 0.32)',
   },
   tabItemActiveAccent: {
     backgroundColor: colors.accentGlow,
     borderWidth: 1,
-    borderColor: 'rgba(6, 182, 212, 0.28)',
+    borderColor: 'rgba(6, 182, 212, 0.32)',
   },
   iconContainer: {
     position: 'relative',
@@ -114,20 +114,24 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.6,
+    shadowRadius: 2,
   },
   tabLabel: {
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: '600',
     color: colors.textMuted,
-    marginTop: 6,
+    marginTop: 5,
     letterSpacing: 0.2,
   },
   tabLabelActive: {
     color: colors.primaryLight,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   tabLabelActiveAccent: {
     color: colors.accentLight,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

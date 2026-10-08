@@ -1,57 +1,62 @@
 export const colors = {
-  // Canvas & surfaces
-  background: '#090d16',
-  surface: '#0f172a',
-  surfaceElevated: '#1e293b',
-  surfaceGlass: 'rgba(15, 23, 42, 0.85)',
-  surfaceHighlight: 'rgba(255, 255, 255, 0.04)',
-  card: '#182234',
-  cardBorder: '#334155',
-  cardBorderSubtle: 'rgba(255, 255, 255, 0.08)',
-  cardBorderGlow: 'rgba(99, 102, 241, 0.35)',
-  border: '#1e293b',
-  divider: '#334155',
+  // Canvas & surfaces (Obsidian Velvet Theme)
+  background: '#080b12',
+  surface: '#0d1424',
+  surfaceElevated: '#131c33',
+  surfaceGlass: 'rgba(13, 20, 36, 0.88)',
+  surfaceHighlight: 'rgba(255, 255, 255, 0.05)',
+  surfaceActive: 'rgba(99, 102, 241, 0.12)',
+
+  card: '#11192d',
+  cardElevated: '#162038',
+  cardBorder: '#1e293b',
+  cardBorderSubtle: 'rgba(255, 255, 255, 0.07)',
+  cardBorderHighlight: 'rgba(255, 255, 255, 0.12)',
+  cardBorderGlow: 'rgba(99, 102, 241, 0.3)',
+
+  border: '#1a243a',
+  divider: 'rgba(255, 255, 255, 0.06)',
 
   // Brand & accents
   primary: '#6366f1', // Indigo
   primaryLight: '#818cf8',
   primaryDark: '#4f46e5',
-  primaryGlow: 'rgba(99, 102, 241, 0.18)',
-  primaryGlowStrong: 'rgba(99, 102, 241, 0.3)',
+  primaryGlow: 'rgba(99, 102, 241, 0.14)',
+  primaryGlowStrong: 'rgba(99, 102, 241, 0.28)',
 
   accent: '#06b6d4', // Cyan
-  accentGlow: 'rgba(6, 182, 212, 0.15)',
+  accentGlow: 'rgba(6, 182, 212, 0.14)',
   accentLight: '#38bdf8',
 
   // Semantic status
   success: '#10b981', // Emerald
-  successLight: 'rgba(16, 185, 129, 0.15)',
-  successGlow: 'rgba(16, 185, 129, 0.25)',
+  successLight: 'rgba(16, 185, 129, 0.14)',
+  successGlow: 'rgba(16, 185, 129, 0.22)',
   warning: '#f59e0b', // Amber
-  warningLight: 'rgba(245, 158, 11, 0.15)',
-  warningGlow: 'rgba(245, 158, 11, 0.25)',
+  warningLight: 'rgba(245, 158, 11, 0.14)',
+  warningGlow: 'rgba(245, 158, 11, 0.22)',
   danger: '#ef4444', // Rose/Red
-  dangerLight: 'rgba(239, 68, 68, 0.15)',
-  dangerGlow: 'rgba(239, 68, 68, 0.25)',
+  dangerLight: 'rgba(239, 68, 68, 0.14)',
+  dangerGlow: 'rgba(239, 68, 68, 0.22)',
   info: '#3b82f6', // Blue
-  infoLight: 'rgba(59, 130, 246, 0.15)',
+  infoLight: 'rgba(59, 130, 246, 0.14)',
 
   // Typography
   textPrimary: '#f8fafc',
   textSecondary: '#94a3b8',
   textMuted: '#64748b',
-  textInverse: '#0f172a',
+  textInverse: '#080b12',
 
-  // Duty types
-  dutyTeaching: '#3b82f6',
-  dutyCgu: '#8b5cf6',
-  dutyLab: '#06b6d4',
-  dutyExam: '#f59e0b',
-  dutyDefault: '#64748b',
+  // Duty types (Vibrant modern accents)
+  dutyTeaching: '#38bdf8', // Sky Blue for Lecture
+  dutyCgu: '#a78bfa',      // Soft Violet for Support
+  dutyLab: '#34d399',      // Emerald for Practical Lab
+  dutyExam: '#fbbf24',     // Amber for Exam Supervision
+  dutyDefault: '#94a3b8',
 
   // Night duty
-  nightBadge: '#8b5cf6',
-  nightGlow: 'rgba(139, 92, 246, 0.2)',
-  nightSurface: 'rgba(139, 92, 246, 0.08)',
-  nightBorder: 'rgba(139, 92, 246, 0.28)',
+  nightBadge: '#a78bfa',
+  nightGlow: 'rgba(167, 139, 250, 0.2)',
+  nightSurface: 'rgba(167, 139, 250, 0.08)',
+  nightBorder: 'rgba(167, 139, 250, 0.25)',
 };

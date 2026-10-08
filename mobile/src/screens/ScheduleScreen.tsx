@@ -545,23 +545,21 @@ export const ScheduleScreen: React.FC = () => {
                   (duty.startTime === '09:00' && duty.endTime === '16:00');
 
                 return (
-                  <View
-                    key={duty.id}
-                    style={[styles.dutyCard, { borderLeftColor: dutyColor, borderLeftWidth: 3.5 }]}
-                  >
+                  <View key={duty.id} style={styles.dutyCard}>
                     {/* Top Row: Time, Type Chip & Delete */}
                     <View style={styles.cardHeader}>
                       <View style={[styles.timeBadge, isFullDay && styles.fullDayTimeBadge]}>
-                        <Clock size={11} color="#ffffff" style={{ marginRight: 5 }} />
+                        <View style={[styles.dutyTypeDot, { backgroundColor: dutyColor }]} />
+                        <Clock size={11.5} color={colors.textSecondary} style={{ marginRight: 5 }} />
                         <Text style={styles.timeBadgeText}>
-                          {isFullDay ? '09:00 - 16:00 (Full Day)' : `${duty.startTime} - ${duty.endTime}`}
+                          {isFullDay ? '09:00 – 16:00 (Full Day)' : `${duty.startTime} – ${duty.endTime}`}
                         </Text>
                       </View>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                         <View
                           style={[
                             styles.dutyTypeChip,
-                            { backgroundColor: `${dutyColor}18`, borderColor: `${dutyColor}50` },
+                            { backgroundColor: `${dutyColor}18`, borderColor: `${dutyColor}45` },
                           ]}
                         >
                           <Text style={[styles.dutyTypeChipText, { color: dutyColor }]}>
@@ -580,33 +578,41 @@ export const ScheduleScreen: React.FC = () => {
                       </View>
                     </View>
 
-                    {/* Instructor Info */}
+                    {/* Hero Module / Session Title */}
+                    <View style={styles.sessionTitleSection}>
+                      <Text style={styles.sessionHeroTitle} numberOfLines={2}>
+                        {duty.moduleName || duty.dutyType}
+                      </Text>
+                    </View>
+
+                    {/* Instructor Info & Batch Code */}
                     <View style={styles.instructorRow}>
-                      <View style={[styles.avatar, { backgroundColor: `${dutyColor}25` }]}>
+                      <View
+                        style={[
+                          styles.avatar,
+                          { backgroundColor: `${dutyColor}20`, borderColor: `${dutyColor}50` },
+                        ]}
+                      >
                         <Text style={[styles.avatarText, { color: dutyColor }]}>
                           {duty.instructorName?.charAt(0) || 'I'}
                         </Text>
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.instructorName}>{duty.instructorName}</Text>
-                        {duty.batchName && (
-                          <Text style={styles.batchModuleText}>
-                            {duty.batchName} {duty.moduleName ? `• ${duty.moduleName}` : ''}
-                          </Text>
-                        )}
+                        {duty.batchName ? (
+                          <View style={styles.batchPill}>
+                            <Text style={styles.batchPillText}>{duty.batchName}</Text>
+                          </View>
+                        ) : null}
                       </View>
                     </View>
 
-                    {/* Room & Lab metadata */}
+                    {/* Room & Lab / Notes Metadata */}
                     <View style={styles.cardFooter}>
-                      {duty.roomLab ? (
-                        <View style={styles.metaChip}>
-                          <MapPin size={11} color={colors.accentLight} />
-                          <Text style={styles.metaChipText}>{duty.roomLab}</Text>
-                        </View>
-                      ) : (
-                        <View />
-                      )}
+                      <View style={styles.venueChip}>
+                        <MapPin size={11.5} color={colors.accentLight} />
+                        <Text style={styles.venueChipText}>{duty.roomLab || 'Venue TBD'}</Text>
+                      </View>
 
                       {duty.notes ? (
                         <Text style={styles.notesText} numberOfLines={2}>
@@ -891,9 +897,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dayPill: {
-    width: 54,
-    paddingVertical: 9,
-    borderRadius: 14,
+    width: 56,
+    paddingVertical: 10,
+    borderRadius: 16,
     backgroundColor: colors.surfaceElevated,
     alignItems: 'center',
     borderWidth: 1,
@@ -902,11 +908,11 @@ const styles = StyleSheet.create({
   },
   dayPillActive: {
     backgroundColor: colors.primary,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 5,
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
     elevation: 3,
   },
   dayPillToday: {
@@ -928,13 +934,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
   dayNameActive: {
-    color: '#ffffff',
+    color: 'rgba(255, 255, 255, 0.85)',
   },
   dayNum: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800',
     color: colors.textPrimary,
     marginTop: 2,
@@ -1105,16 +1111,16 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   dutyCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 15,
+    backgroundColor: colors.card,
+    borderRadius: 18,
+    padding: 16,
     borderWidth: 1,
     borderColor: colors.cardBorderSubtle,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -1122,44 +1128,62 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 10,
   },
+  dutyTypeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
   timeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surfaceElevated,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 7,
+    paddingHorizontal: 9,
+    paddingVertical: 4.5,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.cardBorderSubtle,
   },
   fullDayTimeBadge: {
-    backgroundColor: 'rgba(99, 102, 241, 0.25)',
-    borderColor: colors.primary,
+    backgroundColor: 'rgba(99, 102, 241, 0.16)',
+    borderColor: 'rgba(99, 102, 241, 0.4)',
   },
   timeBadgeText: {
     color: colors.textPrimary,
-    fontSize: 11.5,
+    fontSize: 12,
     fontWeight: '700',
+    letterSpacing: -0.1,
   },
   dutyTypeChip: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 9,
+    paddingVertical: 3.5,
+    borderRadius: 7,
     borderWidth: 1,
   },
   dutyTypeChipText: {
     fontSize: 10.5,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 0.4,
   },
   deleteDutyBtn: {
-    padding: 5,
-    borderRadius: 6,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    padding: 6,
+    borderRadius: 7,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+  },
+  sessionTitleSection: {
+    marginBottom: 12,
+  },
+  sessionHeroTitle: {
+    fontSize: 16.5,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    letterSpacing: -0.3,
+    lineHeight: 22,
   },
   instructorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   avatar: {
     width: 36,
@@ -1167,51 +1191,65 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 11,
+    borderWidth: 1,
   },
   avatarText: {
     fontSize: 15,
     fontWeight: '800',
   },
   instructorName: {
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: '700',
     color: colors.textPrimary,
   },
-  batchModuleText: {
-    fontSize: 12.5,
+  batchPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    marginTop: 3,
+  },
+  batchPillText: {
+    fontSize: 11,
     color: colors.accentLight,
-    fontWeight: '600',
-    marginTop: 2,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 10,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: colors.surfaceHighlight,
   },
-  metaChip: {
+  venueChip: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surfaceElevated,
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
-    borderRadius: 6,
-    gap: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 7,
+    borderWidth: 1,
+    borderColor: colors.cardBorderSubtle,
+    gap: 5,
   },
-  metaChipText: {
+  venueChipText: {
     fontSize: 11.5,
     color: colors.textSecondary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   notesText: {
     fontSize: 11.5,
     color: colors.textMuted,
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 12,
     textAlign: 'right',
+    fontStyle: 'italic',
   },
   modalOverlay: {
     flex: 1,
