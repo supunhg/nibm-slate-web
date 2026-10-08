@@ -11,12 +11,19 @@ on:
         options:
           - release
           - debug
+      tag_name:
+        description: 'Release Tag to Update/Overwrite'
+        required: false
+        default: 'v1.0.0-apk'
+        type: string
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
     paths:
       - 'mobile/**'
       - '.github/workflows/build-apk.yml'
+    tags:
+      - 'v*'
 
 concurrency:
   group: build-apk-${{ github.ref }}
@@ -33,16 +40,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: 'mobile/package-lock.json'
 
       - name: Setup Java (JDK 17)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -70,8 +79,10 @@ jobs:
           cd mobile/android
           chmod +x gradlew
           if [ "${{ github.event.inputs.build_type }}" = "debug" ]; then
+            echo "Building Debug APK..."
             ./gradlew assembleDebug --no-daemon
           else
+            echo "Building Release APK..."
             ./gradlew assembleRelease --no-daemon
           fi
 
@@ -94,15 +105,61 @@ jobs:
           path: nibm-slate.apk
           retention-days: 30
 
-      - name: Publish or Update GitHub Release
+      - name: Publish, Update and Overwrite GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG_NAME="v1.0.0-apk"
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          if [ -n "${{ github.event.inputs.tag_name }}" ]; then
+            TAG_NAME="${{ github.event.inputs.tag_name }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TAG_NAME="${{ github.ref_name }}"
           fi
-          gh release create "$TAG_NAME" nibm-slate.apk \
-            --title "NIBM Slate Android APK ($TAG_NAME)" \
-            --notes "Standalone Android APK package for NIBM Slate Mobile Companion App. Direct installable file for all instructors and demonstrators." || \
-          gh release upload "$TAG_NAME" nibm-slate.apk --clobber
+
+          echo "Target Release Tag: $TAG_NAME"
+          BUILD_DATE=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          COMMIT_SHA="${{ github.sha }}"
+          SHORT_SHA="${COMMIT_SHA:0:7}"
+          TITLE="NIBM Slate Android APK ($TAG_NAME)"
+
+          # Update git tag to point to current commit
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f "$TAG_NAME" "$COMMIT_SHA" || true
+          git push origin "refs/tags/$TAG_NAME:refs/tags/$TAG_NAME" --force || true
+
+          cat <<EOF > release_notes.md
+          # 📱 NIBM Slate Mobile Companion (Android APK)
+
+          Direct installable Android APK package for NIBM Slate Mobile Companion App. Compatible with Android 10+.
+
+          ### 📦 Build & Release Details
+          - **Release Tag:** \`$TAG_NAME\`
+          - **Build Timestamp:** \`$BUILD_DATE\`
+          - **Commit:** [\`$SHORT_SHA\`](https://github.com/${{ github.repository }}/commit/${COMMIT_SHA})
+          - **Workflow Run:** [View Actions Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+          ### 📥 Download & Install
+          Download the latest standalone APK directly:
+          - **[Download nibm-slate.apk (Direct Latest)](https://github.com/${{ github.repository }}/releases/latest/download/nibm-slate.apk)**
+          - **[Download nibm-slate.apk (This Release)](https://github.com/${{ github.repository }}/releases/download/$TAG_NAME/nibm-slate.apk)**
+
+          *Note: Each rebuild automatically overwrites and updates this release package.*
+          EOF
+
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Release '$TAG_NAME' exists. Updating release notes and overwriting APK asset..."
+            gh release upload "$TAG_NAME" nibm-slate.apk --clobber
+            gh release edit "$TAG_NAME" \
+              --title "$TITLE" \
+              --notes-file release_notes.md \
+              --latest
+          else
+            echo "Release '$TAG_NAME' does not exist. Creating new release with APK asset..."
+            gh release create "$TAG_NAME" nibm-slate.apk \
+              --title "$TITLE" \
+              --notes-file release_notes.md \
+              --latest
+          fi
+
+          echo "Release '$TAG_NAME' successfully updated with new APK build!"
