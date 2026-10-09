@@ -190,15 +190,15 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
   return (
     <div className="space-y-6">
       {/* Top View Mode Switcher */}
-      <div className="flex items-center justify-between flex-wrap gap-3 bg-slate-900 p-3 rounded-2xl border border-slate-800 shadow-sm print:hidden">
+      <div className="flex items-center justify-between flex-wrap gap-3 bg-white dark:bg-[#11192d] p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md transition-colors print:hidden">
         <div className="flex items-center space-x-2">
-          <div className="flex items-center p-1 bg-slate-800 rounded-xl border border-slate-800">
+          <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700/80">
             <button
               onClick={() => setViewMode('daily')}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`h-8 flex items-center space-x-1.5 px-3.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 viewMode === 'daily'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-slate-100'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
               <Clock className="w-3.5 h-3.5" />
@@ -206,10 +206,10 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             </button>
             <button
               onClick={() => setViewMode('weekly')}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`h-8 flex items-center space-x-1.5 px-3.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 viewMode === 'weekly'
                   ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-slate-100'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
@@ -218,11 +218,11 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {rosterWeek && (currentUser.role === 'EXECUTIVE' || currentUser.role === 'ADMIN' || currentUser.role === 'DEMONSTRATOR') && (
             <button
               onClick={() => setAiDrawerOpen(true)}
-              className="flex items-center space-x-1.5 text-xs font-bold px-3.5 py-2 rounded-lg shadow-md transition-all bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:via-indigo-500 hover:to-blue-500 text-white cursor-pointer active:scale-95 border border-purple-400/40 shadow-purple-900/30 print:hidden"
+              className="h-8 flex items-center space-x-1.5 text-xs font-bold px-3.5 rounded-lg shadow-sm transition-all bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:via-indigo-500 hover:to-blue-500 text-white cursor-pointer active:scale-95 border border-purple-400/40 shadow-purple-900/30 print:hidden"
               title="AI Roster Co-Pilot & Radar (Ctrl+K / ⌘K)"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
@@ -234,7 +234,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           {(currentUser.role === 'EXECUTIVE' || currentUser.role === 'ADMIN') && (
             <button
               onClick={() => setAuditDrawerOpen(true)}
-              className="flex items-center space-x-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2 rounded-lg transition-colors cursor-pointer print:hidden"
+              className="h-8 flex items-center space-x-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-3.5 rounded-lg transition-all cursor-pointer print:hidden active:scale-95"
             >
               <ScrollText className="w-3.5 h-3.5" />
               <span>Governance Log</span>
@@ -259,144 +259,144 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       ) : (
         <>
           {/* Top Banner / Hero */}
-          <div className="bg-slate-900 rounded-2xl p-6 text-white border border-slate-800">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center space-x-2 text-blue-400 text-sm font-medium mb-1">
-              <Shield className="w-4 h-4" />
-              <span>Executive Cockpit</span>
-            </div>
-            <h2 className="text-2xl font-black tracking-tight text-white">
-              Daily Readiness
-            </h2>
-          </div>
+          <div className="bg-white dark:bg-[#11192d] rounded-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md transition-colors">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center space-x-2 text-indigo-600 dark:text-blue-400 text-sm font-semibold mb-1">
+                  <Shield className="w-4 h-4" />
+                  <span>Executive Cockpit</span>
+                </div>
+                <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                  Daily Readiness
+                </h2>
+              </div>
 
-          {/* Date Picker Controls */}
-          <div className="flex items-center gap-3 bg-slate-800/80 p-2 rounded-xl border border-slate-700">
-            <Calendar className="w-4 h-4 text-blue-400 ml-2" />
-            <div className="flex flex-col">
-              <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-                Viewing Date
-              </span>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => handleFilterChange(e.target.value, slotFilter)}
-                className="bg-transparent text-white text-sm font-semibold focus:outline-none cursor-pointer [color-scheme:dark]"
-              />
+              {/* Date Picker Controls */}
+              <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/80 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                <Calendar className="w-4 h-4 text-indigo-600 dark:text-blue-400 ml-2" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">
+                    Viewing Date
+                  </span>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => handleFilterChange(e.target.value, slotFilter)}
+                    className="bg-transparent text-slate-900 dark:text-white text-sm font-semibold focus:outline-none cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    const today = new Date().toISOString().split('T')[0];
+                    handleFilterChange(today, slotFilter);
+                  }}
+                  className="h-7 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 rounded-lg transition-colors ml-1 cursor-pointer shadow-2xs active:scale-95"
+                >
+                  Today
+                </button>
+              </div>
             </div>
-            <button
-              onClick={() => {
-                const today = new Date().toISOString().split('T')[0];
-                handleFilterChange(today, slotFilter);
-              }}
-              className="text-xs bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-lg transition-colors ml-1 cursor-pointer shadow-xs active:scale-95"
-            >
-              Today
-            </button>
-          </div>
-        </div>
 
-        {/* Quick Slot Filter Pills */}
-        <div className="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-slate-800/80">
-          <span className="text-xs text-slate-400 font-medium mr-2">Focus Time Block:</span>
-          {[
-            { id: 'ALL', label: 'Entire Day (All Slots)' },
-            { id: 'Morning (09:00 - 12:00)', label: 'Morning Slot (09:00 - 12:00)' },
-            { id: 'Afternoon (13:00 - 16:00)', label: 'Afternoon Slot (13:00 - 16:00)' },
-            { id: 'Sunday CCS', label: 'Sunday CCS (16:30 - 17:30)' },
-          ].map((pill) => (
-            <button
-              key={pill.id}
-              onClick={() => handleFilterChange(selectedDate, pill.id)}
-              className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
-                slotFilter === pill.id
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700/80'
-              }`}
-            >
-              {pill.label}
-            </button>
-          ))}
-        </div>
-      </div>
+            {/* Quick Slot Filter Pills */}
+            <div className="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80">
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium mr-2">Focus Time Block:</span>
+              {[
+                { id: 'ALL', label: 'Entire Day (All Slots)' },
+                { id: 'Morning (09:00 - 12:00)', label: 'Morning Slot (09:00 - 12:00)' },
+                { id: 'Afternoon (13:00 - 16:00)', label: 'Afternoon Slot (13:00 - 16:00)' },
+                { id: 'Sunday CCS', label: 'Sunday CCS (16:30 - 17:30)' },
+              ].map((pill) => (
+                <button
+                  key={pill.id}
+                  onClick={() => handleFilterChange(selectedDate, pill.id)}
+                  className={`h-7 text-xs px-3 rounded-lg font-semibold transition-all cursor-pointer active:scale-95 ${
+                    slotFilter === pill.id
+                      ? 'bg-indigo-600 text-white shadow-2xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700/80'
+                  }`}
+                >
+                  {pill.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
       {/* KPI Overview Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Metric 1: Total Cadre */}
-        <div className="bg-slate-900 rounded-xl p-4 border border-slate-800 shadow-sm">
+        <div className="bg-white dark:bg-[#11192d] rounded-xl p-4 border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md transition-colors">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-300 uppercase">Instructor Cadre</span>
-            <Users className="w-4 h-4 text-slate-300" />
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Instructor Cadre</span>
+            <Users className="w-4 h-4 text-slate-400 dark:text-slate-500" />
           </div>
           <div className="mt-2 flex items-baseline space-x-2">
-            <span className="text-2xl font-black text-slate-100">{allInstructors.length}</span>
-            <span className="text-xs text-slate-300">Members</span>
+            <span className="text-2xl font-black text-slate-900 dark:text-slate-100">{allInstructors.length}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Members</span>
           </div>
         </div>
 
         {/* Metric 2: On Duty */}
-        <div className="bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20 shadow-sm">
+        <div className="bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20 shadow-xs dark:shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-400 uppercase">On Duty (Teaching)</span>
+            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">On Duty (Teaching)</span>
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
           </div>
           <div className="mt-2 flex items-baseline space-x-2">
-            <span className="text-2xl font-black text-emerald-300">{report.onDuty.length}</span>
-            <span className="text-xs text-emerald-400">Assigned</span>
+            <span className="text-2xl font-black text-emerald-800 dark:text-emerald-300">{report.onDuty.length}</span>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400">Assigned</span>
           </div>
         </div>
 
         {/* Metric 3: Free / Standby */}
-        <div className="bg-amber-500/10 rounded-xl p-4 border border-amber-500/20 shadow-sm">
+        <div className="bg-amber-500/10 rounded-xl p-4 border border-amber-500/20 shadow-xs dark:shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-400 uppercase">Available / Free</span>
+            <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Available / Free</span>
             <Coffee className="w-4 h-4 text-amber-600" />
           </div>
           <div className="mt-2 flex items-baseline space-x-2">
-            <span className="text-2xl font-black text-amber-300">{report.freeStandby.length}</span>
-            <span className="text-xs text-amber-400">Instructors</span>
+            <span className="text-2xl font-black text-amber-800 dark:text-amber-300">{report.freeStandby.length}</span>
+            <span className="text-xs text-amber-600 dark:text-amber-400">Instructors</span>
           </div>
         </div>
 
         {/* Metric 4: On Leave */}
-        <div className="bg-rose-500/10 rounded-xl p-4 border border-rose-500/20 shadow-sm">
+        <div className="bg-rose-500/10 rounded-xl p-4 border border-rose-500/20 shadow-xs dark:shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-rose-400 uppercase">On Leave</span>
+            <span className="text-xs font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wider">On Leave</span>
             <AlertCircle className="w-4 h-4 text-rose-500" />
           </div>
           <div className="mt-2 flex items-baseline space-x-2">
-            <span className="text-2xl font-black text-rose-300">{report.onLeave.length}</span>
+            <span className="text-2xl font-black text-rose-800 dark:text-rose-300">{report.onLeave.length}</span>
             <span className="text-xs text-rose-600">Away</span>
           </div>
         </div>
       </div>
 
       {/* Tonight's Night Duty Callout Banner */}
-      <div className="bg-slate-900 text-white rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-slate-800">
+      <div className="bg-white dark:bg-[#11192d] text-slate-900 dark:text-white rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md transition-colors">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+          <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
             <Moon className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Night Shift Roster ({dayOfWeek} Night)
               </span>
-              <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-medium">
+              <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-semibold border border-slate-200 dark:border-slate-700">
                 7-Day Rotation
               </span>
             </div>
-            <div className="text-base font-semibold text-white mt-0.5 flex flex-wrap items-center gap-2">
+            <div className="text-base font-semibold text-slate-900 dark:text-white mt-0.5 flex flex-wrap items-center gap-2">
               {report.nightDutyInstructor ? (
                 <>
                   <span>
-                    Designated Officer: <span className="text-indigo-400">{report.nightDutyInstructor.fullName}</span>
+                    Designated Officer: <span className="text-indigo-600 dark:text-indigo-400 font-bold">{report.nightDutyInstructor.fullName}</span>
                   </span>
                   {report.nightDutyInstructor.phone && (
                     <a
                       href={`tel:${report.nightDutyInstructor.phone.replace(/\s+/g, '')}`}
-                      className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs px-2.5 py-1 rounded-lg transition-colors cursor-pointer ml-1"
+                      className="h-7 inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-2.5 rounded-lg transition-all cursor-pointer ml-1 shadow-2xs active:scale-95"
                       title={`Call ${report.nightDutyInstructor.fullName}`}
                     >
                       <Phone className="w-3.5 h-3.5" />
@@ -405,7 +405,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   )}
                 </>
               ) : (
-                <span className="text-slate-500 italic font-normal">
+                <span className="text-slate-400 dark:text-slate-500 italic font-normal text-sm">
                   No night shift assigned for this date yet.
                 </span>
               )}
@@ -417,20 +417,20 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       {/* Main 3-Column Operational Cockpit */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Column 1: ON DUTY */}
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm flex flex-col">
-          <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-emerald-500/10 rounded-t-2xl">
+        <div className="bg-white dark:bg-[#11192d] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md flex flex-col transition-colors">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-emerald-500/10 rounded-t-2xl">
             <div className="flex items-center space-x-2">
               <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
-              <h3 className="font-bold text-slate-200 text-base">On Duty (Teaching)</h3>
+              <h3 className="font-bold text-slate-900 dark:text-slate-200 text-base">On Duty (Teaching)</h3>
             </div>
-            <span className="text-xs font-bold bg-emerald-500/15 text-emerald-400 px-2.5 py-0.5 rounded-full">
+            <span className="text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 px-2.5 py-0.5 rounded-full">
               {report.onDuty.length} Active
             </span>
           </div>
 
           <div className="p-4 space-y-3 flex-1 overflow-y-auto max-h-[500px]">
             {report.onDuty.length === 0 ? (
-              <div className="text-center py-10 text-slate-400">
+              <div className="text-center py-10 text-slate-400 dark:text-slate-500">
                 <Coffee className="w-8 h-8 mx-auto mb-2 opacity-40 text-slate-400" />
                 <p className="text-sm font-medium">No teaching sessions scheduled</p>
                 <p className="text-xs text-slate-400 mt-1">for this time block</p>
@@ -439,15 +439,15 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               report.onDuty.map(({ instructor, assignment }) => (
                 <div
                   key={assignment.id}
-                  className="bg-slate-800/60 rounded-xl p-3.5 border border-slate-800 hover:border-emerald-500/20 transition-colors shadow-xs"
+                  className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3.5 border border-slate-200 dark:border-slate-700/80 hover:border-emerald-500/30 transition-colors shadow-2xs"
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-100 text-sm">{instructor.fullName}</span>
+                      <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">{instructor.fullName}</span>
                       {instructor.phone && (
                         <a
                           href={`tel:${instructor.phone.replace(/\s+/g, '')}`}
-                          className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/15 hover:bg-emerald-500/25 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                          className="h-6 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 hover:bg-emerald-500/25 px-2 rounded-md transition-colors cursor-pointer"
                           title={`Call ${instructor.fullName} (${instructor.phone})`}
                         >
                           <Phone className="w-2.5 h-2.5" />
@@ -455,22 +455,22 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                         </a>
                       )}
                     </div>
-                    <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded">
+                    <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded">
                       {assignment.startTime === '09:00' && assignment.endTime === '16:00'
                         ? '09:00 - 16:00 (Full Day)'
                         : `${assignment.startTime} - ${assignment.endTime}`}
                     </span>
                   </div>
 
-                  <div className="space-y-1 text-xs text-slate-400">
-                    <div className="flex items-center space-x-1.5 font-medium text-slate-200">
+                  <div className="space-y-1 text-xs text-slate-600 dark:text-slate-400">
+                    <div className="flex items-center space-x-1.5 font-medium text-slate-800 dark:text-slate-200">
                       <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
                       <span>{assignment.moduleName ?? assignment.dutyType}</span>
                     </div>
-                    {assignment.notes && <p className="italic">{assignment.notes}</p>}
+                    {assignment.notes && <p className="italic text-slate-500">{assignment.notes}</p>}
                     <div className="flex items-center justify-between text-slate-500 pt-1">
                       {assignment.batchName && (
-                        <span className="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded font-semibold text-[11px]">
+                        <span className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-2 py-0.5 rounded font-semibold text-[11px]">
                           Batch: {assignment.batchName}
                         </span>
                       )}
@@ -489,20 +489,20 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         </div>
 
         {/* Column 2: FREE / STANDBY (The critical requirement for Dr. Thisara!) */}
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm flex flex-col">
-          <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-amber-500/10 rounded-t-2xl">
+        <div className="bg-white dark:bg-[#11192d] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md flex flex-col transition-colors">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-amber-500/10 rounded-t-2xl">
             <div className="flex items-center space-x-2">
               <span className="w-3 h-3 rounded-full bg-amber-500"></span>
-              <h3 className="font-bold text-slate-200 text-base">Available / Free Standby</h3>
+              <h3 className="font-bold text-slate-900 dark:text-slate-200 text-base">Available / Free Standby</h3>
             </div>
-            <span className="text-xs font-bold bg-amber-500/15 text-amber-400 px-2.5 py-0.5 rounded-full">
+            <span className="text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2.5 py-0.5 rounded-full">
               {report.freeStandby.length} Available
             </span>
           </div>
 
           <div className="p-4 space-y-3 flex-1 overflow-y-auto max-h-[500px]">
             {report.freeStandby.length === 0 ? (
-              <div className="text-center py-10 text-slate-400">
+              <div className="text-center py-10 text-slate-400 dark:text-slate-500">
                 <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-40 text-slate-400" />
                 <p className="text-sm font-medium">All instructors are assigned or on leave</p>
               </div>
@@ -513,12 +513,12 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   className="bg-amber-500/10 rounded-xl p-3.5 border border-amber-500/20 flex items-center justify-between gap-2"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 rounded-full bg-amber-500/25 text-amber-400 font-bold flex items-center justify-center text-xs">
+                    <div className="w-8 h-8 rounded-full bg-amber-500/25 text-amber-800 dark:text-amber-400 font-bold flex items-center justify-center text-xs">
                       {instructor.fullName.substring(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-slate-200 text-sm">{instructor.fullName}</h4>
-                      <p className="text-xs text-amber-400">
+                      <h4 className="font-semibold text-slate-900 dark:text-slate-200 text-sm">{instructor.fullName}</h4>
+                      <p className="text-xs text-amber-700 dark:text-amber-400">
                         {instructor.phone || 'Available in staff room'}
                       </p>
                     </div>
@@ -527,14 +527,14 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                     {instructor.phone && (
                       <a
                         href={`tel:${instructor.phone.replace(/\s+/g, '')}`}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400 hover:text-white bg-emerald-500/15 hover:bg-emerald-600 border border-emerald-500/20 px-2.5 py-1 rounded-lg transition-all cursor-pointer shadow-2xs"
+                        className="h-6 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:text-white bg-emerald-500/15 hover:bg-emerald-600 border border-emerald-500/20 px-2.5 rounded-md transition-all cursor-pointer shadow-2xs"
                         title={`Call ${instructor.fullName} directly`}
                       >
                         <Phone className="w-3 h-3" />
                         <span>Call</span>
                       </a>
                     )}
-                    <span className="text-[10px] font-bold bg-amber-500/25 text-amber-400 px-2 py-1 rounded-full uppercase">
+                    <span className="text-[10px] font-bold bg-amber-500/25 text-amber-800 dark:text-amber-400 px-2 py-0.5 rounded-full uppercase">
                       Ready
                     </span>
                   </div>
@@ -542,26 +542,26 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               ))
             )}
           </div>
-          <div className="p-3 bg-slate-800/60 border-t border-slate-800 rounded-b-2xl text-[11px] text-slate-500 text-center">
+          <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 rounded-b-2xl text-[11px] text-slate-500 text-center">
             💡 Instructors not in class right now; available for exam invigilation, student inquiries, or emergency cover.
           </div>
         </div>
 
         {/* Column 3: ON LEAVE */}
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm flex flex-col">
-          <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-rose-500/10 rounded-t-2xl">
+        <div className="bg-white dark:bg-[#11192d] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md flex flex-col transition-colors">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-rose-500/10 rounded-t-2xl">
             <div className="flex items-center space-x-2">
               <span className="w-3 h-3 rounded-full bg-rose-500"></span>
-              <h3 className="font-bold text-slate-200 text-base">On Leave (Approved)</h3>
+              <h3 className="font-bold text-slate-900 dark:text-slate-200 text-base">On Leave (Approved)</h3>
             </div>
-            <span className="text-xs font-bold bg-rose-500/15 text-rose-400 px-2.5 py-0.5 rounded-full">
+            <span className="text-xs font-bold bg-rose-500/15 text-rose-700 dark:text-rose-400 px-2.5 py-0.5 rounded-full">
               {report.onLeave.length} Away
             </span>
           </div>
 
           <div className="p-4 space-y-3 flex-1 overflow-y-auto max-h-[500px]">
             {report.onLeave.length === 0 ? (
-              <div className="text-center py-10 text-slate-400">
+              <div className="text-center py-10 text-slate-400 dark:text-slate-500">
                 <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-40 text-emerald-500" />
                 <p className="text-sm font-medium">Full attendance!</p>
                 <p className="text-xs text-slate-400 mt-1">No instructors on leave today.</p>
@@ -574,11 +574,11 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-slate-200 text-sm">{instructor.fullName}</span>
+                      <span className="font-semibold text-slate-900 dark:text-slate-200 text-sm">{instructor.fullName}</span>
                       {instructor.phone && (
                         <a
                           href={`tel:${instructor.phone.replace(/\s+/g, '')}`}
-                          className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded border border-slate-800 transition-colors"
+                          className="h-6 inline-flex items-center gap-1 text-[10px] font-semibold text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 px-2 rounded-md transition-colors"
                           title={`Call ${instructor.fullName}`}
                         >
                           <Phone className="w-2.5 h-2.5" />
@@ -586,12 +586,12 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                         </a>
                       )}
                     </div>
-                    <span className="text-[10px] font-bold bg-rose-500/25 text-rose-400 px-2 py-0.5 rounded-full uppercase">
+                    <span className="text-[10px] font-bold bg-rose-500/25 text-rose-700 dark:text-rose-400 px-2 py-0.5 rounded-full uppercase">
                       Leave
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 italic">&quot;{leave.reason}&quot;</p>
-                  <div className="text-[10px] text-slate-400 mt-2 flex items-center justify-between">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 italic">&quot;{leave.reason}&quot;</p>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 flex items-center justify-between">
                     <span>
                       Duration: {leave.startDate} to {leave.endDate}
                     </span>
@@ -606,15 +606,15 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
 
       {/* Pending Leave Requests Sign-Off Section (Dual Authority for Dr. Thisara) */}
       {pendingLeaves.length > 0 && (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-5 shadow-sm">
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-5 shadow-xs dark:shadow-md">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
-              <Clock className="w-5 h-5 text-amber-600" />
-              <h3 className="font-bold text-slate-200 text-base">
+              <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              <h3 className="font-bold text-slate-900 dark:text-slate-200 text-base">
                 Pending Leave Applications Awaiting Review ({pendingLeaves.length})
               </h3>
             </div>
-            <span className="text-xs text-amber-400 font-medium">
+            <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
               You can review and sign off on these requests
             </span>
           </div>
@@ -623,29 +623,29 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             {pendingLeaves.map((leave) => (
               <div
                 key={leave.id}
-                className="bg-slate-900 rounded-xl p-4 border border-amber-500/20 shadow-xs flex flex-col justify-between"
+                className="bg-white dark:bg-[#11192d] rounded-xl p-4 border border-amber-500/30 shadow-xs flex flex-col justify-between transition-colors"
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-100 text-sm">{leave.instructorName}</span>
-                    <span className="text-xs bg-amber-500/15 text-amber-400 font-semibold px-2 py-0.5 rounded">
+                    <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">{leave.instructorName}</span>
+                    <span className="text-xs bg-amber-500/15 text-amber-700 dark:text-amber-400 font-semibold px-2 py-0.5 rounded">
                       {leave.startDate} {leave.startDate !== leave.endDate && `→ ${leave.endDate}`}
                     </span>
                   </div>
-                  <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
-                    <Clock className="w-3 h-3 text-amber-400 shrink-0" />
-                    <span>Applied: <strong className="text-slate-300 font-medium">{formatApplicationDateTime(leave.appliedAt || leave.createdAt)}</strong></span>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
+                    <Clock className="w-3 h-3 text-amber-500 dark:text-amber-400 shrink-0" />
+                    <span>Applied: <strong className="text-slate-700 dark:text-slate-300 font-medium">{formatApplicationDateTime(leave.appliedAt || leave.createdAt)}</strong></span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-2 bg-slate-800/60 p-2 rounded border border-slate-800">
+                  <p className="text-xs text-slate-700 dark:text-slate-300 mt-2 bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
                     <strong>Reason:</strong> {leave.reason}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-slate-800">
+                <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-slate-150 dark:border-slate-800">
                   <button
                     disabled={reviewingId === leave.id}
                     onClick={() => handleQuickReview(leave.id, 'REJECTED')}
-                    className="flex items-center space-x-1 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 px-3 py-1.5 rounded-lg border border-rose-500/20 transition-colors"
+                    className="h-8 flex items-center space-x-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 px-3 rounded-lg border border-rose-300 dark:border-rose-500/20 transition-all cursor-pointer active:scale-95"
                   >
                     <X className="w-3.5 h-3.5" />
                     <span>Decline</span>
@@ -653,7 +653,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   <button
                     disabled={reviewingId === leave.id}
                     onClick={() => handleQuickReview(leave.id, 'APPROVED')}
-                    className="flex items-center space-x-1 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg transition-colors shadow-xs"
+                    className="h-8 flex items-center space-x-1 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white px-3 rounded-lg transition-all shadow-2xs cursor-pointer active:scale-95"
                   >
                     <Check className="w-3.5 h-3.5" />
                     <span>Approve Leave</span>
@@ -669,16 +669,16 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
 
       {/* Governance / Audit Trail Drawer */}
       {auditDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/60 backdrop-blur-xs print:hidden">
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs print:hidden animate-in fade-in duration-150">
           <button
             aria-label="Close governance log drawer"
             onClick={() => setAuditDrawerOpen(false)}
             className="absolute inset-0 cursor-default"
           />
-          <div className="relative bg-slate-900 w-full max-w-lg h-full shadow-2xl border-l border-slate-800 flex flex-col animate-in slide-in-from-right duration-200">
-            <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-900 text-white">
+          <div className="relative bg-white dark:bg-[#0d1424] w-full max-w-lg h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col animate-in slide-in-from-right duration-200 transition-colors">
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0d1424] text-slate-900 dark:text-white">
               <div>
-                <div className="flex items-center space-x-2 text-slate-300 text-xs font-bold uppercase tracking-wider">
+                <div className="flex items-center space-x-2 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider">
                   <ScrollText className="w-3.5 h-3.5" />
                   <span>Compliance Console</span>
                 </div>
@@ -686,14 +686,14 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               </div>
               <button
                 onClick={() => setAuditDrawerOpen(false)}
-                className="text-slate-300 hover:text-white transition-colors"
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer p-1 rounded-lg"
                 aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-4 border-b border-slate-800 bg-slate-800/60 space-y-2.5">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 space-y-2.5">
               <div className="flex items-center space-x-1.5 text-xs text-slate-500 font-bold">
                 <Filter className="w-3.5 h-3.5" />
                 <span>Filter Logs</span>
@@ -703,7 +703,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <select
                   value={auditActionFilter}
                   onChange={(e) => setAuditActionFilter(e.target.value)}
-                  className="text-xs bg-slate-900 border border-slate-700 text-slate-300 font-semibold rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  className="text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-300 font-semibold rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                 >
                   <option value="ALL">All Action Types</option>
                   {Object.entries(AUDIT_ACTION_LABELS).map(([code, label]) => (
@@ -716,7 +716,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <select
                   value={auditActorFilter}
                   onChange={(e) => setAuditActorFilter(e.target.value)}
-                  className="text-xs bg-slate-900 border border-slate-700 text-slate-300 font-semibold rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  className="text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-300 font-semibold rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                 >
                   <option value="ALL">All Team Members</option>
                   {[...allInstructors, currentUser].map((u) => (
@@ -730,20 +730,20 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   type="date"
                   value={auditStartDate}
                   onChange={(e) => setAuditStartDate(e.target.value)}
-                  className="text-xs bg-slate-900 border border-slate-700 text-slate-300 font-semibold rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-300 font-semibold rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 [color-scheme:light] dark:[color-scheme:dark]"
                   title="From date"
                 />
                 <input
                   type="date"
                   value={auditEndDate}
                   onChange={(e) => setAuditEndDate(e.target.value)}
-                  className="text-xs bg-slate-900 border border-slate-700 text-slate-300 font-semibold rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-300 font-semibold rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 [color-scheme:light] dark:[color-scheme:dark]"
                   title="To date"
                 />
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-800">
+            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
               {auditLoading ? (
                 <div className="p-8 text-center text-slate-400 text-xs">Loading logs...</div>
               ) : auditLogs.length === 0 ? (
@@ -752,16 +752,16 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 </div>
               ) : (
                 auditLogs.map((log) => (
-                  <div key={log.id} className="p-4">
+                  <div key={log.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <span
                         className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                          AUDIT_ACTION_STYLES[log.action] || 'bg-slate-700 text-slate-300'
+                          AUDIT_ACTION_STYLES[log.action] || 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
                         }`}
                       >
                         {AUDIT_ACTION_LABELS[log.action] || log.action}
                       </span>
-                      <span className="text-[10px] text-slate-400 font-medium shrink-0">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium shrink-0">
                         {new Date(log.createdAt).toLocaleString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -770,9 +770,9 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                         })}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-300">{log.metadata}</p>
-                    <p className="text-[11px] text-slate-400 mt-1">
-                      by <span className="font-semibold text-slate-500">{log.userName || 'System'}</span>
+                    <p className="text-xs text-slate-800 dark:text-slate-300">{log.metadata}</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                      by <span className="font-semibold text-slate-600 dark:text-slate-400">{log.userName || 'System'}</span>
                     </p>
                   </div>
                 ))

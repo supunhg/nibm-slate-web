@@ -251,7 +251,7 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
 
   return (
     <DialogProvider>
-      <div className="min-h-screen bg-slate-950 flex flex-col font-sans antialiased text-slate-100 print:bg-white print:text-slate-900 print:min-h-0">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#080b12] flex flex-col font-sans antialiased text-slate-900 dark:text-slate-100 transition-colors duration-150 print:bg-white print:text-slate-900 print:min-h-0">
         {/* Header with Role Restraints */}
         <Header
           currentUser={currentUser}
@@ -351,12 +351,12 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
         </main>
 
         {/* Footer */}
-        <footer className="bg-slate-900 border-t border-slate-800 py-4 text-center text-xs text-slate-500 print:hidden">
+        <footer className="bg-white dark:bg-[#0d1424] border-t border-slate-200 dark:border-slate-800/80 py-4 text-center text-xs text-slate-500 dark:text-slate-400 print:hidden transition-colors">
           <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
             <span>
               NIBM Academic & Technical Operations System • SOC / IT Division
             </span>
-            <span className="font-medium text-slate-400">
+            <span className="font-medium text-slate-600 dark:text-slate-400">
               Role: {currentUser.role} • Logged in as {currentUser.fullName}
             </span>
           </div>

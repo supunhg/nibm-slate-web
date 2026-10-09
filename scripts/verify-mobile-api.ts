@@ -138,8 +138,7 @@ async function runMobileApiVerification() {
 
   // 9. Public Board endpoint (no auth required)
   const { GET: publicBoardGet } = await import('../src/app/api/mobile/public-board/route');
-  const pubReq = new Request('http://localhost/api/mobile/public-board');
-  const pubRes = await publicBoardGet(pubReq);
+  const pubRes = await publicBoardGet();
   const pubData = await pubRes.json();
   assert(pubRes.status === 200, 'Public Board endpoint returns 200 without authentication');
   assert(pubData.executiveReport && Array.isArray(pubData.instructors), 'Public board contains live executive report and instructors');

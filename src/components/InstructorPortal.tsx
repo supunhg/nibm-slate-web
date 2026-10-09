@@ -200,20 +200,20 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner: General Instructor Portal Header */}
-      <div className="bg-slate-900 rounded-2xl p-6 text-white border border-slate-800">
+      <div className="bg-white dark:bg-[#0d1424] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-xs text-purple-300 font-semibold uppercase tracking-wider">
+              <span className="text-xs text-purple-600 dark:text-purple-300 font-semibold uppercase tracking-wider">
                 Instructors Cadre Portal
               </span>
-              <h2 className="text-2xl font-black text-white">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white">
                 {isSharedKiosk ? 'General Instructor Workspace' : `Welcome, ${currentUser.fullName.split(' ')[0]}`}
               </h2>
-              <p className="text-xs text-slate-300 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 {isSharedKiosk
                   ? `Shared terminal for the ${allInstructors.length} team members • Check assigned lectures, night shifts & apply for holiday`
                   : 'Check your assigned lectures, night shifts & apply for holiday'}
@@ -222,15 +222,15 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
           </div>
 
           {/* Right: Unified Controls & Calendar Action Center */}
-          <div className="w-full lg:w-auto flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 bg-slate-800/80 border border-slate-700/80 rounded-2xl p-2 sm:p-2.5 shadow-sm">
+          <div className="w-full lg:w-auto flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 bg-slate-50 dark:bg-[#11192d] border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-2 sm:p-2.5 shadow-xs">
             {/* Instructor View Selector */}
             <div className="flex items-center space-x-2 px-1">
-              <Filter className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-              <span className="text-xs text-purple-300 font-bold whitespace-nowrap">Filter:</span>
+              <Filter className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+              <span className="text-xs text-purple-700 dark:text-purple-300 font-bold whitespace-nowrap">Filter:</span>
               <select
                 value={selectedInstructorId}
                 onChange={(e) => setSelectedInstructorId(e.target.value)}
-                className="text-xs bg-slate-900 border border-slate-700 text-white font-semibold rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer flex-1 sm:flex-none"
+                className="text-xs bg-white dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-semibold rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500/40 cursor-pointer flex-1 sm:flex-none"
               >
                 <option value="ALL">All {allInstructors.length} Instructors (Full Cadre)</option>
                 {allInstructors.map((inst) => (
@@ -242,7 +242,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
             </div>
 
             {selectedInstructorId !== 'ALL' && (
-              <div className="hidden sm:block h-6 w-px bg-slate-700 shrink-0" />
+              <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-700 shrink-0" />
             )}
 
             {/* Calendar Export Actions */}
@@ -252,7 +252,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                   href={getGoogleCalendarSubscribeUrl(selectedInstructorId) || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl transition-colors cursor-pointer shadow-xs whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 whitespace-nowrap"
                   title="Subscribe to entire live calendar in Google Calendar"
                 >
                   <CalendarPlus className="w-3.5 h-3.5" />
@@ -261,7 +261,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                 <a
                   href={getDownloadIcsUrl(selectedInstructorId)}
                   download={`nibm-roster-${selectedInstructorId}.ics`}
-                  className="inline-flex items-center gap-1 text-xs font-semibold bg-slate-900 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
+                  className="inline-flex items-center gap-1 text-xs font-semibold bg-white dark:bg-[#080b12] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-2.5 py-1.5 rounded-xl transition-all cursor-pointer active:scale-95 whitespace-nowrap"
                   title="Download .ics file to import directly into Google Calendar, Outlook, or Apple Calendar"
                 >
                   <Download className="w-3.5 h-3.5 text-slate-400" />
@@ -271,10 +271,10 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                   type="button"
                   onClick={() => handleCopyFeedLink(selectedInstructorId)}
                   title="Copy the iCal feed link (for Apple Calendar / Outlook / webcal)"
-                  className={`inline-flex items-center justify-center w-8 h-8 rounded-xl transition-colors cursor-pointer shrink-0 border ${
+                  className={`inline-flex items-center justify-center w-8 h-8 rounded-xl transition-all cursor-pointer shrink-0 border active:scale-95 ${
                     feedLinkCopied
                       ? 'bg-emerald-600 border-emerald-500 text-white'
-                      : 'bg-slate-900 hover:bg-slate-700 text-slate-300 border-slate-700'
+                      : 'bg-white dark:bg-[#080b12] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                   }`}
                 >
                   {feedLinkCopied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
@@ -285,26 +285,26 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                   <button
                     type="button"
                     title="Google Calendar sync information"
-                    className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-slate-900 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 transition-colors cursor-pointer"
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-white dark:bg-[#080b12] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                   >
-                    <Info className="w-3.5 h-3.5 text-blue-400" />
+                    <Info className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
                   </button>
-                  <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 p-3.5 bg-slate-950/95 border border-slate-700 rounded-xl shadow-2xl backdrop-blur-md text-[11px] text-slate-300 z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all pointer-events-none group-hover:pointer-events-auto">
-                    <div className="flex items-center gap-1.5 font-bold text-white mb-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-blue-400" />
+                  <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 p-3.5 bg-white dark:bg-slate-950/95 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl backdrop-blur-md text-[11px] text-slate-600 dark:text-slate-300 z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all pointer-events-none group-hover:pointer-events-auto">
+                    <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-white mb-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
                       <span>Google Calendar Sync Notice</span>
                     </div>
                     <p className="leading-relaxed">
                       Google Calendar refreshes subscribed URL calendars automatically every 8–24 hours.
                     </p>
-                    <p className="leading-relaxed mt-1 text-slate-400">
-                      For an <span className="text-emerald-400 font-semibold">immediate update</span>, click <span className="font-semibold text-blue-300">+ Google Cal</span> / <span className="font-semibold text-blue-300">+ Cal</span> on any session below or use <span className="font-semibold text-slate-200">Download .ics</span> to import directly.
+                    <p className="leading-relaxed mt-1 text-slate-500 dark:text-slate-400">
+                      For an <span className="text-emerald-600 dark:text-emerald-400 font-semibold">immediate update</span>, click <span className="font-semibold text-blue-600 dark:text-blue-300">+ Google Cal</span> / <span className="font-semibold text-blue-600 dark:text-blue-300">+ Cal</span> on any session below or use <span className="font-semibold text-slate-700 dark:text-slate-200">Download .ics</span> to import directly.
                     </p>
                   </div>
                 </div>
               </div>
             ) : (
-              <span className="text-[11px] text-slate-400 italic px-2">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 italic px-2">
                 Select an instructor to subscribe to calendar
               </span>
             )}
@@ -312,41 +312,41 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
         </div>
 
         {/* Sub Navigation: Modern Segmented Pill Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-6 pt-4 border-t border-slate-800/80">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-6 pt-4 border-t border-slate-200 dark:border-slate-800/80">
           <button
             type="button"
             onClick={() => setActiveSubTab('schedule')}
-            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-all cursor-pointer active:scale-[0.98] ${
               activeSubTab === 'schedule'
                 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/25 ring-1 ring-purple-400/30'
-                : 'bg-slate-900/60 hover:bg-slate-800 text-slate-300 border border-slate-800/80 hover:text-white'
+                : 'bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800/80 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <Calendar className="w-4 h-4 shrink-0 text-purple-300" />
+            <Calendar className="w-4 h-4 shrink-0 text-purple-600 dark:text-purple-300" />
             <span>Assigned Schedule</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveSubTab('applyLeave')}
-            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-all cursor-pointer active:scale-[0.98] ${
               activeSubTab === 'applyLeave'
                 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/25 ring-1 ring-purple-400/30'
-                : 'bg-slate-900/60 hover:bg-slate-800 text-slate-300 border border-slate-800/80 hover:text-white'
+                : 'bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800/80 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <CalendarPlus className="w-4 h-4 shrink-0 text-purple-300" />
+            <CalendarPlus className="w-4 h-4 shrink-0 text-purple-600 dark:text-purple-300" />
             <span>Apply for Leave</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveSubTab('teamLeaves')}
-            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-all cursor-pointer active:scale-[0.98] ${
               activeSubTab === 'teamLeaves'
                 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/25 ring-1 ring-purple-400/30'
-                : 'bg-slate-900/60 hover:bg-slate-800 text-slate-300 border border-slate-800/80 hover:text-white'
+                : 'bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800/80 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <Users className="w-4 h-4 shrink-0 text-purple-300" />
+            <Users className="w-4 h-4 shrink-0 text-purple-600 dark:text-purple-300" />
             <span>Colleagues on Leave</span>
           </button>
         </div>
@@ -356,20 +356,20 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
       {activeSubTab === 'schedule' && (
         <div className="space-y-6">
           {/* 7-Day Night Duty Roster Banner */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-white">
+          <div className="bg-white dark:bg-[#0d1424] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 text-slate-900 dark:text-white shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                   <Moon className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-white">7-Day Night Duty Roster</h4>
-                  <p className="text-xs text-slate-500">
+                  <h4 className="font-semibold text-sm text-slate-900 dark:text-white">7-Day Night Duty Roster</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     Week of {rosterWeek.startDate} to {rosterWeek.endDate}
                   </p>
                 </div>
               </div>
-              <span className="text-[11px] bg-slate-800 text-slate-400 px-2.5 py-1 rounded-lg font-medium">
+              <span className="text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2.5 py-1 rounded-lg font-medium">
                 Daily Rotation
               </span>
             </div>
@@ -378,16 +378,16 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
               {displayedNightShifts.map((shift) => (
                 <div
                   key={shift.id}
-                  className="bg-slate-800/60 border border-slate-800 rounded-xl p-2.5 text-center flex flex-col justify-between"
+                  className="bg-slate-50 dark:bg-[#11192d] border border-slate-200/80 dark:border-slate-800 rounded-xl p-2.5 text-center flex flex-col justify-between"
                 >
                   <div>
-                    <span className="text-[10px] text-slate-500 font-semibold uppercase block">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase block">
                       {new Date(shift.shiftDate).toLocaleDateString('en-US', { weekday: 'short' })}
                     </span>
-                    <span className="text-xs font-semibold text-indigo-400 block mt-0.5 truncate">
+                    <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 block mt-0.5 truncate">
                       {shift.instructorName}
                     </span>
-                    <span className="text-[10px] text-slate-500 block mt-0.5">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-0.5">
                       {shift.shiftDate}
                     </span>
                   </div>
@@ -395,7 +395,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                     {shift.instructorPhone && shift.instructorId !== currentUser.id && (
                       <a
                         href={`tel:${shift.instructorPhone.replace(/\s+/g, '')}`}
-                        className="inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-white bg-slate-900 px-2 py-0.5 rounded font-medium cursor-pointer transition-colors"
+                        className="inline-flex items-center gap-1 text-[10px] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-200/70 dark:bg-slate-900 px-2 py-0.5 rounded font-medium cursor-pointer transition-colors"
                         title={`Call ${shift.instructorName}`}
                       >
                         <Phone className="w-2.5 h-2.5" />
@@ -407,7 +407,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                         href={getGoogleCalendarNightShiftUrl(shift)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-300 hover:text-white bg-blue-600/30 hover:bg-blue-600 border border-blue-500/30 px-1.5 py-0.5 rounded transition-all shadow-xs cursor-pointer"
+                        className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 dark:text-blue-300 hover:text-white bg-blue-500/20 dark:bg-blue-600/30 hover:bg-blue-600 border border-blue-500/30 px-1.5 py-0.5 rounded transition-all shadow-xs cursor-pointer active:scale-95"
                         title="Add Night Duty to Google Calendar (All-day, no fixed time)"
                       >
                         <CalendarPlus className="w-2.5 h-2.5" />
@@ -421,24 +421,24 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
           </div>
 
           {/* Assigned Teaching Sessions */}
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm p-6">
+          <div className="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
                 <Calendar className="w-5 h-5 text-purple-600" />
-                <h3 className="font-bold text-slate-100 text-base">
+                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
                   Teaching Duties & Lab Sessions ({displayedAssignments.length})
                 </h3>
               </div>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 {selectedInstructorId === 'ALL' ? 'Showing entire team' : 'Filtered to selected instructor'}
               </span>
             </div>
 
             {displayedAssignments.length === 0 ? (
-              <div className="text-center py-12 text-slate-400">
+              <div className="text-center py-12 text-slate-400 dark:text-slate-500">
                 <Clock className="w-10 h-10 mx-auto mb-2 opacity-30" />
                 <p className="font-medium text-sm">No teaching slots match the current filter.</p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
                   Yasith plans sessions every Sunday.
                 </p>
               </div>
@@ -447,11 +447,11 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                 {displayedAssignments.map((a) => (
                   <div
                     key={a.id}
-                    className="bg-slate-800/60 border border-slate-800 rounded-2xl p-4 hover:border-purple-500/20 transition-all shadow-2xs flex flex-col justify-between"
+                    className="bg-slate-50 dark:bg-[#11192d] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 hover:border-purple-500/30 transition-all shadow-2xs flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                           {new Date(a.dutyDate).toLocaleDateString('en-US', {
                             weekday: 'short',
                             month: 'short',
@@ -461,8 +461,8 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                         <span
                           className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
                             a.startTime === '09:00' && a.endTime === '16:00'
-                              ? 'bg-purple-500/25 text-purple-300 border border-purple-500/30'
-                              : 'bg-purple-500/15 text-purple-400'
+                              ? 'bg-purple-500/25 text-purple-700 dark:text-purple-300 border border-purple-500/30'
+                              : 'bg-purple-500/15 text-purple-700 dark:text-purple-400'
                           }`}
                         >
                           {a.startTime === '09:00' && a.endTime === '16:00'
@@ -472,14 +472,14 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                       </div>
 
                       <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-100">
+                        <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-800 dark:text-slate-100">
                           <UserCheck className="w-3.5 h-3.5 text-purple-600" />
                           <span>{a.instructorName}</span>
                         </div>
                         {a.instructorPhone && a.instructorId !== currentUser.id && (
                           <a
                             href={`tel:${a.instructorPhone.replace(/\s+/g, '')}`}
-                            className="inline-flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-400 bg-purple-500/15 hover:bg-purple-500/25 px-2 py-0.5 rounded font-bold cursor-pointer transition-colors"
+                            className="inline-flex items-center gap-1 text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-500 bg-purple-500/15 hover:bg-purple-500/25 px-2 py-0.5 rounded font-bold cursor-pointer transition-colors"
                             title={`Call ${a.instructorName}`}
                           >
                             <Phone className="w-2.5 h-2.5" />
@@ -488,14 +488,14 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                         )}
                       </div>
 
-                      <h4 className="font-bold text-slate-200 text-sm">{a.moduleName ?? a.dutyType}</h4>
-                      {a.notes && <p className="text-xs text-slate-400 italic mt-1">{a.notes}</p>}
+                      <h4 className="font-bold text-slate-900 dark:text-slate-200 text-sm">{a.moduleName ?? a.dutyType}</h4>
+                      {a.notes && <p className="text-xs text-slate-500 dark:text-slate-400 italic mt-1">{a.notes}</p>}
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-slate-400 mt-4 pt-2.5 border-t border-slate-800 gap-2">
+                    <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mt-4 pt-2.5 border-t border-slate-200 dark:border-slate-800 gap-2">
                       <div className="flex flex-wrap items-center gap-1.5">
                         {a.batchName && (
-                          <span className="font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded text-[11px]">
+                          <span className="font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded text-[11px]">
                             Batch: {a.batchName}
                           </span>
                         )}
@@ -510,7 +510,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                         href={getGoogleCalendarEventUrl(a)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                        className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-500 bg-blue-500/10 hover:bg-blue-500/20 px-2.5 py-1 rounded-lg transition-colors cursor-pointer active:scale-95"
                         title="Instantly add this session to your personal Google Calendar"
                       >
                         <CalendarPlus className="w-3 h-3" />
@@ -529,24 +529,24 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
       {activeSubTab === 'applyLeave' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Application Form */}
-          <div className="lg:col-span-2 bg-slate-900 rounded-2xl border border-slate-800 shadow-sm p-6">
-            <h3 className="font-bold text-slate-100 text-base mb-1">
+          <div className="lg:col-span-2 bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base mb-1">
               Apply for Holiday / Leave
             </h3>
-            <p className="text-xs text-slate-500 mb-5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
               Enter your leave request dates and reason. It will appear in the Leave Approvals queue for the
               Demonstrator, Executive, or Admin to review.
             </p>
 
             {successMessage && (
-              <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs flex items-center space-x-2">
+              <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 text-xs flex items-center space-x-2">
                 <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                 <span>{successMessage}</span>
               </div>
             )}
 
             {errorMessage && (
-              <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-xs flex items-center space-x-2">
+              <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-600 dark:text-rose-400 text-xs flex items-center space-x-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                 <span>{errorMessage}</span>
               </div>
@@ -555,15 +555,15 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
             <form onSubmit={handleApplyLeave} className="space-y-4">
               {/* Applicant Name: Strictly locked to authenticated caller */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                   Applicant (Your Account)
                 </label>
-                <div className="w-full text-sm bg-slate-950/80 border border-slate-700 text-slate-100 rounded-xl p-2.5 flex items-center justify-between">
+                <div className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl p-2.5 flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <span className="font-bold text-white">{currentUser.fullName}</span>
-                    <span className="text-xs text-slate-400">(@{currentUser.username})</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{currentUser.fullName}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">(@{currentUser.username})</span>
                   </div>
-                  <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded font-medium border border-purple-500/30">
+                  <span className="text-[10px] bg-purple-500/20 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded font-medium border border-purple-500/30">
                     Self-Service Only
                   </span>
                 </div>
@@ -571,32 +571,32 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                     Start Date
                   </label>
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full text-sm border border-slate-700 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                    className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500/40 cursor-pointer"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                     End Date (Leave blank if 1-day)
                   </label>
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full text-sm border border-slate-700 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                    className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500/40 cursor-pointer"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                   Reason for Holiday / Leave
                 </label>
                 <textarea
@@ -604,7 +604,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="e.g. University exam duty, medical leave, family event, personal emergency"
-                  className="w-full text-sm border border-slate-700 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500/40 resize-none"
                   required
                 />
               </div>
@@ -613,7 +613,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md transition-colors cursor-pointer"
+                  className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{isSubmitting ? 'Submitting...' : 'Submit Holiday Application'}</span>
@@ -623,48 +623,48 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
           </div>
 
           {/* Leave History / Status Log */}
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm p-6 flex flex-col">
-            <h4 className="font-bold text-slate-100 text-sm mb-3">
+          <div className="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col">
+            <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-3">
               Submitted Holiday Requests
             </h4>
 
             <div className="space-y-3 overflow-y-auto max-h-[380px] flex-1">
               {displayedLeaves.length === 0 ? (
-                <div className="text-center py-8 text-slate-400 text-xs">
+                <div className="text-center py-8 text-slate-400 dark:text-slate-500 text-xs">
                   No leave requests logged yet.
                 </div>
               ) : (
                 displayedLeaves.map((leave) => (
                   <div
                     key={leave.id}
-                    className="bg-slate-800/60 border border-slate-800 rounded-xl p-3 text-xs"
+                    className="bg-slate-50 dark:bg-[#11192d] border border-slate-200/80 dark:border-slate-800 rounded-xl p-3 text-xs"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-bold text-slate-100">{leave.instructorName}</span>
+                      <span className="font-bold text-slate-900 dark:text-slate-100">{leave.instructorName}</span>
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
                           leave.status === 'APPROVED'
-                            ? 'bg-emerald-500/15 text-emerald-400'
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                             : leave.status === 'REJECTED'
-                            ? 'bg-rose-500/15 text-rose-400'
-                            : 'bg-amber-500/15 text-amber-400'
+                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                            : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
                         }`}
                       >
                         {leave.status}
                       </span>
                     </div>
-                    <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-slate-400">
+                    <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-slate-500 dark:text-slate-400">
                       <span>{leave.startDate} {leave.startDate !== leave.endDate && `to ${leave.endDate}`}</span>
                       <span>•</span>
-                      <span className="flex items-center gap-1 text-slate-400">
-                        <Clock className="w-3 h-3 text-purple-400" />
-                        <span>Applied: <strong className="text-slate-300 font-medium">{formatApplicationDateTime(leave.appliedAt || leave.createdAt)}</strong></span>
+                      <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                        <Clock className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                        <span>Applied: <strong className="text-slate-700 dark:text-slate-300 font-medium">{formatApplicationDateTime(leave.appliedAt || leave.createdAt)}</strong></span>
                       </span>
                     </div>
-                    <p className="text-slate-400 italic mt-1">&ldquo;{leave.reason}&rdquo;</p>
+                    <p className="text-slate-600 dark:text-slate-400 italic mt-1">&ldquo;{leave.reason}&rdquo;</p>
                     {leave.reviewedByName && (
-                      <div className="text-[10px] text-slate-500 mt-1 pt-1 border-t border-slate-800">
-                        Reviewed by <strong>{leave.reviewedByName}</strong>: &ldquo;{leave.reviewComment}&rdquo;
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 pt-1 border-t border-slate-200 dark:border-slate-800">
+                        Reviewed by <strong className="text-slate-700 dark:text-slate-300">{leave.reviewedByName}</strong>: &ldquo;{leave.reviewComment}&rdquo;
                       </div>
                     )}
                   </div>
@@ -677,19 +677,19 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
 
       {/* SUBTAB 3: COLLEAGUES ON HOLIDAY */}
       {activeSubTab === 'teamLeaves' && (
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm p-6">
+        <div className="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
           <div className="flex items-center space-x-2 mb-2">
             <Users className="w-5 h-5 text-purple-600" />
-            <h3 className="font-bold text-slate-100 text-base">
+            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
               Approved Absence Transparency Board
             </h3>
           </div>
-          <p className="text-xs text-slate-500 mb-4">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
             Review who is scheduled away to ensure adequate laboratory coverage before applying for leave.
           </p>
 
           {leaveRequests.filter((l) => l.status === 'APPROVED').length === 0 ? (
-            <div className="text-center py-12 text-slate-400 text-xs">
+            <div className="text-center py-12 text-slate-400 dark:text-slate-500 text-xs">
               No instructors currently on approved leave. Full team capacity available!
             </div>
           ) : (
@@ -699,16 +699,16 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                 .map((leave) => (
                   <div
                     key={leave.id}
-                    className="bg-slate-800/60 border border-slate-800 rounded-xl p-3.5 flex items-center justify-between"
+                    className="bg-slate-50 dark:bg-[#11192d] border border-slate-200/80 dark:border-slate-800 rounded-xl p-3.5 flex items-center justify-between"
                   >
                     <div>
-                      <h5 className="font-bold text-slate-100 text-sm">{leave.instructorName}</h5>
-                      <p className="text-xs text-slate-500">
-                        Off on: <strong>{leave.startDate}</strong> {leave.startDate !== leave.endDate && `to ${leave.endDate}`}
+                      <h5 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{leave.instructorName}</h5>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Off on: <strong className="text-slate-800 dark:text-slate-200">{leave.startDate}</strong> {leave.startDate !== leave.endDate && `to ${leave.endDate}`}
                       </p>
-                      <p className="text-[11px] text-slate-400 italic mt-0.5">&ldquo;{leave.reason}&rdquo;</p>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 italic mt-0.5">&ldquo;{leave.reason}&rdquo;</p>
                     </div>
-                    <span className="text-[10px] font-bold bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full uppercase">
+                    <span className="text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-full uppercase">
                       On Leave
                     </span>
                   </div>

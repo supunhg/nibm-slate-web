@@ -10,7 +10,7 @@ import {
 import { mergeDutyAssignments } from '@/lib/roster-utils';
 import { format } from 'date-fns';
 
-export async function GET(_request?: Request) {
+export async function GET() {
   try {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const week = await getOrCreateRosterWeek();

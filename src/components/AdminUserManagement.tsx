@@ -14,7 +14,6 @@ import {
   KeyRound,
   Eye,
   EyeOff,
-  Lock,
 } from 'lucide-react';
 import { User, Role } from '@/types';
 import {
@@ -148,7 +147,6 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUsers();
   }, [fetchUsers]);
 
@@ -241,32 +239,32 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
 
   return (
     <div className="space-y-6">
-      <div className="bg-slate-900 rounded-2xl p-6 text-white border border-slate-800">
+      <div className="bg-white dark:bg-[#0d1424] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center space-x-2 text-slate-500 text-xs font-medium uppercase tracking-wider mb-1">
-              <ShieldCheck className="w-3.5 h-3.5" />
+            <div className="flex items-center space-x-2 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
               <span>Admin Console</span>
             </div>
-            <h2 className="text-xl font-semibold tracking-tight text-white">Staff & Access Management</h2>
-            <p className="text-slate-400 text-sm mt-1 max-w-2xl">
+            <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Staff & Access Management</h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 max-w-2xl">
               Add staff accounts and assign roles. New accounts get a temporary password (
-              <code className="text-slate-300">FirstName@123</code>) to relay to the person directly -- they&apos;ll
+              <code className="text-slate-700 dark:text-slate-300 font-mono">FirstName@123</code>) to relay to the person directly -- they&apos;ll
               be asked to set their own password, and add their email and phone, on first sign-in.
             </p>
           </div>
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
             <button
               onClick={() => handleOpenResetPassword(currentUser)}
-              className="flex items-center space-x-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3.5 py-2.5 rounded-lg transition-colors cursor-pointer"
+              className="h-9 flex items-center space-x-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-3.5 rounded-xl transition-all cursor-pointer active:scale-95"
             >
-              <KeyRound className="w-3.5 h-3.5 text-indigo-400" />
+              <KeyRound className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
               <span>Change Admin Password</span>
             </button>
             {!panelOpen && (
               <button
                 onClick={() => setPanelOpen(true)}
-                className="flex items-center space-x-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+                className="h-9 flex items-center space-x-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-4 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
               >
                 <UserPlus className="w-3.5 h-3.5" />
                 <span>Add Staff Member</span>
@@ -278,12 +276,12 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
 
       {/* Add Staff Member: inline panel, not a popup -- stays on the page like the rest of the console */}
       {panelOpen && (
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
-          <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">
+        <div className="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#11192d]/50 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
               {createdResult ? 'Account Created' : 'Add Staff Member'}
             </h3>
-            <button onClick={closePanel} className="text-slate-500 hover:text-slate-300 cursor-pointer">
+            <button onClick={closePanel} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -291,7 +289,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
           <div className="p-5">
             {createdResult ? (
               <div className="space-y-4 max-w-md">
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-xs flex items-center space-x-2">
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-700 dark:text-emerald-300 text-xs flex items-center space-x-2">
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
                   <span>
                     {createdResult.user.fullName}&apos;s account was created as{' '}
@@ -300,17 +298,17 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                   </span>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                     One-time temporary password -- share this with them directly. It won&apos;t be shown again.
                   </label>
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-3 py-2.5 font-mono tracking-wider">
+                    <code className="flex-1 text-sm bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 font-mono tracking-wider">
                       {createdResult.tempPassword}
                     </code>
                     <button
                       onClick={handleCopyTempPassword}
-                      className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-lg transition-colors cursor-pointer ${
-                        copied ? 'bg-emerald-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                      className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-xl transition-all cursor-pointer active:scale-95 ${
+                        copied ? 'bg-emerald-600 text-white' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
                       }`}
                     >
                       {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -319,7 +317,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                 </div>
                 <button
                   onClick={closePanel}
-                  className="text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+                  className="h-9 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 px-4 rounded-xl transition-all cursor-pointer active:scale-95"
                 >
                   Done
                 </button>
@@ -327,24 +325,24 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
             ) : (
               <form onSubmit={handleCreate} className="space-y-4 max-w-md">
                 {formError && (
-                  <div className="p-3 bg-rose-950/40 border border-rose-900/60 rounded-lg text-rose-300 text-xs flex items-center space-x-2">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                  <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-600 dark:text-rose-400 text-xs flex items-center space-x-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
                     <span>{formError}</span>
                   </div>
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Full Name</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Full Name</label>
                     <input
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Username</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Username</label>
                     <input
                       type="text"
                       autoCapitalize="none"
@@ -352,25 +350,25 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="e.g. jane.instructor"
-                      className="w-full text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 placeholder:text-slate-600"
+                      className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder:text-slate-400 dark:placeholder:text-slate-600"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Email (optional)</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email (optional)</label>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Role</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Role</label>
                     <select
                       value={role}
                       onChange={(e) => setRole(e.target.value as Role)}
-                      className="w-full text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer"
+                      className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 cursor-pointer"
                     >
                       <option value="INSTRUCTOR">Instructor</option>
                       <option value="DEMONSTRATOR">Demonstrator</option>
@@ -380,25 +378,25 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                   </div>
                   {role === 'INSTRUCTOR' && (
                     <div className="flex items-end pb-2.5">
-                      <label className="flex items-center gap-2 text-xs font-medium text-slate-400 cursor-pointer">
+                      <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={isTechnicalAssistant}
                           onChange={(e) => setIsTechnicalAssistant(e.target.checked)}
-                          className="rounded border-slate-700 bg-slate-950 cursor-pointer"
+                          className="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 cursor-pointer text-indigo-600 focus:ring-indigo-500"
                         />
                         <span>Technical Assistant (instead of Instructor)</span>
                       </label>
                     </div>
                   )}
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Phone (optional)</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Phone (optional)</label>
                     <input
                       type="text"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="071 234 5678"
-                      className="w-full text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 placeholder:text-slate-600"
+                      className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder:text-slate-400 dark:placeholder:text-slate-600"
                     />
                   </div>
                 </div>
@@ -406,14 +404,14 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-5 py-2.5 rounded-lg transition-colors cursor-pointer"
+                    className="h-9 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
                   >
                     {submitting ? 'Creating...' : 'Create Account'}
                   </button>
                   <button
                     type="button"
                     onClick={closePanel}
-                    className="text-sm font-medium text-slate-400 hover:text-slate-200 px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+                    className="h-9 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 px-4 rounded-xl transition-all cursor-pointer active:scale-95"
                   >
                     Cancel
                   </button>
@@ -424,36 +422,36 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
         </div>
       )}
 
-      <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
-        <div className="p-4 border-b border-slate-800 flex items-center space-x-2">
-          <Users className="w-4 h-4 text-slate-400" />
-          <h3 className="font-semibold text-slate-200 text-sm">All Accounts ({users.length})</h3>
+      <div className="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#11192d]/50 flex items-center space-x-2">
+          <Users className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+          <h3 className="font-bold text-slate-900 dark:text-slate-200 text-sm">All Accounts ({users.length})</h3>
         </div>
 
         {loading ? (
-          <div className="p-10 text-center text-slate-500 text-sm">Loading...</div>
+          <div className="p-10 text-center text-slate-400 dark:text-slate-500 text-sm">Loading...</div>
         ) : (
-          <div className="divide-y divide-slate-800">
+          <div className="divide-y divide-slate-200 dark:divide-slate-800">
             {users.map((u) => (
-              <div key={u.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div key={u.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-slate-100 truncate max-w-full">{u.fullName}</span>
-                    <span className="text-[10px] font-medium bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full uppercase shrink-0">
+                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate max-w-full">{u.fullName}</span>
+                    <span className="text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-full uppercase shrink-0">
                       {u.jobTitle || ROLE_LABELS[u.role]}
                     </span>
                     {!u.isActive && (
-                      <span className="text-[10px] font-medium bg-rose-500/15 text-rose-400 px-2 py-0.5 rounded-full uppercase shrink-0">
+                      <span className="text-[10px] font-semibold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full uppercase shrink-0">
                         Deactivated
                       </span>
                     )}
                     {u.mustChangePassword && (
-                      <span className="text-[10px] font-medium bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full uppercase shrink-0">
+                      <span className="text-[10px] font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full uppercase shrink-0">
                         Pending First Login
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-slate-500 mt-0.5 truncate">
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                     @{u.username}
                     {u.email ? ` • ${u.email}` : ''}
                     {u.phone ? ` • ${u.phone}` : ''}
@@ -463,19 +461,19 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                   <button
                     onClick={() => handleOpenResetPassword(u)}
                     title={`Reset password for ${u.fullName}`}
-                    className="flex items-center space-x-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors cursor-pointer bg-slate-800 hover:bg-indigo-600/25 text-slate-300 hover:text-indigo-300 border border-slate-700/60"
+                    className="h-8 flex items-center space-x-1.5 text-[11px] font-medium px-3 rounded-lg transition-all cursor-pointer bg-slate-100 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-indigo-600/25 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-300 border border-slate-200 dark:border-slate-700/60 active:scale-95"
                   >
-                    <KeyRound className="w-3 h-3 text-indigo-400" />
+                    <KeyRound className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
                     <span>Reset Password</span>
                   </button>
                   <button
                     onClick={() => handleToggleActive(u)}
                     disabled={u.id === currentUser.id}
                     title={u.isActive ? 'Deactivate account' : 'Reactivate account'}
-                    className={`flex items-center space-x-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                    className={`h-8 flex items-center space-x-1.5 text-[11px] font-medium px-3 rounded-lg transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 ${
                       u.isActive
-                        ? 'bg-slate-800 hover:bg-rose-950/60 text-slate-300 hover:text-rose-300'
-                        : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400'
+                        ? 'bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/60 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-300 border border-slate-200 dark:border-slate-700/60'
+                        : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400'
                     }`}
                   >
                     <Power className="w-3 h-3" />
@@ -485,7 +483,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                     <button
                       onClick={() => handleDelete(u)}
                       title="Permanently delete account"
-                      className="flex items-center space-x-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors cursor-pointer bg-slate-800 hover:bg-rose-950/60 text-slate-300 hover:text-rose-300"
+                      className="h-8 flex items-center space-x-1.5 text-[11px] font-medium px-3 rounded-lg transition-all cursor-pointer bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/60 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-300 border border-slate-200 dark:border-slate-700/60 active:scale-95"
                     >
                       <Trash2 className="w-3 h-3" />
                       <span>Delete</span>
@@ -500,23 +498,23 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
 
       {/* Reset Password Modal */}
       {resetModalUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#0d1424] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#11192d]/50 flex items-center justify-between">
               <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                   <KeyRound className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Reset Account Password</h3>
-                  <p className="text-[11px] text-slate-400">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Reset Account Password</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     {resetModalUser.fullName} (@{resetModalUser.username})
                   </p>
                 </div>
               </div>
               <button
                 onClick={handleCloseResetModal}
-                className="text-slate-500 hover:text-slate-300 cursor-pointer p-1 rounded-lg hover:bg-slate-800"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -525,25 +523,25 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
             <div className="p-5">
               {resetResult ? (
                 <div className="space-y-4">
-                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-xs flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-700 dark:text-emerald-300 text-xs flex items-center space-x-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                     <span>
                       Password successfully updated for <strong>{resetResult.user.fullName}</strong>.
                     </span>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">
                       New password to relay to the user:
                     </label>
                     <div className="flex items-center gap-2">
-                      <code className="flex-1 text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-3 py-2.5 font-mono tracking-wider select-all">
+                      <code className="flex-1 text-sm bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 font-mono tracking-wider select-all">
                         {resetResult.newPassword}
                       </code>
                       <button
                         onClick={handleCopyResetPassword}
-                        className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-lg transition-colors cursor-pointer ${
-                          resetCopied ? 'bg-emerald-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                        className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-xl transition-all cursor-pointer active:scale-95 ${
+                          resetCopied ? 'bg-emerald-600 text-white' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
                         }`}
                         title="Copy password to clipboard"
                       >
@@ -552,14 +550,14 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     Share this password with them directly. They can now log in immediately.
                   </p>
 
                   <div className="pt-2">
                     <button
                       onClick={handleCloseResetModal}
-                      className="w-full text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-lg transition-colors cursor-pointer"
+                      className="w-full h-10 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl transition-all cursor-pointer active:scale-95"
                     >
                       Done
                     </button>
@@ -568,26 +566,26 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
               ) : (
                 <form onSubmit={handleConfirmResetPassword} className="space-y-4">
                   {resetError && (
-                    <div className="p-3 bg-rose-950/40 border border-rose-900/60 rounded-lg text-rose-300 text-xs flex items-center space-x-2">
-                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                    <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-600 dark:text-rose-400 text-xs flex items-center space-x-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
                       <span>{resetError}</span>
                     </div>
                   )}
 
                   <div className="space-y-2">
-                    <label className="block text-xs font-medium text-slate-400">Choose Reset Option</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Choose Reset Option</label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => setResetMode('default')}
                         className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
                           resetMode === 'default'
-                            ? 'bg-indigo-600/15 border-indigo-500 text-white'
-                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                            ? 'bg-indigo-600/15 border-indigo-500 text-indigo-700 dark:text-white'
+                            : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
                         }`}
                       >
                         <div className="text-xs font-semibold">Standard Temp</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">FirstName@123 formula</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">FirstName@123 formula</div>
                       </button>
 
                       <button
@@ -595,26 +593,26 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                         onClick={() => setResetMode('custom')}
                         className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
                           resetMode === 'custom'
-                            ? 'bg-indigo-600/15 border-indigo-500 text-white'
-                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                            ? 'bg-indigo-600/15 border-indigo-500 text-indigo-700 dark:text-white'
+                            : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
                         }`}
                       >
                         <div className="text-xs font-semibold">Custom Password</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">Set specific password</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Set specific password</div>
                       </button>
                     </div>
                   </div>
 
                   {resetMode === 'custom' && (
                     <div>
-                      <label className="block text-xs font-medium text-slate-400 mb-1.5">New Password</label>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">New Password</label>
                       <div className="relative">
                         <input
                           type={showCustomPassword ? 'text' : 'password'}
                           value={customResetPassword}
                           onChange={(e) => setCustomResetPassword(e.target.value)}
                           placeholder="Enter at least 6 characters"
-                          className="w-full text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-3 pr-9 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 placeholder:text-slate-600"
+                          className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder:text-slate-400 dark:placeholder:text-slate-600"
                           required
                           minLength={6}
                         />
@@ -622,7 +620,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                           type="button"
                           onClick={() => setShowCustomPassword((v) => !v)}
                           tabIndex={-1}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
                         >
                           {showCustomPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -631,12 +629,12 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                   )}
 
                   <div className="pt-1">
-                    <label className="flex items-center gap-2 text-xs font-medium text-slate-400 cursor-pointer">
+                    <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={mustChangeOnLogin}
                         onChange={(e) => setMustChangeOnLogin(e.target.checked)}
-                        className="rounded border-slate-700 bg-slate-950 cursor-pointer text-indigo-600 focus:ring-indigo-500"
+                        className="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 cursor-pointer text-indigo-600 focus:ring-indigo-500"
                       />
                       <span>Require password change on next sign-in</span>
                     </label>
@@ -646,14 +644,14 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                     <button
                       type="button"
                       onClick={handleCloseResetModal}
-                      className="text-xs font-medium text-slate-400 hover:text-slate-200 px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+                      className="h-9 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 px-4 rounded-xl transition-all cursor-pointer active:scale-95"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={resetSubmitting}
-                      className="text-xs font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-4 py-2.5 rounded-lg transition-colors cursor-pointer flex items-center space-x-1.5"
+                      className="h-9 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-4 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 flex items-center space-x-1.5"
                     >
                       <KeyRound className="w-3.5 h-3.5" />
                       <span>{resetSubmitting ? 'Resetting...' : 'Confirm Reset'}</span>
