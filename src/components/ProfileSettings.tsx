@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Phone, Lock, CheckCircle2, AlertCircle, UserCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Mail, Phone, Lock, CheckCircle2, AlertCircle, UserCircle, Eye, EyeOff, ArrowLeft, Bell, Smartphone, Download, Check } from 'lucide-react';
 import { User } from '@/types';
 import { updateProfileAction, changePasswordAction } from '@/lib/actions';
+import { usePWA } from '@/context/PWAContext';
 
 const ROLE_LABELS: Record<User['role'], string> = {
   ADMIN: 'System Administrator',
@@ -21,6 +22,7 @@ interface ProfileSettingsProps {
 }
 
 export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, onUpdated, onBack, isRefreshing }) => {
+  const { isInstalled, isInstallable, installPwa, notificationPermission, requestNotificationPermission } = usePWA();
   const [email, setEmail] = useState(currentUser.email || '');
   const [phone, setPhone] = useState(currentUser.phone || '');
   const [contactError, setContactError] = useState<string | null>(null);
@@ -258,6 +260,84 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
             {savingPassword ? 'Saving...' : 'Update Password'}
           </button>
         </form>
+      </div>
+
+      {/* App & Notification Preferences Card */}
+      <div className="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+          <Smartphone className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          <span>App & Notification Preferences</span>
+        </h3>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          {/* PWA Mode Status */}
+          <div className="p-3.5 rounded-xl border border-slate-150 dark:border-slate-800 bg-slate-50/60 dark:bg-[#080b12] flex flex-col justify-between">
+            <div>
+              <div className="flex items-center space-x-2 text-xs font-bold text-slate-900 dark:text-white mb-1">
+                <Smartphone className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Application Mode</span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                {isInstalled
+                  ? 'Running as installed standalone application with offline support.'
+                  : 'Running in web browser mode.'}
+              </p>
+            </div>
+            <div className="mt-3">
+              {isInstalled ? (
+                <span className="inline-flex items-center space-x-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                  <Check className="w-3 h-3" />
+                  <span>Installed PWA</span>
+                </span>
+              ) : isInstallable ? (
+                <button
+                  type="button"
+                  onClick={() => installPwa()}
+                  className="h-7 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-3 rounded-lg transition-all cursor-pointer shadow-2xs active:scale-95 inline-flex items-center space-x-1"
+                >
+                  <Download className="w-3 h-3" />
+                  <span>Install to Home Screen</span>
+                </button>
+              ) : (
+                <span className="text-[11px] text-slate-400">Add to Home Screen via browser menu</span>
+              )}
+            </div>
+          </div>
+
+          {/* Web Push Status */}
+          <div className="p-3.5 rounded-xl border border-slate-150 dark:border-slate-800 bg-slate-50/60 dark:bg-[#080b12] flex flex-col justify-between">
+            <div>
+              <div className="flex items-center space-x-2 text-xs font-bold text-slate-900 dark:text-white mb-1">
+                <Bell className="w-3.5 h-3.5 text-amber-500" />
+                <span>Web Push Notifications</span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Receive instant alerts when Sunday roster is published or night shifts are assigned.
+              </p>
+            </div>
+            <div className="mt-3">
+              {notificationPermission === 'granted' ? (
+                <span className="inline-flex items-center space-x-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                  <Check className="w-3 h-3" />
+                  <span>Notifications Active</span>
+                </span>
+              ) : notificationPermission === 'denied' ? (
+                <span className="text-[11px] font-medium text-rose-500 dark:text-rose-400">
+                  Blocked in browser settings
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => requestNotificationPermission()}
+                  className="h-7 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 rounded-lg transition-all cursor-pointer shadow-2xs active:scale-95 inline-flex items-center space-x-1"
+                >
+                  <Bell className="w-3 h-3" />
+                  <span>Enable Notifications</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -14,9 +14,11 @@ import {
   Check,
   ChevronDown,
   ArrowLeft,
+  Download,
 } from 'lucide-react';
 import { AppLogo } from './AppLogo';
 import { ThemeToggle } from './ThemeToggle';
+import { usePWA } from '@/context/PWAContext';
 
 export type AppTab = 'executive' | 'weekly' | 'planner' | 'instructor' | 'leaves' | 'admin' | 'profile';
 
@@ -49,6 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [refreshMenuOpen, setRefreshMenuOpen] = useState(false);
   const [savingGlobal, setSavingGlobal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { isInstallable, isInstalled, installPwa } = usePWA();
 
   // Close auto-refresh dropdown when clicking outside
   useEffect(() => {
@@ -242,6 +245,19 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
           )}
+
+            {/* PWA Install Button (desktop / mobile browser before installation) */}
+            {isInstallable && !isInstalled && (
+              <button
+                type="button"
+                onClick={() => installPwa()}
+                title="Install SLATE as a Desktop / Mobile App"
+                className="h-8 flex items-center space-x-1.5 px-2.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Install App</span>
+              </button>
+            )}
 
             {/* Theme Switcher Toggle (Light, Obsidian Velvet Dark, System) */}
             <ThemeToggle />
