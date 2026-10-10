@@ -52,8 +52,8 @@ mobile/.expo/
 *.apk
 *.aab
 
-# agent state
-.agent/
-.gitignore.agent-additions
-SUPER_AGENT_SETUP.md
+# throwaway test stores
+data/.test-roster-store-*.json
 
+# agent local scratch
+.agents/state/*.local
