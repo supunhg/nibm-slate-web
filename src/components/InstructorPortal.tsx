@@ -1,5 +1,6 @@
 'use client';
 import { Select } from './ui/Select';
+import { Segmented } from './ui/Segmented';
 
 import { PageHeader, StatusPill } from './ui/PageHeader';
 import React, { useState, useSyncExternalStore } from 'react';
@@ -71,6 +72,10 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
   // Selected instructor filter for viewing tasks -- defaults to "just me"
   // for a real individual account, and the full roster for the shared kiosk.
   const [selectedInstructorId, setSelectedInstructorId] = useState<string>(isSharedKiosk ? 'ALL' : currentUser.id);
+  // Who's away filters
+  const [awayPeriod, setAwayPeriod] = useState<'upcoming' | 'past' | 'all'>('upcoming');
+  const [awayInstructor, setAwayInstructor] = useState<string>('ALL');
+  const [awayMonth, setAwayMonth] = useState<string>('ALL');
 
   // Leave Form State -- filed strictly for the currently authenticated instructor
   const [startDate, setStartDate] = useState<string>('');
@@ -624,46 +629,133 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
         </div>
       )}
 
-      {/* SUBTAB 3: WHO'S AWAY */}
+      {/* SUBTAB 3: WHO'S AWAY (current, upcoming and past approved leave) */}
       {activeSubTab === 'teamLeaves' && (() => {
         const today = new Date().toISOString().split('T')[0];
-        const approved = leaveRequests
-          .filter((l) => l.status === 'APPROVED' && l.endDate >= today)
-          .sort((a, b) => a.startDate.localeCompare(b.startDate));
-        return approved.length === 0 ? (
-          <div className="surface-card flex flex-col items-center px-6 py-16 text-center animate-page-in">
-            <div className="flex size-12 animate-pop-in items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
-              <Users className="size-5" />
+        const approved = leaveRequests.filter((l) => l.status === 'APPROVED');
+        // Months that actually contain leave, newest first, for the month filter.
+        const months = Array.from(new Set(approved.map((l) => l.startDate.slice(0, 7)))).sort().reverse();
+        const monthLabel = (ym: string) =>
+          new Date(`${ym}-01T00:00:00`).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        const shown = approved
+          .filter((l) =>
+            awayPeriod === 'upcoming' ? l.endDate >= today : awayPeriod === 'past' ? l.endDate < today : true,
+          )
+          .filter((l) => awayInstructor === 'ALL' || l.instructorId === awayInstructor)
+          .filter((l) => awayMonth === 'ALL' || l.startDate.slice(0, 7) === awayMonth || l.endDate.slice(0, 7) === awayMonth)
+          .sort((a, b) =>
+            awayPeriod === 'upcoming' ? a.startDate.localeCompare(b.startDate) : b.startDate.localeCompare(a.startDate),
+          );
+        const days = (l: LeaveRequest) =>
+          Math.round((Date.parse(`${l.endDate}T00:00:00`) - Date.parse(`${l.startDate}T00:00:00`)) / 86_400_000) + 1;
+        const filtered = awayInstructor !== 'ALL' || awayMonth !== 'ALL';
+
+        return (
+          <div className="space-y-4 animate-page-in">
+            {/* Filters */}
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+              <Segmented
+                label="Period"
+                value={awayPeriod}
+                onChange={setAwayPeriod}
+                className="w-full sm:w-auto"
+                options={[
+                  { value: 'upcoming', label: 'Now & upcoming' },
+                  { value: 'past', label: 'History' },
+                  { value: 'all', label: 'All' },
+                ]}
+              />
+              <div className="grid grid-cols-2 gap-2 sm:flex">
+                <Select
+                  label="Instructor"
+                  size="sm"
+                  icon={<Users className="size-3.5" />}
+                  value={awayInstructor}
+                  onChange={setAwayInstructor}
+                  className="sm:w-44"
+                  options={[
+                    { value: 'ALL', label: 'Everyone' },
+                    ...allInstructors.map((i) => ({ value: i.id, label: i.fullName })),
+                  ]}
+                />
+                <Select
+                  label="Month"
+                  size="sm"
+                  icon={<Calendar className="size-3.5" />}
+                  value={awayMonth}
+                  onChange={setAwayMonth}
+                  className="sm:w-44"
+                  options={[{ value: 'ALL', label: 'Any month' }, ...months.map((m) => ({ value: m, label: monthLabel(m) }))]}
+                />
+              </div>
             </div>
-            <p className="mt-3 text-sm font-medium text-neutral-900 dark:text-white">Everyone&rsquo;s in</p>
-            <p className="mt-1 text-xs text-neutral-500">No upcoming approved leave across the cadre.</p>
+
+            <div className="flex items-center justify-between text-xs text-neutral-500">
+              <span>
+                {shown.length} {shown.length === 1 ? 'leave' : 'leaves'} · {shown.reduce((n, l) => n + days(l), 0)} days
+              </span>
+              {filtered && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAwayInstructor('ALL');
+                    setAwayMonth('ALL');
+                  }}
+                  className="btn btn-ghost btn-sm h-7"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+
+            {shown.length === 0 ? (
+              <div className="surface-card flex flex-col items-center px-6 py-14 text-center">
+                <div className="flex size-12 animate-pop-in items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
+                  <Users className="size-5" />
+                </div>
+                <p className="mt-3 text-sm font-medium text-neutral-900 dark:text-white">
+                  {awayPeriod === 'upcoming' && !filtered ? 'Everyone\u2019s in' : 'No leave found'}
+                </p>
+                <p className="mt-1 text-xs text-neutral-500">
+                  {awayPeriod === 'upcoming' && !filtered
+                    ? 'No current or upcoming approved leave. Check History for past leave.'
+                    : 'Try another period, instructor or month.'}
+                </p>
+              </div>
+            ) : (
+              <ul key={`${awayPeriod}-${awayInstructor}-${awayMonth}`} className="grid grid-cols-1 gap-2.5 md:grid-cols-2 stagger-children">
+                {shown.map((leave) => {
+                  const awayNow = leave.startDate <= today && leave.endDate >= today;
+                  const past = leave.endDate < today;
+                  const n = days(leave);
+                  return (
+                    <li key={leave.id} className={`surface-card flex items-start justify-between gap-3 p-4 ${past ? 'opacity-80' : ''}`}>
+                      <div className="flex min-w-0 items-start gap-3">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[11px] font-semibold text-neutral-700 dark:bg-white/[0.07] dark:text-neutral-200">
+                          {(leave.instructorName ?? '?').slice(0, 2).toUpperCase()}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-neutral-900 dark:text-white">{leave.instructorName}</p>
+                          <p className="mt-0.5 font-mono text-xs text-neutral-500">
+                            {leave.startDate}
+                            {leave.startDate !== leave.endDate && ` → ${leave.endDate}`}
+                            <span className="font-sans"> · {n} {n === 1 ? 'day' : 'days'}</span>
+                          </p>
+                          {leave.reason && <p className="mt-1.5 text-xs text-neutral-600 dark:text-neutral-400">{leave.reason}</p>}
+                          {leave.reviewedByName && (
+                            <p className="mt-1 text-[11px] text-neutral-500">Approved by {leave.reviewedByName}</p>
+                          )}
+                        </div>
+                      </div>
+                      <StatusPill tone={awayNow ? 'rose' : past ? 'neutral' : 'amber'} pulse={awayNow}>
+                        {awayNow ? 'Away today' : past ? 'Past' : 'Upcoming'}
+                      </StatusPill>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
-        ) : (
-          <ul className="grid grid-cols-1 gap-2.5 md:grid-cols-2 stagger-children">
-            {approved.map((leave) => {
-              const awayNow = leave.startDate <= today && leave.endDate >= today;
-              return (
-                <li key={leave.id} className="surface-card flex items-start justify-between gap-3 p-4">
-                  <div className="flex min-w-0 items-start gap-3">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[11px] font-semibold text-neutral-700 dark:bg-white/[0.07] dark:text-neutral-200">
-                      {(leave.instructorName ?? '?').slice(0, 2).toUpperCase()}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-neutral-900 dark:text-white">{leave.instructorName}</p>
-                      <p className="mt-0.5 font-mono text-xs text-neutral-500">
-                        {leave.startDate}
-                        {leave.startDate !== leave.endDate && ` → ${leave.endDate}`}
-                      </p>
-                      {leave.reason && <p className="mt-1.5 text-xs text-neutral-600 dark:text-neutral-400">{leave.reason}</p>}
-                    </div>
-                  </div>
-                  <StatusPill tone={awayNow ? 'rose' : 'neutral'} pulse={awayNow}>
-                    {awayNow ? 'Away today' : 'Upcoming'}
-                  </StatusPill>
-                </li>
-              );
-            })}
-          </ul>
         );
       })()}
     </div>
