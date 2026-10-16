@@ -180,7 +180,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
         <div className="space-y-6">
           {/* Contact Information Card */}
           <div className="surface-card p-6">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
               <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Contact Information</span>
             </h3>
@@ -199,7 +199,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+                  <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">Email</label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-400 dark:text-slate-600 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -215,7 +215,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Phone</label>
+                  <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">Phone</label>
                   <div className="relative">
                     <Phone className="w-4 h-4 text-slate-400 dark:text-slate-600 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -243,7 +243,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
 
           {/* App & Notification Preferences Card */}
           <div className="surface-card p-6 space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
               <Smartphone className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>App & Notification Preferences</span>
             </h3>
@@ -324,7 +324,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
         <div className="space-y-6">
           {/* Security & Password Card */}
           <div className="surface-card p-6">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
               <Lock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Change Password</span>
             </h3>
@@ -342,7 +342,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
                 </div>
               )}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Current Password</label>
+                <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">Current Password</label>
                 <div className="relative">
                   <input
                     type={showCurrent ? 'text' : 'password'}
@@ -364,7 +364,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">New Password</label>
+                  <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">New Password</label>
                   <div className="relative">
                     <input
                       type={showNew ? 'text' : 'password'}
@@ -386,7 +386,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Confirm New Password</label>
+                  <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">Confirm New Password</label>
                   <div className="relative">
                     <input
                       type={showConfirm ? 'text' : 'password'}
@@ -419,7 +419,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
 
           {/* Role & Access Scope Card */}
           <div className="surface-card p-6 space-y-3">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
               <Shield className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Role Permissions & Access Scope</span>
             </h3>

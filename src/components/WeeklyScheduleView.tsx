@@ -1,4 +1,5 @@
 'use client';
+import { Select } from './ui/Select';
 
 import React, { useState, useMemo } from 'react';
 import { User, RosterWeek, DutyAssignment, NightShift, LeaveRequest } from '@/types';
@@ -484,7 +485,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
           />
           <span className="whitespace-nowrap text-xs text-neutral-500">to {weekEndDate}</span>
         </div>
-        <div className="flex w-fit items-center rounded-lg border border-neutral-200 p-0.5 dark:border-white/[0.08]">
+        <div className="grid grid-cols-4 items-center rounded-lg border border-neutral-200 p-0.5 sm:flex sm:w-fit dark:border-white/[0.08]">
           <button onClick={() => handleShiftDate(-7)} className="btn btn-ghost btn-sm" title="Previous week">
             <ChevronLeft /> Prev
           </button>
@@ -505,24 +506,18 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Left: Instructor Cadre Dropdown */}
           <div className="flex items-center gap-2 min-w-0 sm:w-auto">
-            <div className="field flex h-9 w-full items-center gap-1.5 sm:w-auto">
-              <Filter className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">Cadre:</span>
-              <select
-                value={selectedInstructorId}
-                onChange={(e) => setSelectedInstructorId(e.target.value)}
-                className="bg-transparent text-slate-800 dark:text-slate-200 text-xs font-semibold focus:outline-none cursor-pointer w-full sm:w-auto pr-2"
-              >
-                <option value="ALL" className="bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-200">
-                  All {allInstructors.length} Instructors (Full Cadre)
-                </option>
-                {allInstructors.map((inst) => (
-                  <option key={inst.id} value={inst.id} className="bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-200">
-                    {inst.fullName}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Instructor"
+              size="sm"
+              icon={<Filter className="size-3.5" />}
+              value={selectedInstructorId}
+              onChange={setSelectedInstructorId}
+              className="w-full sm:w-60"
+              options={[
+                { value: 'ALL', label: `All ${allInstructors.length} instructors` },
+                ...allInstructors.map((inst) => ({ value: inst.id, label: inst.fullName })),
+              ]}
+            />
           </div>
 
           {/* Right: Search Box with Clear Button */}
@@ -680,7 +675,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
       <div className="surface-card overflow-hidden print:bg-white print:border-0 print:rounded-none print:shadow-none print:m-0 print:p-0">
         <div className="p-4 border-b border-slate-200 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 dark:bg-white/[0.05] print:hidden">
           <div>
-            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base flex items-center gap-2">
+            <h3 className="font-semibold text-neutral-900 dark:text-white text-sm sm:text-base flex items-center gap-2">
               <Calendar className="w-4 h-4 text-indigo-600 dark:text-blue-400" />
               <span>7-Day Departmental Timetable Grid</span>
             </h3>
@@ -943,7 +938,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
       <div className="surface-card overflow-hidden print:bg-white print:border print:border-slate-300 print:rounded-lg print:shadow-none print-page-break print:mt-4">
         <div className="p-4 border-b border-slate-200 dark:border-white/[0.08] flex items-center justify-between bg-slate-50 dark:bg-white/[0.05] print:bg-slate-100 print:border-b print:border-slate-300 print:p-2.5">
           <div>
-            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base flex items-center gap-2 print:text-slate-900 print:text-xs">
+            <h3 className="font-semibold text-neutral-900 dark:text-white text-sm sm:text-base flex items-center gap-2 print:text-slate-900 print:text-xs">
               <Users className="w-4 h-4 text-indigo-600 dark:text-blue-400 print:text-blue-700" />
               <span>Instructor Cadre Weekly Workload & Deployment Table</span>
             </h3>

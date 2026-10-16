@@ -1,4 +1,5 @@
 'use client';
+import { Select } from './ui/Select';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -315,23 +316,24 @@ export const AiCopilotDrawer: React.FC<AiCopilotDrawerProps> = ({
                   <span>Custom Instruction (Optional):</span>
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-blue-400" />
-                    <select
+                    <Select
+                      label="Scope"
+                      size="sm"
                       value={targetDate}
-                      onChange={(e) => setTargetDate(e.target.value)}
-                      className="field text-xs"
-                    >
-                      <option value="">Full 7-Day Week</option>
-                      {Array.from({ length: 7 }).map((_, i) => {
-                        const d = new Date(rosterWeek.startDate);
-                        d.setDate(d.getDate() + i);
-                        const str = d.toISOString().split('T')[0];
-                        return (
-                          <option key={str} value={str}>
-                            {d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                          </option>
-                        );
-                      })}
-                    </select>
+                      onChange={setTargetDate}
+                      className="w-auto"
+                      options={[
+                        { value: '', label: 'Full 7-day week' },
+                        ...Array.from({ length: 7 }).map((_, i) => {
+                          const d = new Date(rosterWeek.startDate);
+                          d.setDate(d.getDate() + i);
+                          return {
+                            value: d.toISOString().split('T')[0],
+                            label: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+                          };
+                        }),
+                      ]}
+                    />
                   </div>
                 </div>
 
@@ -382,7 +384,7 @@ export const AiCopilotDrawer: React.FC<AiCopilotDrawerProps> = ({
                 <div className="space-y-3 pt-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                      <h4 className="text-xs font-semibold text-white uppercase tracking-wider">
                         Proposed Changes ({selectedChangeIds.size} of {proposedChanges.length} Selected)
                       </h4>
                       <p className="text-[11px] text-slate-400">
@@ -503,7 +505,7 @@ export const AiCopilotDrawer: React.FC<AiCopilotDrawerProps> = ({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                  <h4 className="text-xs font-semibold text-white uppercase tracking-wider">
                     Roster Health & Clash Scanner
                   </h4>
                   <p className="text-[11px] text-slate-400">
@@ -628,7 +630,7 @@ export const AiCopilotDrawer: React.FC<AiCopilotDrawerProps> = ({
           {activeTab === 'substitute' && (
             <div className="space-y-4">
               <div>
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                <h4 className="text-xs font-semibold text-white uppercase tracking-wider">
                   Emergency Standby & Substitute Matcher
                 </h4>
                 <p className="text-[11px] text-slate-400">
@@ -655,35 +657,33 @@ export const AiCopilotDrawer: React.FC<AiCopilotDrawerProps> = ({
                     <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
                       Time Slot:
                     </label>
-                    <select
+                    <Select
+                      label="Time slot"
+                      size="sm"
                       value={subTime}
-                      onChange={(e) => setSubTime(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
-                    >
-                      <option value="09:00">Morning (09:00 - 12:00)</option>
-                      <option value="13:00">Afternoon (13:00 - 16:00)</option>
-                      <option value="16:30">Sunday CCS (16:30 - 17:30)</option>
-                    </select>
+                      onChange={setSubTime}
+                      options={[
+                        { value: '09:00', label: 'Morning (09:00 – 12:00)' },
+                        { value: '13:00', label: 'Afternoon (13:00 – 16:00)' },
+                        { value: '16:30', label: 'Sunday CCS (16:30 – 17:30)' },
+                      ]}
+                    />
                   </div>
 
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
                       Absent Instructor:
                     </label>
-                    <select
+                    <Select
+                      label="Absent instructor"
+                      size="sm"
                       value={subAbsentId}
-                      onChange={(e) => setSubAbsentId(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
-                    >
-                      <option value="">Select Instructor...</option>
-                      {allInstructors
+                      onChange={setSubAbsentId}
+                      placeholder="Select instructor…"
+                      options={allInstructors
                         .filter((u) => u.isActive && u.username !== 'instructors')
-                        .map((inst) => (
-                          <option key={inst.id} value={inst.id}>
-                            {inst.fullName}
-                          </option>
-                        ))}
-                    </select>
+                        .map((inst) => ({ value: inst.id, label: inst.fullName }))}
+                    />
                   </div>
                 </div>
 

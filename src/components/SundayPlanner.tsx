@@ -1,4 +1,5 @@
 'use client';
+import { Select } from './ui/Select';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -703,33 +704,34 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
             )
           }
           actions={
-            <>
+            // Phones: three equal tool buttons, then Publish full width as the one primary action.
+            <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto sm:items-center">
               <button
                 onClick={() => setAiDrawerOpen(true)}
-                className="btn btn-secondary"
+                className="btn btn-secondary h-10 px-2 sm:h-9 sm:px-3.5"
                 title="AI Roster Co-Pilot (Ctrl+K / ⌘K)"
               >
                 <Sparkles className="text-indigo-400" />
-                AI Co-Pilot
-                <kbd className="ml-0.5 hidden rounded border border-neutral-200 px-1 font-mono text-[10px] text-neutral-500 sm:inline dark:border-white/10">⌘K</kbd>
+                <span className="truncate">Co-Pilot</span>
+                <kbd className="ml-0.5 hidden rounded border border-neutral-200 px-1 font-mono text-[10px] text-neutral-500 lg:inline dark:border-white/10">⌘K</kbd>
               </button>
-              <button onClick={() => setCatalogModalOpen(true)} className="btn btn-secondary">
+              <button onClick={() => setCatalogModalOpen(true)} className="btn btn-secondary h-10 px-2 sm:h-9 sm:px-3.5">
                 <LibraryBig className="text-neutral-400" />
-                Catalog
+                <span className="truncate">Catalog</span>
               </button>
-              <button onClick={() => setDispatchOpen(true)} className="btn btn-secondary">
+              <button onClick={() => setDispatchOpen(true)} className="btn btn-secondary h-10 px-2 sm:h-9 sm:px-3.5">
                 <MessageCircle className="text-[#25D366]" />
-                WhatsApp
+                <span className="truncate">WhatsApp</span>
               </button>
               <button
                 onClick={handlePublish}
                 disabled={rosterWeek.status === 'PUBLISHED'}
-                className="btn btn-primary"
+                className="btn btn-primary btn-lg col-span-3 sm:h-9 sm:px-4 sm:text-xs"
               >
                 {rosterWeek.status === 'PUBLISHED' ? <CheckCircle2 /> : <Send />}
                 {rosterWeek.status === 'PUBLISHED' ? 'Published' : 'Publish week'}
               </button>
-            </>
+            </div>
           }
         />
 
@@ -763,8 +765,8 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          <div className="flex items-center rounded-lg border border-neutral-200 p-0.5 dark:border-white/[0.08]">
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
+          <div className="grid grid-cols-4 items-center rounded-lg border border-neutral-200 p-0.5 sm:flex dark:border-white/[0.08]">
             <button type="button" onClick={() => handleShiftDate(-7)} className="btn btn-ghost btn-sm" title="Previous week">
               <ChevronLeft /> Prev
             </button>
@@ -786,7 +788,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
             type="button"
             onClick={handleCloneWeek}
             disabled={isCloning}
-            className="btn btn-secondary btn-sm"
+            className="btn btn-secondary btn-sm h-9 w-full sm:h-8 sm:w-auto"
             title="Copy every assignment from the previous week into this draft"
           >
             <CopyPlus />
@@ -1206,26 +1208,20 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                     </span>
                   </div>
 
-                  <select
+                  <Select
+                    label={`Night duty, ${day.dayName}`}
+                    size="sm"
                     value={nightShift?.instructorId || ''}
-                    onChange={(e) => handleSetNightShift(day.dateStr, e.target.value)}
-                    className="field w-full text-xs cursor-pointer"
-                  >
-                    <option value="">{nightShift ? 'Remove night duty...' : 'Select Instructor...'}</option>
-                    {allInstructors.map((inst) => {
-                      const onLeave = isInstructorOnLeave(inst.id, day.dateStr);
-                      return (
-                        <option
-                          key={inst.id}
-                          value={inst.id}
-                          disabled={onLeave}
-                          className="bg-white dark:bg-neutral-900 text-slate-900 dark:text-white"
-                        >
-                          {inst.fullName} {onLeave ? '(On Leave)' : ''}
-                        </option>
-                      );
-                    })}
-                  </select>
+                    onChange={(v) => handleSetNightShift(day.dateStr, v)}
+                    placeholder="Assign night duty…"
+                    options={[
+                      ...(nightShift ? [{ value: '', label: 'Remove night duty' }] : []),
+                      ...allInstructors.map((inst) => {
+                        const onLeave = isInstructorOnLeave(inst.id, day.dateStr);
+                        return { value: inst.id, label: inst.fullName, disabled: onLeave, hint: onLeave ? 'On leave' : undefined };
+                      }),
+                    ]}
+                  />
                 </div>
               </div>
             );
@@ -1239,7 +1235,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
           <div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-neutral-200 bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl animate-sheet-up sm:rounded-2xl sm:p-6 sm:animate-pop-in dark:border-white/[0.08] dark:bg-[#141414]">
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/[0.08]">
               <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Assign {dutyType || 'Duty'}</h3>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Assign {dutyType || 'Duty'}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   {modalData.date} • {modalData.slotLabel}
                 </p>
@@ -1262,30 +1258,24 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
             <form onSubmit={handleSaveDuty} className="mt-4 space-y-4">
               {/* Select Instructor */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">
                   Assigned Instructor (Cadre of {allInstructors.length})
                 </label>
-                <select
+                <Select
+                  label="Assigned instructor"
                   value={instructorId}
-                  onChange={(e) => setInstructorId(e.target.value)}
-                  className="field w-full text-sm cursor-pointer"
-                  required
-                >
-                  <option value="">Select Instructor...</option>
-                  {allInstructors.map((inst) => {
+                  onChange={setInstructorId}
+                  placeholder="Select instructor…"
+                  options={allInstructors.map((inst) => {
                     const onLeave = isInstructorOnLeave(inst.id, modalData.date);
-                    return (
-                      <option key={inst.id} value={inst.id} disabled={onLeave}>
-                        {inst.fullName} {onLeave ? '⛔ (On Approved Leave)' : ''}
-                      </option>
-                    );
+                    return { value: inst.id, label: inst.fullName, disabled: onLeave, hint: onLeave ? 'On approved leave' : undefined };
                   })}
-                </select>
+                />
               </div>
 
               {/* Duty Type: pick from catalog, type custom, or save new */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">
                   Duty Type
                 </label>
                 <div className="flex gap-1.5">
@@ -1339,7 +1329,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                 <>
                   {/* Free-form Batch Name + Quick Suggestion Tags */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                    <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">
                       Batch Code / Group
                     </label>
                     <div className="flex gap-1.5">
@@ -1387,7 +1377,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
 
                   {/* Module: pick from the catalog, type a custom one, or save a new one */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                    <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">
                       Module / Subject
                     </label>
                     <div className="flex gap-1.5">
@@ -1435,7 +1425,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                 </>
               ) : (
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                  <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">
                     Details
                   </label>
                   <textarea
@@ -1450,7 +1440,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
 
               {/* Room/Lab: pick from the catalog, type a custom one, or save a new one */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">
                   Room / Lab Venue
                 </label>
                 <div className="flex gap-1.5">
@@ -1571,7 +1561,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                   <MessageCircle className="w-3.5 h-3.5" />
                   <span>Cadre Dispatcher</span>
                 </div>
-                <h3 className="text-lg font-bold">Dispatch via WhatsApp</h3>
+                <h3 className="text-lg font-semibold">Dispatch via WhatsApp</h3>
               </div>
               <button
                 onClick={() => setDispatchOpen(false)}
@@ -1651,7 +1641,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                   <LibraryBig className="w-3.5 h-3.5" />
                   <span>Demonstrator Console</span>
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Academic Catalog Manager</h3>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Academic Catalog Manager</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Manage the student batches, modules, lecture rooms/labs, and duty types offered as presets when assigning duties.
                 </p>
@@ -1674,7 +1664,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Batches Section */}
               <div>
-                <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                   Student Batches ({catalog.batches.length})
                 </h4>
                 <form onSubmit={handleAddBatch} className="flex gap-1.5 mb-3">
@@ -1764,7 +1754,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
 
               {/* Rooms/Labs Section */}
               <div>
-                <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                   Lecture Rooms / Labs ({catalog.rooms.length})
                 </h4>
                 <form onSubmit={handleAddRoom} className="flex gap-1.5 mb-3">
@@ -1854,7 +1844,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
 
               {/* Modules/Subjects Section */}
               <div>
-                <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                   Modules / Subjects ({catalog.modules.length})
                 </h4>
                 <form onSubmit={handleAddModule} className="flex gap-1.5 mb-3">
@@ -1944,7 +1934,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
 
               {/* Duty Types Section */}
               <div>
-                <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                   Duty Types ({catalog.dutyTypes.length})
                 </h4>
                 <form onSubmit={handleAddDutyType} className="flex gap-1.5 mb-3">

@@ -186,7 +186,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
             <div className="p-4 border-b border-white/[0.08] flex items-center justify-between bg-slate-950/70">
               <div className="flex items-center space-x-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-xs shadow-emerald-400/50"></span>
-                <h2 className="font-bold text-white text-base">Working Now (On Duty)</h2>
+                <h2 className="font-semibold text-white text-base">Working Now (On Duty)</h2>
               </div>
               <span className="text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full">
                 {report.onDuty.length} Active
@@ -213,7 +213,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                           {instructor.phone && (
                             <a
                               href={`tel:${instructor.phone.replace(/\s+/g, '')}`}
-                              className="inline-flex items-center gap-1 text-[11px] bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-md font-semibold transition-colors cursor-pointer"
+                              className="btn btn-secondary btn-sm h-7"
                               title={`Call ${instructor.fullName} (${instructor.phone})`}
                             >
                               <Phone className="w-2.5 h-2.5" />
@@ -263,7 +263,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
             <div className="p-4 border-b border-white/[0.08] flex items-center justify-between bg-slate-950/70">
               <div className="flex items-center space-x-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-xs shadow-amber-400/50"></span>
-                <h2 className="font-bold text-white text-base">Available / Free Standby</h2>
+                <h2 className="font-semibold text-white text-base">Available / Free Standby</h2>
               </div>
               <span className="text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-full">
                 {report.freeStandby.length} Free
@@ -288,7 +288,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                         {instructor.fullName.substring(0, 2).toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-bold text-white text-sm truncate">{instructor.fullName}</h3>
+                        <h3 className="font-semibold text-white text-sm truncate">{instructor.fullName}</h3>
                         <p className="text-[11px] text-slate-400 truncate">
                           {instructor.phone || 'Available in staff room'}
                         </p>
@@ -323,7 +323,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
             <div className="p-4 border-b border-white/[0.08] flex items-center justify-between bg-slate-950/70">
               <div className="flex items-center space-x-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-xs shadow-rose-400/50"></span>
-                <h2 className="font-bold text-white text-base">On Leave (Away)</h2>
+                <h2 className="font-semibold text-white text-base">On Leave (Away)</h2>
               </div>
               <span className="text-xs font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 px-3 py-1 rounded-full">
                 {report.onLeave.length} Away
