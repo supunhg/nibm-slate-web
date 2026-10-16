@@ -11,30 +11,41 @@ export interface MobileVersionResponse {
   minRequiredVersion: string;
 }
 
-export async function GET() {
-  const versionInfo: MobileVersionResponse = {
-    latestVersion: '1.0.1',
-    versionCode: 2,
-    releaseName: 'NIBM Slate v1.0.1',
-    releaseNotes: [
-      'Resolved navigation back button trapping in settings and profile screens',
-      'Redesigned Public Status Board with modern high-contrast duty cards',
-      'Overhauled instructor portal sub-tabs with responsive segmented pill bar',
-      'Fixed auto-refresh dropdown off-screen clipping on mobile screens',
-      'Integrated in-app update checking and direct APK download mechanism',
-    ],
-    apkUrl: 'https://github.com/supunhg/nibm-slate-web/releases/latest/download/nibm-slate.apk',
-    releasePageUrl: 'https://github.com/supunhg/nibm-slate-web/releases',
-    publishedAt: '2026-10-07T07:15:00.000Z',
-    minRequiredVersion: '1.0.0',
-  };
+// Written by .github/workflows/build-apk.yml next to every APK it publishes,
+// so the app's update prompt always reflects the newest build without
+// anyone editing this file.
+const MANIFEST_URL = 'https://github.com/supunhg/nibm-slate-web/releases/latest/download/version.json';
 
+// Used only if GitHub is unreachable or no manifest has been published yet.
+const FALLBACK: MobileVersionResponse = {
+  latestVersion: '1.0.0',
+  versionCode: 1,
+  releaseName: 'NIBM Slate',
+  releaseNotes: ['Performance and reliability improvements'],
+  apkUrl: 'https://github.com/supunhg/nibm-slate-web/releases/latest/download/nibm-slate.apk',
+  releasePageUrl: 'https://github.com/supunhg/nibm-slate-web/releases',
+  publishedAt: '2026-10-07T07:15:00.000Z',
+  minRequiredVersion: '1.0.0',
+};
+
+async function loadManifest(): Promise<MobileVersionResponse> {
+  try {
+    const res = await fetch(MANIFEST_URL, { next: { revalidate: 300 } });
+    if (!res.ok) return FALLBACK;
+    const data = (await res.json()) as Partial<MobileVersionResponse>;
+    if (typeof data.latestVersion !== 'string' || typeof data.apkUrl !== 'string') return FALLBACK;
+    return { ...FALLBACK, ...data, releaseNotes: Array.isArray(data.releaseNotes) && data.releaseNotes.length ? data.releaseNotes : FALLBACK.releaseNotes };
+  } catch {
+    return FALLBACK;
+  }
+}
+
+export async function GET() {
+  const versionInfo = await loadManifest();
   return NextResponse.json(versionInfo, {
     status: 200,
     headers: {
       'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0',
     },
   });
 }

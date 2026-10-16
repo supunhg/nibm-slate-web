@@ -10,8 +10,8 @@ export default function manifest(): MetadataRoute.Manifest {
     id: '/',
     display: 'standalone',
     orientation: 'portrait-primary',
-    background_color: '#080b12',
-    theme_color: '#080b12',
+    background_color: '#0a0a0a',
+    theme_color: '#0a0a0a',
     categories: ['education', 'productivity', 'utilities'],
     icons: [
       {
@@ -33,14 +33,14 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: 'maskable',
       },
       {
-        src: '/apple-icon',
+        src: '/apple-icon.png',
         sizes: '180x180',
         type: 'image/png',
       },
       {
-        src: '/icon',
-        sizes: '64x64',
-        type: 'image/png',
+        src: '/icon.svg',
+        sizes: 'any',
+        type: 'image/svg+xml',
       },
     ],
   };

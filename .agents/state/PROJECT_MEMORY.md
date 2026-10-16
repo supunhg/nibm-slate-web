@@ -23,7 +23,7 @@
 - `src/app/roster/instructors/[id]/page.tsx`: 2-column balanced instructor profile & calendar.
 - `src/app/login/page.tsx`: Role-based authentication portal with quick-login buttons.
 - `src/components/pwa-register.tsx`: Service Worker registrar and offline radar.
-- `public/sw.js`: Service worker with cache-first static, network-first navigation, and silent update listeners.
+- `public/sw.js`: Service worker with cache-first static, network-first navigation, and prompted updates (registered as /sw.js?v=<buildId>, waits for SKIP_WAITING from the "Reload now" prompt).
 - `public/manifest.json`: Web app manifest configured for standalone mode.
 - `scripts/verify-all.ts`: Master verification harness for ESLint, domain invariants, mobile APIs, mobile typecheck, and Next.js build.
 - `mobile/`: Expo companion codebase.

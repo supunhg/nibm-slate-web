@@ -128,10 +128,10 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-[#0d1424] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95 group"
+            className="btn btn-ghost -ml-2"
           >
-            <ArrowLeft className="w-4 h-4 text-indigo-600 dark:text-indigo-400 group-hover:-translate-x-0.5 transition-transform" />
-            <span>Back to Schedule & Tasks</span>
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back</span>
           </button>
           <span className="text-xs text-slate-500 dark:text-slate-400 font-medium hidden sm:inline">
             Personal Account Settings
@@ -140,17 +140,17 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
       )}
 
       {/* Hero Profile Banner (Full Width) */}
-      <div className="bg-white dark:bg-[#0d1424] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="surface-card p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-black text-xl flex items-center justify-center shadow-md shrink-0">
+          <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-neutral-900 text-xl font-semibold text-white dark:bg-white dark:text-neutral-950">
             {currentUser.fullName.substring(0, 2).toUpperCase()}
           </div>
           <div>
             <div className="flex items-center space-x-2 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
-              <UserCircle className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+              <UserCircle className="w-3.5 h-3.5" />
               <span>Personal Account Profile</span>
             </div>
-            <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5">
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white mt-0.5">
               {currentUser.fullName}
             </h2>
             <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400">
@@ -164,12 +164,12 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
         </div>
 
         <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
-          <span className="px-3 py-1 rounded-xl text-xs font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+          <span className="chip px-2.5 py-1 text-[11px]">
             {ROLE_LABELS[currentUser.role]}
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Active Cadre</span>
+          <span className="chip border-emerald-500/25 px-2.5 py-1 text-[11px] text-emerald-700 dark:text-emerald-300">
+            <span className="size-1.5 rounded-full bg-emerald-500" />
+            <span>Active</span>
           </span>
         </div>
       </div>
@@ -179,7 +179,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
         {/* Left Column: Contact Info + App & Notification Preferences */}
         <div className="space-y-6">
           {/* Contact Information Card */}
-          <div className="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div className="surface-card p-6">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
               <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Contact Information</span>
@@ -210,7 +210,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
                         setContactSuccess(false);
                       }}
                       placeholder="you@nibm.lk"
-                      className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                      className="field w-full text-sm pl-9 pr-3"
                     />
                   </div>
                 </div>
@@ -226,7 +226,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
                         setContactSuccess(false);
                       }}
                       placeholder="071 234 5678"
-                      className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                      className="field w-full text-sm pl-9 pr-3"
                     />
                   </div>
                 </div>
@@ -234,7 +234,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
               <button
                 type="submit"
                 disabled={busyContact}
-                className="h-9 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
+                className="btn btn-primary"
               >
                 {busyContact ? 'Saving...' : 'Save Contact Info'}
               </button>
@@ -242,7 +242,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
           </div>
 
           {/* App & Notification Preferences Card */}
-          <div className="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+          <div className="surface-card p-6 space-y-4">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
               <Smartphone className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>App & Notification Preferences</span>
@@ -250,7 +250,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               {/* PWA Mode Status */}
-              <div className="p-4 rounded-xl border border-slate-150 dark:border-slate-800 bg-slate-50/60 dark:bg-[#080b12] flex flex-col justify-between">
+              <div className="p-4 rounded-xl border border-slate-150 dark:border-white/[0.08] bg-slate-50/60 dark:bg-[#0a0a0a] flex flex-col justify-between">
                 <div>
                   <div className="flex items-center space-x-2 text-xs font-bold text-slate-900 dark:text-white mb-1">
                     <Smartphone className="w-3.5 h-3.5 text-indigo-500" />
@@ -272,7 +272,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
                     <button
                       type="button"
                       onClick={() => installPwa()}
-                      className="h-7 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-3 rounded-lg transition-all cursor-pointer shadow-2xs active:scale-95 inline-flex items-center space-x-1"
+                      className="btn btn-primary btn-sm"
                     >
                       <Download className="w-3 h-3" />
                       <span>Install App</span>
@@ -284,7 +284,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
               </div>
 
               {/* Web Push Status */}
-              <div className="p-4 rounded-xl border border-slate-150 dark:border-slate-800 bg-slate-50/60 dark:bg-[#080b12] flex flex-col justify-between">
+              <div className="p-4 rounded-xl border border-slate-150 dark:border-white/[0.08] bg-slate-50/60 dark:bg-[#0a0a0a] flex flex-col justify-between">
                 <div>
                   <div className="flex items-center space-x-2 text-xs font-bold text-slate-900 dark:text-white mb-1">
                     <Bell className="w-3.5 h-3.5 text-amber-500" />
@@ -323,7 +323,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
         {/* Right Column: Security & Password + Role Access Scope */}
         <div className="space-y-6">
           {/* Security & Password Card */}
-          <div className="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div className="surface-card p-6">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
               <Lock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Change Password</span>
@@ -348,7 +348,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
                     type={showCurrent ? 'text' : 'password'}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                    className="field w-full text-sm pr-9"
                     required
                   />
                   <button
@@ -371,7 +371,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="At least 8 chars"
-                      className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                      className="field w-full text-sm pr-9"
                       required
                     />
                     <button
@@ -392,7 +392,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
                       type={showConfirm ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                      className="field w-full text-sm pr-9"
                       required
                     />
                     <button
@@ -410,7 +410,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
               <button
                 type="submit"
                 disabled={savingPassword}
-                className="h-9 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
+                className="btn btn-primary"
               >
                 {savingPassword ? 'Saving...' : 'Update Password'}
               </button>
@@ -418,7 +418,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
           </div>
 
           {/* Role & Access Scope Card */}
-          <div className="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-3">
+          <div className="surface-card p-6 space-y-3">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
               <Shield className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Role Permissions & Access Scope</span>

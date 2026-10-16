@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0f172a",
+    "backgroundColor": "#0a0a0a",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "lk.nibm.slate"
@@ -14,7 +14,7 @@
     "android": {
       "package": "lk.nibm.slate",
       "adaptiveIcon": {
-        "backgroundColor": "#0f172a",
+        "backgroundColor": "#0a0a0a",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"

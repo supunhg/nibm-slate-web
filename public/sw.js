@@ -1,17 +1,19 @@
-// SLATE PWA High-Performance Service Worker
-// Enables silent zero-prompt auto-updates, offline asset caching, and web push notifications.
+// SLATE PWA Service Worker
+// Offline asset caching, web push, and prompted updates: the page registers
+// this file as /sw.js?v=<buildId>, so each deploy installs a new worker that
+// waits until the user taps "Reload" in the update prompt (SKIP_WAITING).
 
-const CACHE_NAME = 'slate-cache-v1';
+const VERSION = new URL(self.location.href).searchParams.get('v') || 'dev';
+const CACHE_NAME = `slate-cache-${VERSION}`;
 
 // Critical static assets to cache for instant loading & offline resilience
 const STATIC_ASSETS = [
-  '/',
   '/manifest.webmanifest',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/icon-maskable-512.png',
-  '/icon',
-  '/apple-icon',
+  '/icon.svg',
+  '/apple-icon.png',
 ];
 
 // Install Event: Cache essential shell and activate immediately
@@ -24,8 +26,10 @@ self.addEventListener('install', (event) => {
           console.warn('[SW] Precache non-critical fetch skipped:', err);
         });
       })
-      .then(() => self.skipWaiting()) // Activate new service worker immediately without waiting
   );
+  // First install has nothing to replace, so take over straight away.
+  // Later versions wait for the user's go-ahead (see 'message' below).
+  if (!self.registration.active) self.skipWaiting();
 });
 
 // Activate Event: Claim all clients and purge obsolete caches
@@ -70,8 +74,6 @@ self.addEventListener('fetch', (event) => {
       fetch(event.request).catch(async () => {
         const cached = await caches.match(event.request);
         if (cached) return cached;
-        const shell = await caches.match('/');
-        if (shell) return shell;
         return new Response('Offline: Please check your network connection.', {
           status: 503,
           headers: { 'Content-Type': 'text/plain' },
@@ -85,8 +87,8 @@ self.addEventListener('fetch', (event) => {
   if (
     url.pathname.startsWith('/_next/static/') ||
     url.pathname.startsWith('/icons/') ||
-    url.pathname === '/icon' ||
-    url.pathname === '/apple-icon' ||
+    url.pathname === '/icon.svg' ||
+    url.pathname === '/apple-icon.png' ||
     url.pathname.endsWith('.png') ||
     url.pathname.endsWith('.svg') ||
     url.pathname.endsWith('.woff2')
@@ -124,7 +126,7 @@ self.addEventListener('push', (event) => {
   const options = {
     body: payload.body || 'New operational update available.',
     icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    badge: '/icons/badge-96.png',
     tag: payload.tag || 'slate-notification',
     data: payload.data || { url: '/' },
     vibrate: [150, 50, 150],

@@ -84,15 +84,17 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
   };
 
   // Handle tab navigation with browser history support
-  const handleSelectTab = useCallback((newTab: AppTab) => {
-    setActiveTab((prev) => {
-      if (prev === newTab) return prev;
-      if (typeof window !== 'undefined') {
-        window.history.pushState({ tab: newTab }, '', window.location.pathname);
-      }
-      return newTab;
-    });
-  }, []);
+  // History is pushed outside the state updater: updaters must stay pure, and
+  // pushState inside one updates the Next router mid-render.
+  const handleSelectTab = useCallback(
+    (newTab: AppTab) => {
+      if (activeTab === newTab) return;
+      window.history.pushState({ tab: newTab }, '', window.location.pathname);
+      setActiveTab(newTab);
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    },
+    [activeTab],
+  );
 
   // Listen to browser/hardware back button (popstate)
   useEffect(() => {
@@ -251,7 +253,7 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
 
   return (
     <DialogProvider>
-      <div className="min-h-screen bg-slate-50 dark:bg-[#080b12] flex flex-col font-sans antialiased text-slate-900 dark:text-slate-100 transition-colors duration-150 print:bg-white print:text-slate-900 print:min-h-0">
+      <div className="min-h-screen bg-neutral-50 dark:bg-[#0a0a0a] flex flex-col font-sans antialiased text-neutral-900 dark:text-neutral-100 transition-colors duration-150 print:bg-white print:text-slate-900 print:min-h-0">
         {/* Header with Role Restraints */}
         <Header
           currentUser={currentUser}
@@ -267,7 +269,9 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
         />
 
         {/* Main Container: Strictly Renders Authorized Views */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full print:max-w-none print:p-0 print:m-0 print:w-full">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-10 flex-1 w-full print:max-w-none print:p-0 print:m-0 print:w-full">
+          {/* Keyed on the tab so each switch plays the page-in transition. */}
+          <div key={activeTab} className="animate-page-in print:animate-none">
           {/* 1. Instructor Portal: ONLY for Instructors */}
           {isInstructor && activeTab === 'instructor' && (
             <InstructorPortal
@@ -348,16 +352,15 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
               isRefreshing={isSessionRefreshing}
             />
           )}
+          </div>
         </main>
 
-        {/* Footer */}
-        <footer className="bg-white dark:bg-[#0d1424] border-t border-slate-200 dark:border-slate-800/80 py-4 text-center text-xs text-slate-500 dark:text-slate-400 print:hidden transition-colors">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+        {/* Footer (desktop; phones have the bottom tab bar) */}
+        <footer className="hidden md:block border-t border-neutral-200 dark:border-white/[0.06] py-5 text-[11px] text-neutral-500 print:hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-2">
+            <span>SLATE · NIBM School of Computing</span>
             <span>
-              NIBM Academic & Technical Operations System • SOC / IT Division
-            </span>
-            <span className="font-medium text-slate-600 dark:text-slate-400">
-              Role: {currentUser.role} • Logged in as {currentUser.fullName}
+              Signed in as <span className="font-medium text-neutral-700 dark:text-neutral-300">{currentUser.fullName}</span>
             </span>
           </div>
         </footer>

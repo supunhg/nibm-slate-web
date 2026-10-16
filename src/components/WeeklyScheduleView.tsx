@@ -3,11 +3,11 @@
 import React, { useState, useMemo } from 'react';
 import { User, RosterWeek, DutyAssignment, NightShift, LeaveRequest } from '@/types';
 import { isSameSession } from '@/lib/roster-utils';
+import { PageHeader, StatusPill } from './ui/PageHeader';
 import {
   Calendar,
   Clock,
   Moon,
-  BookOpen,
   MapPin,
   Filter,
   Search,
@@ -44,29 +44,29 @@ const SessionCard: React.FC<SessionCardProps> = ({
 
   const colorStyles = {
     morning: {
-      card: 'bg-blue-500/10 dark:bg-blue-500/10 print:bg-blue-50/80 border-blue-500/20 print:border-blue-300',
-      title: 'text-blue-800 dark:text-blue-300 print:text-blue-950',
-      batch: 'bg-blue-500/15 dark:bg-blue-500/25 print:bg-blue-200 text-blue-700 dark:text-blue-300 print:text-blue-900',
+      card: 'bg-white dark:bg-white/[0.03] border-neutral-200 dark:border-white/[0.06] hover:border-neutral-300 dark:hover:border-white/[0.14] before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-r-full print:before:hidden pl-2.5 before:bg-blue-500 print:bg-blue-50/80 print:border-blue-300',
+      title: 'text-neutral-900 dark:text-white print:text-blue-950',
+      batch: 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 print:bg-blue-200 print:text-blue-900',
       avatarBg: 'bg-blue-600 print:bg-blue-700',
-      badgeBorder: 'border-blue-100/20 print:border-blue-200',
+      badgeBorder: 'border-neutral-100 dark:border-white/[0.06] print:border-blue-200',
       fullDayBadge:
         'text-blue-800 dark:text-blue-300 print:text-indigo-950 bg-blue-500/15 dark:bg-blue-500/20 print:bg-indigo-100 border-blue-500/30 print:border-indigo-300',
     },
     afternoon: {
-      card: 'bg-amber-500/10 dark:bg-amber-500/10 print:bg-amber-50/80 border-amber-500/20 print:border-amber-300',
-      title: 'text-amber-900 dark:text-amber-300 print:text-amber-950',
-      batch: 'bg-amber-500/15 dark:bg-amber-500/25 print:bg-amber-200 text-amber-800 dark:text-amber-300 print:text-amber-900',
+      card: 'bg-white dark:bg-white/[0.03] border-neutral-200 dark:border-white/[0.06] hover:border-neutral-300 dark:hover:border-white/[0.14] before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-r-full print:before:hidden pl-2.5 before:bg-amber-400 print:bg-amber-50/80 print:border-amber-300',
+      title: 'text-neutral-900 dark:text-white print:text-amber-950',
+      batch: 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 print:bg-amber-200 print:text-amber-900',
       avatarBg: 'bg-amber-600 print:bg-amber-700',
-      badgeBorder: 'border-amber-100/20 print:border-amber-200',
+      badgeBorder: 'border-neutral-100 dark:border-white/[0.06] print:border-amber-200',
       fullDayBadge:
         'text-amber-900 dark:text-amber-300 print:text-amber-950 bg-amber-500/15 dark:bg-amber-500/20 print:bg-amber-100 border-amber-500/30 print:border-amber-300',
     },
     sunday: {
-      card: 'bg-purple-500/15 dark:bg-purple-500/15 print:bg-purple-50/80 border-purple-500/20 print:border-purple-300',
-      title: 'text-purple-900 dark:text-purple-300 print:text-purple-950',
-      batch: 'bg-purple-500/15 dark:bg-purple-500/25 print:bg-purple-200 text-purple-800 dark:text-purple-300 print:text-purple-900',
+      card: 'bg-white dark:bg-white/[0.03] border-neutral-200 dark:border-white/[0.06] hover:border-neutral-300 dark:hover:border-white/[0.14] before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-r-full print:before:hidden pl-2.5 before:bg-indigo-500 print:bg-purple-50/80 print:border-purple-300',
+      title: 'text-neutral-900 dark:text-white print:text-purple-950',
+      batch: 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 print:bg-purple-200 print:text-purple-900',
       avatarBg: 'bg-purple-700 print:bg-purple-800',
-      badgeBorder: 'border-purple-500/20 print:border-purple-200',
+      badgeBorder: 'border-neutral-100 dark:border-white/[0.06] print:border-purple-200',
       fullDayBadge:
         'text-purple-900 dark:text-purple-300 print:text-purple-950 bg-purple-500/15 dark:bg-purple-500/20 print:bg-purple-100 border-purple-500/30 print:border-purple-300',
     },
@@ -74,7 +74,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
 
   return (
     <div
-      className={`relative rounded-lg print:rounded p-2 print:p-1 border transition-all shadow-2xs hover:shadow-xs print:shadow-none print-avoid-break group ${colorStyles.card}`}
+      className={`relative overflow-hidden rounded-lg print:rounded p-2 print:p-1 border transition-[border-color,background-color] duration-200 shadow-2xs print:shadow-none print-avoid-break group animate-rise-in ${colorStyles.card}`}
       onMouseEnter={() => setPopoverOpen(true)}
       onMouseLeave={() => setPopoverOpen(false)}
     >
@@ -117,7 +117,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
               e.stopPropagation();
               setPopoverOpen((prev) => !prev);
             }}
-            className="inline-flex items-center gap-1 text-[9.5px] text-slate-300 hover:text-white bg-slate-800/90 hover:bg-slate-700/90 px-1.5 py-0.5 rounded border border-slate-700/80 transition-colors cursor-pointer max-w-full"
+            className="inline-flex items-center gap-1 text-[9.5px] text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white bg-neutral-100 hover:bg-neutral-200 dark:bg-white/[0.06] dark:hover:bg-white/10 px-1.5 py-0.5 rounded border border-neutral-200 dark:border-white/10 transition-colors cursor-pointer max-w-full"
             title="Click to view full session notes"
           >
             <FileText className="w-2.5 h-2.5 text-blue-400 shrink-0" />
@@ -135,7 +135,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
 
       {/* Instructor Footer */}
       <div
-        className={`mt-1.5 print:mt-0.5 pt-1 border-t flex items-center justify-between text-[11px] print:text-[8.5px] font-semibold text-slate-200 print:text-slate-800 ${colorStyles.badgeBorder}`}
+        className={`mt-1.5 print:mt-0.5 pt-1 border-t flex items-center justify-between text-[11px] print:text-[8.5px] font-semibold text-neutral-700 dark:text-neutral-200 print:text-slate-800 ${colorStyles.badgeBorder}`}
       >
         <div className="flex items-center space-x-1 min-w-0">
           <div
@@ -165,7 +165,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
         <div
           className={`absolute z-40 left-0 right-0 sm:left-1/2 sm:-translate-x-1/2 ${
             slotType === 'morning' ? 'top-full mt-2' : 'bottom-full mb-2'
-          } w-72 max-w-[85vw] p-3 rounded-xl bg-slate-950 text-slate-100 border border-slate-700 shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-150 print:hidden`}
+          } w-72 max-w-[85vw] p-3 rounded-xl bg-slate-950 text-slate-100 border border-slate-700 shadow-2xl backdrop-blur-md animate-pop-in print:hidden`}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-start justify-between gap-2 pb-2 border-b border-slate-800">
@@ -452,129 +452,72 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
   return (
     <div className="space-y-6 print:space-y-3">
-      {/* Top Banner: Week Horizon Controller */}
-      <div className="bg-white dark:bg-[#11192d] rounded-2xl p-5 sm:p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md transition-colors print:hidden">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center space-x-2 text-indigo-600 dark:text-blue-400 text-xs sm:text-sm font-semibold mb-1">
-              <Shield className="w-4 h-4" />
-              <span>Executive Weekly Overview</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-              <span>Full-Week Master Schedule</span>
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-blue-500/20 text-indigo-700 dark:text-blue-300 border border-indigo-200 dark:border-blue-400/30">
-                7-Day Matrix
-              </span>
-            </h2>
-          </div>
+      <PageHeader
+        eyebrow={<><Shield className="size-3" /> Week overview</>}
+        title="Week schedule"
+        description="Every session and night duty across the seven-day window."
+        status={
+          rosterWeek.status === 'PUBLISHED' ? (
+            <StatusPill tone="emerald">Published</StatusPill>
+          ) : (
+            <StatusPill tone="amber" pulse>Draft</StatusPill>
+          )
+        }
+        actions={
+          <button onClick={handlePrint} className="btn btn-secondary" title="Print the weekly timetable (landscape)">
+            <Printer className="text-neutral-400" />
+            Print
+          </button>
+        }
+      />
 
-          {/* Roster Publication Status & Actions */}
-          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-            <div className="bg-slate-50 dark:bg-slate-800/90 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700/80 flex items-center space-x-2.5">
-              <span
-                className={`w-2.5 h-2.5 rounded-full ${
-                  rosterWeek.status === 'PUBLISHED'
-                    ? 'bg-emerald-400 shadow-xs shadow-emerald-400/50'
-                    : 'bg-amber-400 animate-pulse'
-                }`}
-              ></span>
-              <div className="text-left">
-                <div className="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">
-                  Roster State
-                </div>
-                <div className="text-xs font-black">
-                  {rosterWeek.status === 'PUBLISHED' ? (
-                    <span className="text-emerald-700 dark:text-emerald-400 font-bold">PUBLISHED</span>
-                  ) : (
-                    <span className="text-amber-700 dark:text-amber-400 font-bold">DRAFT (IN PROGRESS)</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={handlePrint}
-              className="h-8 flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white px-3.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
-              title="Print Weekly Timetable in Landscape Format"
-            >
-              <Printer className="w-4 h-4 text-indigo-600 dark:text-blue-400" />
-              <span>Print Timetable</span>
-            </button>
-          </div>
+      {/* Week navigation */}
+      <div className="surface-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-3.5 print:hidden">
+        <div className="flex items-center gap-2">
+          <Calendar className="size-4 shrink-0 text-neutral-400" />
+          <input
+            type="date"
+            aria-label="Week starting"
+            value={planningStartDate}
+            onChange={(e) => handleDateChange(e.target.value)}
+            className="field h-8 w-auto px-2 text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark]"
+          />
+          <span className="whitespace-nowrap text-xs text-neutral-500">to {weekEndDate}</span>
         </div>
-
-        {/* Unified Horizon & Navigation Segmented Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/80">
-          <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700/70 overflow-x-auto max-w-full">
-            <button
-              onClick={() => handleShiftDate(-7)}
-              className="h-7 flex items-center space-x-1 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-2.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700/70 transition-colors cursor-pointer whitespace-nowrap active:scale-95 font-medium"
-              title="Shift backward 7 days"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Prev 7 Days</span>
-              <span className="sm:hidden">Prev</span>
-            </button>
-            <button
-              onClick={() => handleDateChange(todayStr)}
-              className="h-7 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-2.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700/70 transition-colors cursor-pointer whitespace-nowrap font-medium active:scale-95"
-              title="Jump to current week"
-            >
-              Current Week
-            </button>
-            <button
-              onClick={handleJumpToSunday}
-              className="h-7 text-xs text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/60 hover:bg-indigo-200 dark:hover:bg-indigo-900/80 border border-indigo-200 dark:border-indigo-700/50 px-2.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap font-bold active:scale-95"
-              title="Align window starting on Sunday"
-            >
-              Start on Sunday
-            </button>
-            <button
-              onClick={() => handleShiftDate(7)}
-              className="h-7 flex items-center space-x-1 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-2.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700/70 transition-colors cursor-pointer whitespace-nowrap active:scale-95 font-medium"
-              title="Shift forward 7 days"
-            >
-              <span className="hidden sm:inline">Next 7 Days</span>
-              <span className="sm:hidden">Next</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Date Picker Range Display */}
-          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700/80">
-            <Calendar className="w-4 h-4 text-indigo-600 dark:text-blue-400 shrink-0" />
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">Week Starting:</span>
-            <input
-              type="date"
-              value={planningStartDate}
-              onChange={(e) => handleDateChange(e.target.value)}
-              className="bg-transparent text-slate-900 dark:text-white text-xs font-bold focus:outline-none cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
-            />
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-normal whitespace-nowrap hidden sm:inline">
-              → {weekEndDate}
-            </span>
-          </div>
+        <div className="flex w-fit items-center rounded-lg border border-neutral-200 p-0.5 dark:border-white/[0.08]">
+          <button onClick={() => handleShiftDate(-7)} className="btn btn-ghost btn-sm" title="Previous week">
+            <ChevronLeft /> Prev
+          </button>
+          <button onClick={() => handleDateChange(todayStr)} className="btn btn-ghost btn-sm" title="Jump to the current week">
+            This week
+          </button>
+          <button onClick={handleJumpToSunday} className="btn btn-ghost btn-sm" title="Start the window on Sunday">
+            Sunday
+          </button>
+          <button onClick={() => handleShiftDate(7)} className="btn btn-ghost btn-sm" title="Next week">
+            Next <ChevronRight />
+          </button>
         </div>
       </div>
 
       {/* Dedicated Filter & Search Control Center */}
-      <div className="bg-white dark:bg-[#11192d] backdrop-blur-md rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md print:hidden space-y-3 transition-colors">
+      <div className="surface-card space-y-3 p-3 sm:p-3.5 print:hidden">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Left: Instructor Cadre Dropdown */}
           <div className="flex items-center gap-2 min-w-0 sm:w-auto">
-            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700/80 w-full sm:w-auto">
-              <Filter className="w-3.5 h-3.5 text-indigo-600 dark:text-blue-400 shrink-0" />
+            <div className="field flex h-9 w-full items-center gap-1.5 sm:w-auto">
+              <Filter className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
               <span className="text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">Cadre:</span>
               <select
                 value={selectedInstructorId}
                 onChange={(e) => setSelectedInstructorId(e.target.value)}
                 className="bg-transparent text-slate-800 dark:text-slate-200 text-xs font-semibold focus:outline-none cursor-pointer w-full sm:w-auto pr-2"
               >
-                <option value="ALL" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">
+                <option value="ALL" className="bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-200">
                   All {allInstructors.length} Instructors (Full Cadre)
                 </option>
                 {allInstructors.map((inst) => (
-                  <option key={inst.id} value={inst.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">
+                  <option key={inst.id} value={inst.id} className="bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-200">
                     {inst.fullName}
                   </option>
                 ))}
@@ -590,7 +533,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
               placeholder="Search module, batch (e.g. DSE 24.1), room, or instructor..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-9 pr-8 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+              className="field h-9 pl-9 pr-8 text-xs"
             />
             {searchQuery && (
               <button
@@ -607,11 +550,11 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
         {/* Active Filter Chips & Match Count */}
         {(selectedInstructorId !== 'ALL' || searchQuery.trim() !== '') && (
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/60">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-neutral-100 dark:border-white/[0.06]">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-[11px] text-slate-400 font-medium">Active filters:</span>
               {selectedInstructorId !== 'ALL' && (
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 px-2.5 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1.5 chip animate-pop-in py-1">
                   <span>Instructor: {selectedInstructor?.fullName}</span>
                   <button
                     onClick={() => setSelectedInstructorId('ALL')}
@@ -623,7 +566,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                 </span>
               )}
               {searchQuery.trim() !== '' && (
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold bg-slate-800 text-slate-200 border border-slate-700 px-2.5 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1.5 chip animate-pop-in py-1">
                   <span>Query: &quot;{searchQuery}&quot;</span>
                   <button
                     onClick={() => setSearchQuery('')}
@@ -652,7 +595,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
         )}
 
         {/* Mobile Horizontal Day Switcher (Visible only on < lg screens) */}
-        <div className="block lg:hidden pt-2 border-t border-slate-800/60">
+        <div className="block lg:hidden pt-2 border-t border-neutral-100 dark:border-white/[0.06]">
           <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1.5">
             Focus Day (Mobile Quick Jump):
           </div>
@@ -661,8 +604,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
               onClick={() => setMobileSelectedDay('ALL')}
               className={`text-xs px-2.5 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer ${
                 mobileSelectedDay === 'ALL'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700/60'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950'
+                  : 'border border-neutral-200 text-neutral-600 dark:border-white/10 dark:text-neutral-400'
               }`}
             >
               All 7 Days
@@ -675,12 +618,10 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                   onClick={() => setMobileSelectedDay(day.dateStr)}
                   className={`text-xs px-2.5 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-blue-600 text-white shadow-xs'
+                      ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950'
                       : day.isToday
-                      ? 'bg-blue-950/80 text-blue-300 border border-blue-700/70'
-                      : day.isSunday
-                      ? 'bg-purple-950/60 text-purple-300 border border-purple-800/60'
-                      : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700/60'
+                      ? 'border border-neutral-400 text-neutral-900 dark:border-white/30 dark:text-white'
+                      : 'border border-neutral-200 text-neutral-600 dark:border-white/10 dark:text-neutral-400'
                   }`}
                 >
                   {day.dayName} {day.formattedDate.split(' ')[1]}
@@ -696,10 +637,10 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
       <div className="hidden print:block mb-3 pb-2.5 border-b-2 border-slate-900">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-600">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-600">
               National Institute of Business Management • School of Computing
             </div>
-            <h1 className="text-lg font-black text-slate-950 tracking-tight">
+            <h1 className="text-lg font-semibold text-slate-950 tracking-tight">
               Faculty Academic & Duty Timetable
             </h1>
           </div>
@@ -714,60 +655,30 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
         </div>
       </div>
 
-      {/* High-Level Weekly KPI Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print:hidden">
-        <div className="bg-white dark:bg-[#11192d] rounded-xl p-4 border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md transition-colors">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Weekly Lectures</span>
-            <BookOpen className="w-4 h-4 text-indigo-600 dark:text-blue-400" />
+      {/* Week at a glance */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 print:hidden stagger-children">
+        {[
+          { label: 'Sessions', value: totalWeeklySessions, hint: 'this week', dot: 'bg-neutral-400' },
+          { label: 'Night coverage', value: `${totalWeeklyNightShifts}/7`, hint: 'nights', dot: 'bg-indigo-400' },
+          { label: 'Absences', value: totalWeeklyLeaves, hint: 'person-days', dot: 'bg-rose-500' },
+          { label: 'Cadre', value: allInstructors.length, hint: 'instructors', dot: 'bg-emerald-500' },
+        ].map((kpi) => (
+          <div key={kpi.label} className="surface-card p-4">
+            <div className="flex items-center gap-2 text-xs font-medium text-neutral-500">
+              <span className={`size-2 rounded-full ${kpi.dot}`} />
+              {kpi.label}
+            </div>
+            <div className="mt-2 flex items-baseline gap-1.5">
+              <span className="font-mono text-3xl font-semibold tabular-nums tracking-tight text-neutral-900 dark:text-white">{kpi.value}</span>
+              <span className="text-xs text-neutral-500">{kpi.hint}</span>
+            </div>
           </div>
-          <div className="mt-2 flex items-baseline space-x-2">
-            <span className="text-2xl font-black text-slate-900 dark:text-slate-100">{totalWeeklySessions}</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">Sessions</span>
-          </div>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Across morning, afternoon & CCS</p>
-        </div>
-
-        <div className="bg-indigo-500/10 rounded-xl p-4 border border-indigo-500/20 shadow-xs dark:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">Night Coverage</span>
-            <Moon className="w-4 h-4 text-indigo-600" />
-          </div>
-          <div className="mt-2 flex items-baseline space-x-2">
-            <span className="text-2xl font-black text-indigo-800 dark:text-indigo-300">{totalWeeklyNightShifts}/7</span>
-            <span className="text-xs text-indigo-600 dark:text-indigo-400">Nights</span>
-          </div>
-          <p className="text-[11px] text-indigo-600 dark:text-indigo-400 mt-1">Designated overnight officers</p>
-        </div>
-
-        <div className="bg-rose-500/10 rounded-xl p-4 border border-rose-500/20 shadow-xs dark:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Cadre Absences</span>
-            <AlertCircle className="w-4 h-4 text-rose-600" />
-          </div>
-          <div className="mt-2 flex items-baseline space-x-2">
-            <span className="text-2xl font-black text-rose-800 dark:text-rose-300">{totalWeeklyLeaves}</span>
-            <span className="text-xs text-rose-600">Person-Days</span>
-          </div>
-          <p className="text-[11px] text-rose-600 mt-1">Approved holidays this week</p>
-        </div>
-
-        <div className="bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20 shadow-xs dark:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Active Cadre</span>
-            <Users className="w-4 h-4 text-emerald-600" />
-          </div>
-          <div className="mt-2 flex items-baseline space-x-2">
-            <span className="text-2xl font-black text-emerald-800 dark:text-emerald-300">{allInstructors.length}</span>
-            <span className="text-xs text-emerald-600 dark:text-emerald-400">Instructors</span>
-          </div>
-          <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1">Full team monitored</p>
-        </div>
+        ))}
       </div>
 
       {/* 7-Day Master Roster Matrix */}
-      <div className="bg-white dark:bg-[#11192d] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md overflow-hidden transition-colors print:bg-white print:border-0 print:rounded-none print:shadow-none print:m-0 print:p-0">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 dark:bg-slate-800/60 print:hidden">
+      <div className="surface-card overflow-hidden print:bg-white print:border-0 print:rounded-none print:shadow-none print:m-0 print:p-0">
+        <div className="p-4 border-b border-slate-200 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 dark:bg-white/[0.05] print:hidden">
           <div>
             <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base flex items-center gap-2">
               <Calendar className="w-4 h-4 text-indigo-600 dark:text-blue-400" />
@@ -792,7 +703,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
         </div>
 
         {/* 7-Column Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 print:grid-cols-7 divide-y lg:divide-y-0 lg:divide-x print:divide-y-0 print:divide-x divide-slate-200 dark:divide-slate-800 print:divide-slate-300 bg-slate-200 dark:bg-slate-800 print:bg-white print:border print:border-slate-300 print:rounded-lg print:overflow-hidden print:w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 print:grid-cols-7 divide-y lg:divide-y-0 lg:divide-x print:divide-y-0 print:divide-x divide-slate-200 dark:divide-white/[0.06] print:divide-slate-300 bg-slate-200 dark:bg-white/[0.06] print:bg-white print:border print:border-slate-300 print:rounded-lg print:overflow-hidden print:w-full">
           {weekDays.map((day) => {
             // Find morning assignments for this day
             const morningDuties = filteredAssignments.filter(
@@ -825,29 +736,29 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                   mobileSelectedDay !== 'ALL' && mobileSelectedDay !== day.dateStr
                     ? 'hidden lg:flex'
                     : 'flex'
-                } bg-white dark:bg-[#0d1424] print:!flex print:bg-white flex-col min-h-[520px] print:min-h-0 print-avoid-break transition-colors ${
-                  day.isToday ? 'ring-2 ring-indigo-500 z-10 print:ring-0' : ''
+                } bg-white dark:bg-[#111111] print:!flex print:bg-white flex-col min-h-[520px] print:min-h-0 print-avoid-break transition-colors ${
+                  day.isToday ? 'bg-neutral-50 dark:!bg-white/[0.035] print:ring-0' : ''
                 }`}
               >
                 {/* Column Header */}
                 <div
-                  className={`p-3 print:p-1.5 border-b border-slate-200 dark:border-slate-800 print:border-b-2 print:border-slate-300 text-center ${
+                  className={`p-3 print:p-1.5 border-b border-slate-200 dark:border-white/[0.08] print:border-b-2 print:border-slate-300 text-center ${
                     day.isToday
-                      ? 'bg-indigo-600 text-white print:bg-slate-100 print:text-slate-950'
+                      ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 print:bg-slate-100 print:text-slate-950'
                       : day.isSunday
                       ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-900 dark:text-purple-300 print:bg-purple-50 print:text-purple-950'
-                      : 'bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 print:bg-slate-100 print:text-slate-950'
+                      : 'bg-slate-50 dark:bg-white/[0.05] text-slate-800 dark:text-slate-200 print:bg-slate-100 print:text-slate-950'
                   }`}
                 >
                   <div className="flex items-center justify-between print:justify-center">
-                    <span className="text-xs print:text-[11px] font-black uppercase tracking-wider">{day.dayName}</span>
+                    <span className="text-xs print:text-[11px] font-semibold uppercase tracking-wider">{day.dayName}</span>
                     {day.isToday && (
-                      <span className="text-[9px] bg-white/20 text-white font-bold px-1.5 py-0.2 rounded-full uppercase print:hidden">
+                      <span className="text-[9px] bg-white/20 dark:bg-black/10 font-bold px-1.5 py-0.2 rounded-full uppercase print:hidden">
                         Today
                       </span>
                     )}
                   </div>
-                  <div className="text-sm print:text-xs font-black mt-0.5">{day.formattedDate}</div>
+                  <div className="text-sm print:text-xs font-semibold mt-0.5">{day.formattedDate}</div>
 
                   {/* Drilldown button to Daily Cockpit */}
                   {onSelectDateForCockpit && (
@@ -855,8 +766,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                       onClick={() => onSelectDateForCockpit(day.dateStr)}
                       className={`text-[10px] mt-1.5 font-semibold flex items-center justify-center space-x-1 w-full py-0.5 rounded transition-all cursor-pointer print:hidden ${
                         day.isToday
-                          ? 'bg-indigo-700 hover:bg-indigo-800 text-white'
-                          : 'bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
+                          ? 'bg-white/15 hover:bg-white/25 text-white dark:bg-black/10 dark:hover:bg-black/20 dark:text-neutral-950'
+                          : 'bg-white hover:bg-slate-100 dark:bg-white/[0.04] dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/[0.08]'
                       }`}
                       title={`Open Dr. Thisara's Cockpit for ${day.dayName} ${day.formattedDate}`}
                     >
@@ -871,7 +782,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                   <div className="space-y-3 print:space-y-1">
                     {/* 1. MORNING SLOT (09:00 - 12:00) */}
                     <div className="space-y-1.5 print:space-y-0.5">
-                      <div className="flex items-center justify-between text-[11px] print:text-[9.5px] font-bold text-slate-300 print:text-slate-800 uppercase tracking-wider px-1">
+                      <div className="flex items-center justify-between text-[11px] print:text-[9.5px] font-semibold text-neutral-500 print:text-slate-800 uppercase tracking-wider px-1">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3 text-blue-600 print:text-blue-700" />
                           <span>09:00 - 12:00</span>
@@ -884,7 +795,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                       </div>
 
                       {morningDuties.length === 0 ? (
-                        <div className="bg-slate-800/60 print:bg-slate-50 rounded-lg print:rounded p-2 print:p-1 border border-dashed border-slate-800 print:border-slate-300 text-center">
+                        <div className="rounded-lg border border-dashed border-neutral-200 p-2 dark:border-white/[0.06] print:bg-slate-50 print:rounded print:p-1 print:border-slate-300 text-center">
                           <span className="text-[10px] print:text-[8.5px] text-slate-400 print:text-slate-500 italic">No lectures</span>
                         </div>
                       ) : (
@@ -905,7 +816,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
                     {/* 2. AFTERNOON SLOT (13:00 - 16:00) */}
                     <div className="space-y-1.5 print:space-y-0.5">
-                      <div className="flex items-center justify-between text-[11px] print:text-[9.5px] font-bold text-slate-300 print:text-slate-800 uppercase tracking-wider px-1">
+                      <div className="flex items-center justify-between text-[11px] print:text-[9.5px] font-semibold text-neutral-500 print:text-slate-800 uppercase tracking-wider px-1">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3 text-amber-600 print:text-amber-700" />
                           <span>13:00 - 16:00</span>
@@ -918,7 +829,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                       </div>
 
                       {afternoonDuties.length === 0 ? (
-                        <div className="bg-slate-800/60 print:bg-slate-50 rounded-lg print:rounded p-2 print:p-1 border border-dashed border-slate-800 print:border-slate-300 text-center">
+                        <div className="rounded-lg border border-dashed border-neutral-200 p-2 dark:border-white/[0.06] print:bg-slate-50 print:rounded print:p-1 print:border-slate-300 text-center">
                           <span className="text-[10px] print:text-[8.5px] text-slate-400 print:text-slate-500 italic">No lectures</span>
                         </div>
                       ) : (
@@ -1029,8 +940,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
       </div>
 
       {/* Cadre Deployment & Workload Summary Table */}
-      <div className="bg-white dark:bg-[#11192d] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md overflow-hidden transition-colors print:bg-white print:border print:border-slate-300 print:rounded-lg print:shadow-none print-page-break print:mt-4">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 print:bg-slate-100 print:border-b print:border-slate-300 print:p-2.5">
+      <div className="surface-card overflow-hidden print:bg-white print:border print:border-slate-300 print:rounded-lg print:shadow-none print-page-break print:mt-4">
+        <div className="p-4 border-b border-slate-200 dark:border-white/[0.08] flex items-center justify-between bg-slate-50 dark:bg-white/[0.05] print:bg-slate-100 print:border-b print:border-slate-300 print:p-2.5">
           <div>
             <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base flex items-center gap-2 print:text-slate-900 print:text-xs">
               <Users className="w-4 h-4 text-indigo-600 dark:text-blue-400 print:text-blue-700" />
@@ -1047,7 +958,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300 print:text-[9px] print:text-slate-800">
-            <thead className="bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800 uppercase text-[10px] tracking-wider print:bg-slate-100 print:text-slate-800 print:border-slate-300 print:text-[8px]">
+            <thead className="bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-white/[0.08] uppercase text-[10px] tracking-wider print:bg-slate-100 print:text-slate-800 print:border-slate-300 print:text-[8px]">
               <tr>
                 <th className="px-4 py-3 print:px-2 print:py-1.5">Instructor</th>
                 <th className="px-3 py-3 text-center print:px-1.5 print:py-1.5">Morning (09-12)</th>
@@ -1060,7 +971,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                 <th className="px-4 py-3 text-center print:px-2 print:py-1.5">Workload Balance</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 print:divide-slate-200">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06] print:divide-slate-200">
               {instructorStats.map((item) => {
                 const isSelected = selectedInstructorId === item.instructor.id;
                 const totalHours = item.totalHours;
@@ -1093,13 +1004,13 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                 return (
                   <tr
                     key={item.instructor.id}
-                    className={`hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors print:hover:bg-transparent ${
+                    className={`hover:bg-slate-50 dark:hover:bg-white/[0.08] transition-colors print:hover:bg-transparent ${
                       isSelected ? 'bg-indigo-50/70 dark:bg-blue-500/10 font-semibold print:bg-blue-50' : ''
                     }`}
                   >
                     <td className="px-4 py-3 print:px-2 print:py-1">
                       <div className="flex items-center space-x-2.5 print:space-x-1.5">
-                        <div className="w-7 h-7 print:w-5 print:h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center text-[10px] print:text-[8px]">
+                        <div className="w-7 h-7 print:w-5 print:h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold flex items-center justify-center text-[10px] print:text-[8px]">
                           {item.instructor.fullName.substring(0, 2).toUpperCase()}
                         </div>
                         <div>
@@ -1129,7 +1040,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                       )}
                     </td>
                     <td className="px-3 py-3 print:px-1.5 print:py-1 text-center">
-                      <span className="font-black text-slate-900 dark:text-slate-100 text-sm print:text-xs">{item.totalSessions}</span>
+                      <span className="font-semibold text-slate-900 dark:text-slate-100 text-sm print:text-xs">{item.totalSessions}</span>
                     </td>
                     <td className="px-3 py-3 print:px-1.5 print:py-1 text-center font-semibold text-slate-800 dark:text-slate-200 print:text-slate-800">
                       {totalHours} hrs

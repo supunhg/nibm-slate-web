@@ -15,6 +15,7 @@ interface PWAContextType {
   isIOS: boolean;
   installPwa: () => Promise<boolean>;
   applyUpdate: () => void;
+  dismissUpdate: () => void;
   requestNotificationPermission: () => Promise<NotificationPermission>;
   notificationPermission: NotificationPermission;
 }
@@ -27,6 +28,7 @@ const PWAContext = createContext<PWAContextType>({
   isIOS: false,
   installPwa: async () => false,
   applyUpdate: () => {},
+  dismissUpdate: () => {},
   requestNotificationPermission: async () => 'default',
   notificationPermission: 'default',
 });
@@ -121,56 +123,68 @@ export const PWAProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, []);
 
-  // Register Service Worker and manage lifecycle
+  // Service worker + deployment update detection.
+  //
+  // Two signals, either of which shows the "update available" prompt:
+  //  1. The worker is registered as /sw.js?v=<buildId>, so every deploy is a
+  //     new script URL and the browser installs the new worker. It then
+  //     *waits* (no auto skipWaiting) until the user taps Reload.
+  //  2. /api/version is polled on focus and every few minutes. This catches
+  //     deploys in plain browser tabs and on browsers that throttle worker
+  //     update checks.
   useEffect(() => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+    if (typeof window === 'undefined') return;
+    const buildId = process.env.NEXT_PUBLIC_BUILD_ID;
+    let cancelled = false;
 
-    navigator.serviceWorker
-      .register('/sw.js')
-      .then((reg) => {
-        swRegistrationRef.current = reg;
-
-        // Check for updates
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New update available; tell worker to skip waiting
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
-                setIsUpdateAvailable(true);
-              }
-            });
+    const watchWorker = (reg: ServiceWorkerRegistration) => {
+      if (reg.waiting && navigator.serviceWorker.controller) setIsUpdateAvailable(true);
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker?.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller && !cancelled) {
+            setIsUpdateAvailable(true);
           }
         });
-      })
-      .catch((err) => {
-        console.warn('[PWA] Service worker registration failed:', err);
       });
+    };
 
-    // When the controlling service worker changes, new version is active
-    let refreshing = false;
-    const handleControllerChange = () => {
-      if (!refreshing) {
-        refreshing = true;
-        setIsUpdateAvailable(false);
+    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'development') {
+      // Dev chunks aren't content-hashed, so a caching worker serves stale code.
+      navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister()));
+    } else if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register(`/sw.js?v=${encodeURIComponent(buildId ?? 'dev')}`, { updateViaCache: 'none' })
+        .then((reg) => {
+          swRegistrationRef.current = reg;
+          watchWorker(reg);
+        })
+        .catch((err) => console.warn('[PWA] Service worker registration failed:', err));
+    }
+
+    const checkForDeploy = async () => {
+      if (document.visibilityState !== 'visible' || !navigator.onLine) return;
+      swRegistrationRef.current?.update().catch(() => {});
+      if (!buildId || buildId.startsWith('local-')) return;
+      try {
+        const res = await fetch('/api/version', { cache: 'no-store' });
+        if (!res.ok) return;
+        const { buildId: live } = (await res.json()) as { buildId?: string };
+        if (live && live !== 'unknown' && live !== buildId && !cancelled) setIsUpdateAvailable(true);
+      } catch {
+        // Offline or transient network error: try again next tick.
       }
     };
-    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
 
-    // Periodically check for updates when returning to the tab
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.ready.then((registration) => {
-          registration.update().catch(() => {});
-        });
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    const interval = window.setInterval(checkForDeploy, 5 * 60 * 1000);
+    document.addEventListener('visibilitychange', checkForDeploy);
+    window.addEventListener('online', checkForDeploy);
 
     return () => {
-      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      cancelled = true;
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', checkForDeploy);
+      window.removeEventListener('online', checkForDeploy);
     };
   }, []);
 
@@ -192,12 +206,22 @@ export const PWAProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return false;
   }, [deferredPrompt]);
 
-  // Apply update (reload window to get latest assets)
+  // Activate the waiting worker (if any), then reload onto the new deployment.
   const applyUpdate = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      window.location.reload();
+    if (typeof window === 'undefined') return;
+    const reload = () => window.location.reload();
+    const waiting = swRegistrationRef.current?.waiting;
+    if (waiting && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('controllerchange', reload, { once: true });
+      waiting.postMessage({ type: 'SKIP_WAITING' });
+      // Fallback if the worker never takes control (e.g. it failed to activate).
+      window.setTimeout(reload, 1500);
+    } else {
+      reload();
     }
   }, []);
+
+  const dismissUpdate = useCallback(() => setIsUpdateAvailable(false), []);
 
   // Request Web Push notification permission
   const requestNotificationPermission = useCallback(async (): Promise<NotificationPermission> => {
@@ -225,6 +249,7 @@ export const PWAProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isIOS,
         installPwa,
         applyUpdate,
+        dismissUpdate,
         requestNotificationPermission,
         notificationPermission: permissionState,
       }}

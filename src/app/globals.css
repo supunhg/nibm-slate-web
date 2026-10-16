@@ -2,47 +2,303 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+/* -------------------------------------------------------------------------
+ * Palette
+ * SLATE is dark-first and monochrome: near-black surfaces, white type, and
+ * colour reserved for meaning (emerald = available/on duty, amber = pending,
+ * rose = leave/danger, indigo = the one accent). The whole app was written
+ * against Tailwind's blue-tinted `slate` scale, so it is remapped here to a
+ * true neutral grey -- every existing slate-* class picks up the new look.
+ * ------------------------------------------------------------------------- */
+@theme {
+  --color-slate-50: oklch(98.5% 0 0);
+  --color-slate-100: oklch(96.7% 0 0);
+  --color-slate-150: oklch(94.5% 0 0);
+  --color-slate-200: oklch(92.2% 0 0);
+  --color-slate-300: oklch(87% 0 0);
+  --color-slate-400: oklch(70.8% 0 0);
+  --color-slate-500: oklch(55.6% 0 0);
+  --color-slate-600: oklch(43.9% 0 0);
+  --color-slate-700: oklch(37.1% 0 0);
+  --color-slate-800: oklch(26.9% 0 0);
+  --color-slate-900: oklch(20.5% 0 0);
+  --color-slate-950: oklch(14.5% 0 0);
+
+  /* One accent instead of four: purple/violet fold into a softened indigo. */
+  --color-indigo-50: oklch(96.2% 0.018 272);
+  --color-indigo-100: oklch(93% 0.034 272);
+  --color-indigo-200: oklch(87% 0.065 274);
+  --color-indigo-300: oklch(78.5% 0.105 275);
+  --color-indigo-400: oklch(70.5% 0.13 277);
+  --color-indigo-500: oklch(62% 0.15 277);
+  --color-indigo-600: oklch(54% 0.16 277);
+  --color-indigo-700: oklch(47.5% 0.15 277);
+  --color-indigo-800: oklch(39.8% 0.12 277);
+  --color-indigo-900: oklch(35.9% 0.09 278);
+  --color-indigo-950: oklch(25.7% 0.06 278);
+  --color-purple-50: var(--color-indigo-50);
+  --color-purple-100: var(--color-indigo-100);
+  --color-purple-200: var(--color-indigo-200);
+  --color-purple-300: var(--color-indigo-300);
+  --color-purple-400: var(--color-indigo-400);
+  --color-purple-500: var(--color-indigo-500);
+  --color-purple-600: var(--color-indigo-600);
+  --color-purple-700: var(--color-indigo-700);
+  --color-purple-800: var(--color-indigo-800);
+  --color-purple-900: var(--color-indigo-900);
+  --color-purple-950: var(--color-indigo-950);
+  --color-violet-400: var(--color-indigo-400);
+  --color-violet-500: var(--color-indigo-500);
+  --color-violet-600: var(--color-indigo-600);
+
+  /* Motion: one settle curve, three durations, for the whole product. */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-tap: 120ms;
+  --duration-ui: 200ms;
+  --duration-page: 280ms;
+
+  --animate-page-in: page-in var(--duration-page) var(--ease-soft) backwards;
+  --animate-rise-in: rise-in var(--duration-ui) var(--ease-soft) backwards;
+  --animate-fade-in: fade-in var(--duration-ui) var(--ease-soft) backwards;
+  --animate-pop-in: pop-in var(--duration-ui) var(--ease-snap) backwards;
+  --animate-sheet-up: sheet-up var(--duration-page) var(--ease-soft) backwards;
+  --animate-toast-in: toast-in 360ms var(--ease-soft) backwards;
+  --animate-drawer-in: drawer-in var(--duration-page) var(--ease-soft) backwards;
+
+  @keyframes page-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes rise-in {
+    from { opacity: 0; transform: translateY(8px) scale(0.99); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes pop-in {
+    from { opacity: 0; transform: scale(0.94); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes sheet-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes drawer-in {
+    from { opacity: 0.6; transform: translateX(32px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateY(16px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #fafafa;
+  --foreground: #0a0a0a;
   --surface: #ffffff;
-  --surface-elevated: #f1f5f9;
+  --surface-elevated: #f5f5f5;
   --card: #ffffff;
   --card-elevated: #ffffff;
-  --border: #e2e8f0;
+  --border: #e5e5e5;
   --border-subtle: rgba(0, 0, 0, 0.06);
   --border-highlight: rgba(0, 0, 0, 0.12);
-  --muted: #64748b;
-  --primary: #4f46e5;
-  --primary-glow: rgba(99, 102, 241, 0.14);
+  --muted: #737373;
+  --primary: #0a0a0a;
+  --primary-foreground: #fafafa;
+  --primary-glow: rgba(0, 0, 0, 0.08);
 }
 
 .dark {
-  --background: #080b12;
-  --foreground: #f8fafc;
-  --surface: #0d1424;
-  --surface-elevated: #131c33;
-  --card: #11192d;
-  --card-elevated: #162038;
-  --border: #1a243a;
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --border-highlight: rgba(255, 255, 255, 0.12);
-  --muted: #94a3b8;
-  --primary: #6366f1;
-  --primary-glow: rgba(99, 102, 241, 0.2);
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  --surface: #111111;
+  --surface-elevated: #1a1a1a;
+  --card: #141414;
+  --card-elevated: #1a1a1a;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-highlight: rgba(255, 255, 255, 0.14);
+  --muted: #a3a3a3;
+  --primary: #fafafa;
+  --primary-foreground: #0a0a0a;
+  --primary-glow: rgba(255, 255, 255, 0.08);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+::selection {
+  background: color-mix(in oklab, var(--foreground) 22%, transparent);
+}
+
+/* Quiet scrollbars that match the surfaces. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 18%, transparent) transparent;
+}
+
+:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--foreground) 55%, transparent);
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------------------
+ * Components: the shared vocabulary every screen uses, so buttons, cards and
+ * fields look and behave the same everywhere.
+ * ------------------------------------------------------------------------- */
+@layer components {
+  .btn {
+    @apply inline-flex h-9 shrink-0 cursor-pointer select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3.5 text-xs font-semibold outline-none disabled:pointer-events-none disabled:opacity-50;
+    transition: transform var(--duration-tap) var(--ease-soft), background-color var(--duration-ui) var(--ease-soft),
+      border-color var(--duration-ui) var(--ease-soft), color var(--duration-ui) var(--ease-soft),
+      box-shadow var(--duration-ui) var(--ease-soft);
+  }
+  .btn:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .btn svg {
+    @apply size-3.5 shrink-0;
+  }
+  .btn-sm {
+    @apply h-8 px-2.5 text-[11px];
+  }
+  .btn-lg {
+    @apply h-11 px-5 text-sm;
+  }
+  .btn-icon {
+    @apply w-9 px-0;
+  }
+  /* Solid, high-contrast: one per view, the thing you came to do. */
+  .btn-primary {
+    @apply bg-neutral-900 text-white shadow-sm hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200;
+  }
+  .btn-secondary {
+    @apply border border-neutral-200 bg-white text-neutral-800 shadow-xs hover:bg-neutral-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-100 dark:hover:border-white/15 dark:hover:bg-white/[0.08];
+  }
+  .btn-ghost {
+    @apply text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/[0.06] dark:hover:text-white;
+  }
+  .btn-accent {
+    @apply bg-indigo-600 text-white shadow-sm hover:bg-indigo-500;
+  }
+  .btn-success {
+    @apply bg-emerald-600 text-white shadow-sm hover:bg-emerald-500;
+  }
+  .btn-danger {
+    @apply border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/20;
+  }
+
+  .surface-card {
+    @apply rounded-2xl border border-neutral-200 bg-white dark:border-white/[0.08] dark:bg-[#141414];
+  }
+
+  .field {
+    @apply h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-100 dark:placeholder:text-neutral-500;
+    transition: border-color var(--duration-ui) var(--ease-soft), box-shadow var(--duration-ui) var(--ease-soft),
+      background-color var(--duration-ui) var(--ease-soft);
+  }
+  .field:focus {
+    @apply border-neutral-400 ring-4 ring-neutral-900/5 dark:border-white/25 dark:ring-white/[0.06];
+  }
+
+  .eyebrow {
+    @apply text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-500;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-neutral-200 px-2 py-0.5 text-[10px] font-semibold text-neutral-600 dark:border-white/10 dark:text-neutral-300;
+  }
+}
+
+@layer utilities {
+  /* Children rise in one after another (first ~12 only). Set on the list. */
+  .stagger-children > * {
+    animation: var(--animate-rise-in);
+  }
+  .stagger-children > :nth-child(2) { animation-delay: 25ms; }
+  .stagger-children > :nth-child(3) { animation-delay: 50ms; }
+  .stagger-children > :nth-child(4) { animation-delay: 75ms; }
+  .stagger-children > :nth-child(5) { animation-delay: 100ms; }
+  .stagger-children > :nth-child(6) { animation-delay: 125ms; }
+  .stagger-children > :nth-child(7) { animation-delay: 150ms; }
+  .stagger-children > :nth-child(8) { animation-delay: 175ms; }
+  .stagger-children > :nth-child(9) { animation-delay: 200ms; }
+  .stagger-children > :nth-child(10) { animation-delay: 225ms; }
+  .stagger-children > :nth-child(n + 11) { animation-delay: 250ms; }
+
+  /* Press feedback for anything tappable that isn't a .btn. */
+  .pressable {
+    transition: transform var(--duration-tap) var(--ease-soft), background-color var(--duration-ui) var(--ease-soft),
+      border-color var(--duration-ui) var(--ease-soft), box-shadow var(--duration-ui) var(--ease-soft);
+  }
+  .pressable:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  /* Height-animated expand/collapse: .collapse-panel > .collapse-inner, toggle data-open. */
+  .collapse-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    visibility: hidden;
+    transition: grid-template-rows var(--duration-ui) var(--ease-soft), opacity var(--duration-ui) var(--ease-soft),
+      visibility var(--duration-ui);
+  }
+  .collapse-panel[data-open] {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+  }
+  .collapse-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media print {
@@ -54,6 +310,7 @@ body {
   *, *::before, *::after {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    animation: none !important;
   }
 
   html, body {

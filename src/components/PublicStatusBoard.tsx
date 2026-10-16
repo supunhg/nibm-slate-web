@@ -62,9 +62,9 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
   });
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col font-sans">
+    <div className="min-h-dvh bg-[#0a0a0a] text-white flex flex-col font-sans animate-fade-in">
       {/* Top Header */}
-      <header className="bg-slate-950/80 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md">
+      <header className="bg-[#0a0a0a]/80 border-b border-white/[0.06] sticky top-0 z-50 backdrop-blur-xl pt-[env(safe-area-inset-top)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <AppLogo className="h-9 w-9 shrink-0" />
@@ -73,7 +73,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                 <h1 className="text-sm sm:text-base font-semibold tracking-tight text-white">
                   SLATE
                 </h1>
-                <span className="text-[10px] bg-emerald-500/15 text-emerald-400 font-medium px-2 py-0.5 rounded border border-emerald-500/20">
+                <span className="chip border-emerald-500/25 text-emerald-300">
                   Live View
                 </span>
               </div>
@@ -85,7 +85,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
 
           <button
             onClick={onOpenLogin}
-            className="flex items-center space-x-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl transition-all shadow-md cursor-pointer active:scale-95"
+            className="btn btn-primary"
           >
             <LogIn className="w-3.5 h-3.5" />
             <span>Staff Sign In</span>
@@ -96,9 +96,9 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full">
         {/* Date & Slot Filter Bar */}
-        <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg">
+        <div className="rounded-2xl border border-white/[0.08] bg-[#141414] p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-3">
-            <Calendar className="w-5 h-5 text-blue-400 shrink-0" />
+            <Calendar className="w-5 h-5 text-neutral-500 shrink-0" />
             <div>
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
                 Selected Date
@@ -109,7 +109,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                   type="date"
                   value={selectedDate}
                   onChange={(e) => handleFilterChange(e.target.value, slotFilter)}
-                  className="bg-slate-900 text-xs text-slate-300 border border-slate-700 rounded-lg px-2 py-1 focus:outline-none cursor-pointer [color-scheme:dark]"
+                  className="field text-xs cursor-pointer [color-scheme:dark]"
                 />
               </div>
             </div>
@@ -129,7 +129,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                 className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
                   slotFilter === p.id
                     ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-700'
+                    : 'bg-[#141414] text-slate-400 hover:text-white border border-white/10'
                 }`}
               >
                 {p.label}
@@ -139,7 +139,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
         </div>
 
         {/* Tonight's Night Duty Banner */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-[#141414] border border-white/[0.08] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
               <Moon className="w-5 h-5" />
@@ -174,7 +174,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
               </div>
             </div>
           </div>
-          <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700 self-start sm:self-center">
+          <span className="text-xs text-slate-400 bg-[#141414] px-3 py-1.5 rounded-xl border border-white/10 self-start sm:self-center">
             Overnight Lab & Facility Stay
           </span>
         </div>
@@ -182,8 +182,8 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
         {/* Three High-Contrast Status Buckets */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 1. ON DUTY (TEACHING) */}
-          <div className="bg-slate-900/90 rounded-2xl border border-slate-800 shadow-xl flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/70">
+          <div className="bg-slate-900/90 rounded-2xl border border-white/[0.08] shadow-xl flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-white/[0.08] flex items-center justify-between bg-slate-950/70">
               <div className="flex items-center space-x-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-xs shadow-emerald-400/50"></span>
                 <h2 className="font-bold text-white text-base">Working Now (On Duty)</h2>
@@ -204,7 +204,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                 report.onDuty.map(({ instructor, assignment }) => (
                   <div
                     key={assignment.id}
-                    className="bg-slate-950/60 rounded-xl p-3.5 border border-slate-800/90 hover:border-slate-700 transition-all shadow-sm space-y-2.5"
+                    className="bg-slate-950/60 rounded-xl p-3.5 border border-white/[0.08]/90 hover:border-white/10 transition-all shadow-sm space-y-2.5"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
@@ -237,7 +237,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                       <p className="text-xs text-slate-400 italic">{assignment.notes}</p>
                     )}
 
-                    <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800/80">
+                    <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.08]/80">
                       {assignment.batchName ? (
                         <span className="text-[11px] font-medium text-indigo-300 bg-indigo-950/60 px-2.5 py-0.5 rounded-full border border-indigo-800/40 truncate max-w-[65%]">
                           Batch: {assignment.batchName}
@@ -246,7 +246,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                         <span />
                       )}
                       {assignment.roomLab && (
-                        <span className="flex items-center space-x-1 text-slate-300 text-[11px] font-medium bg-slate-900/80 px-2 py-0.5 rounded-md border border-slate-800/60 shrink-0">
+                        <span className="flex items-center space-x-1 text-slate-300 text-[11px] font-medium bg-slate-900/80 px-2 py-0.5 rounded-md border border-white/[0.08]/60 shrink-0">
                           <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                           <span>{assignment.roomLab}</span>
                         </span>
@@ -259,8 +259,8 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
           </div>
 
           {/* 2. FREE / STANDBY (The essential query for finding who is free!) */}
-          <div className="bg-slate-900/90 rounded-2xl border border-slate-800 shadow-xl flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/70">
+          <div className="bg-slate-900/90 rounded-2xl border border-white/[0.08] shadow-xl flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-white/[0.08] flex items-center justify-between bg-slate-950/70">
               <div className="flex items-center space-x-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-xs shadow-amber-400/50"></span>
                 <h2 className="font-bold text-white text-base">Available / Free Standby</h2>
@@ -281,7 +281,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                 report.freeStandby.map((instructor) => (
                   <div
                     key={instructor.id}
-                    className="bg-slate-950/60 rounded-xl p-3 border border-slate-800/90 hover:border-slate-700 flex items-center justify-between gap-3 transition-all"
+                    className="bg-slate-950/60 rounded-xl p-3 border border-white/[0.08]/90 hover:border-white/10 flex items-center justify-between gap-3 transition-all"
                   >
                     <div className="flex items-center space-x-3 min-w-0">
                       <div className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold text-xs flex items-center justify-center shrink-0">
@@ -313,14 +313,14 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                 ))
               )}
             </div>
-            <div className="p-3 bg-slate-950/90 border-t border-slate-800 text-[11px] text-slate-400 text-center">
+            <div className="p-3 bg-slate-950/90 border-t border-white/[0.08] text-[11px] text-slate-400 text-center">
               Available for student queries, lab assistance, or marking.
             </div>
           </div>
 
           {/* 3. ON LEAVE (APPROVED) */}
-          <div className="bg-slate-900/90 rounded-2xl border border-slate-800 shadow-xl flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/70">
+          <div className="bg-slate-900/90 rounded-2xl border border-white/[0.08] shadow-xl flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-white/[0.08] flex items-center justify-between bg-slate-950/70">
               <div className="flex items-center space-x-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-xs shadow-rose-400/50"></span>
                 <h2 className="font-bold text-white text-base">On Leave (Away)</h2>
@@ -341,7 +341,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                 report.onLeave.map(({ instructor, leave }) => (
                   <div
                     key={leave.id}
-                    className="bg-slate-950/60 rounded-xl p-3.5 border border-slate-800/90 hover:border-slate-700 transition-all space-y-1.5"
+                    className="bg-slate-950/60 rounded-xl p-3.5 border border-white/[0.08]/90 hover:border-white/10 transition-all space-y-1.5"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -349,7 +349,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
                         {instructor.phone && (
                           <a
                             href={`tel:${instructor.phone.replace(/\s+/g, '')}`}
-                            className="inline-flex items-center gap-1 text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2 py-0.5 rounded border border-slate-700 transition-colors shrink-0"
+                            className="inline-flex items-center gap-1 text-[10px] bg-[#141414] hover:bg-slate-700 text-slate-300 hover:text-white px-2 py-0.5 rounded border border-white/10 transition-colors shrink-0"
                             title={`Call ${instructor.fullName}`}
                           >
                             <Phone className="w-2.5 h-2.5" />
@@ -374,7 +374,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-950 border-t border-slate-800 py-3 text-center text-xs text-slate-500">
+      <footer className="bg-slate-950 border-t border-white/[0.08] py-3 text-center text-xs text-slate-500">
         National Institute of Business Management • School of Computing • Public Operations Monitor
       </footer>
     </div>
