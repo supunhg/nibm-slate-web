@@ -29,6 +29,7 @@ import { WeeklyScheduleView } from '@/components/WeeklyScheduleView';
 import { AiCopilotDrawer } from './AiCopilotDrawer';
 import { formatApplicationDateTime } from '@/lib/roster-utils';
 import { PageHeader } from './ui/PageHeader';
+import { Select } from './ui/Select';
 import { Segmented } from './ui/Segmented';
 
 const AUDIT_ACTION_LABELS: Record<string, string> = {
@@ -584,7 +585,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   <ScrollText className="w-3.5 h-3.5" />
                   <span>Compliance Console</span>
                 </div>
-                <h3 className="text-lg font-bold">Governance Log</h3>
+                <h3 className="text-lg font-semibold">Governance Log</h3>
               </div>
               <button
                 onClick={() => setAuditDrawerOpen(false)}
@@ -602,31 +603,29 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <select
+                <Select
+                  label="Action type"
+                  size="sm"
                   value={auditActionFilter}
-                  onChange={(e) => setAuditActionFilter(e.target.value)}
-                  className="field text-xs font-semibold cursor-pointer"
-                >
-                  <option value="ALL">All Action Types</option>
-                  {Object.entries(AUDIT_ACTION_LABELS).map(([code, label]) => (
-                    <option key={code} value={code}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setAuditActionFilter}
+                  options={[
+                    { value: 'ALL', label: 'All actions' },
+                    ...Object.entries(AUDIT_ACTION_LABELS).map(([code, label]) => ({ value: code, label })),
+                  ]}
+                />
 
-                <select
+                <Select
+                  label="Team member"
+                  size="sm"
                   value={auditActorFilter}
-                  onChange={(e) => setAuditActorFilter(e.target.value)}
-                  className="field text-xs font-semibold cursor-pointer"
-                >
-                  <option value="ALL">All Team Members</option>
-                  {[...allInstructors, currentUser].map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.fullName}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setAuditActorFilter}
+                  options={[
+                    { value: 'ALL', label: 'Everyone' },
+                    ...[...allInstructors, currentUser]
+                      .filter((u, i, arr) => arr.findIndex((x) => x.id === u.id) === i)
+                      .map((u) => ({ value: u.id, label: u.fullName })),
+                  ]}
+                />
 
                 <input
                   type="date"

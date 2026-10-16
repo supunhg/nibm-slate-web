@@ -1,4 +1,5 @@
 'use client';
+import { Select } from './ui/Select';
 
 import { PageHeader } from './ui/PageHeader';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -269,7 +270,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
       {panelOpen && (
         <div className="surface-card overflow-hidden animate-pop-in">
           <div className="p-4 border-b border-slate-200 dark:border-white/[0.08] bg-slate-50/70 dark:bg-[#141414]/50 flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
               {createdResult ? 'Account Created' : 'Add Staff Member'}
             </h3>
             <button onClick={closePanel} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
@@ -323,7 +324,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Full Name</label>
+                    <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">Full Name</label>
                     <input
                       type="text"
                       value={fullName}
@@ -333,7 +334,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Username</label>
+                    <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">Username</label>
                     <input
                       type="text"
                       autoCapitalize="none"
@@ -346,7 +347,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email (optional)</label>
+                    <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">Email (optional)</label>
                     <input
                       type="email"
                       value={email}
@@ -355,17 +356,18 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Role</label>
-                    <select
+                    <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">Role</label>
+                    <Select<Role>
+                      label="Role"
                       value={role}
-                      onChange={(e) => setRole(e.target.value as Role)}
-                      className="field w-full text-sm cursor-pointer"
-                    >
-                      <option value="INSTRUCTOR">Instructor</option>
-                      <option value="DEMONSTRATOR">Demonstrator</option>
-                      <option value="EXECUTIVE">Executive</option>
-                      <option value="ADMIN">Admin</option>
-                    </select>
+                      onChange={setRole}
+                      options={[
+                        { value: 'INSTRUCTOR', label: 'Instructor' },
+                        { value: 'DEMONSTRATOR', label: 'Demonstrator' },
+                        { value: 'EXECUTIVE', label: 'Executive' },
+                        { value: 'ADMIN', label: 'Admin' },
+                      ]}
+                    />
                   </div>
                   {role === 'INSTRUCTOR' && (
                     <div className="flex items-end pb-2.5">
@@ -381,7 +383,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                     </div>
                   )}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Phone (optional)</label>
+                    <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">Phone (optional)</label>
                     <input
                       type="text"
                       value={phone}
@@ -416,7 +418,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
       <div className="surface-card overflow-hidden">
         <div className="p-4 border-b border-slate-200 dark:border-white/[0.08] bg-slate-50/70 dark:bg-[#141414]/50 flex items-center space-x-2">
           <Users className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-          <h3 className="font-bold text-slate-900 dark:text-slate-200 text-sm">All Accounts ({users.length})</h3>
+          <h3 className="font-semibold text-slate-900 dark:text-slate-200 text-sm">All Accounts ({users.length})</h3>
         </div>
 
         {loading ? (
@@ -497,7 +499,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
                   <KeyRound className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Reset Account Password</h3>
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Reset Account Password</h3>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     {resetModalUser.fullName} (@{resetModalUser.username})
                   </p>
@@ -596,7 +598,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ curren
 
                   {resetMode === 'custom' && (
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">New Password</label>
+                      <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">New Password</label>
                       <div className="relative">
                         <input
                           type={showCustomPassword ? 'text' : 'password'}

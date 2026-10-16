@@ -1,8 +1,15 @@
 'use client';
+import { Select } from './ui/Select';
 
-import { PageHeader } from './ui/PageHeader';
-import { Segmented } from './ui/Segmented';
-import React, { useState } from 'react';
+import { PageHeader, StatusPill } from './ui/PageHeader';
+import React, { useState, useSyncExternalStore } from 'react';
+
+// window.location.origin read through useSyncExternalStore: the server snapshot
+// is null and the client one is real, so React re-renders the calendar links
+// with absolute URLs after hydration instead of leaving the server's '#'.
+const noopSubscribe = () => () => {};
+const getOrigin = () => window.location.origin;
+const getServerOrigin = () => null;
 import { User, DutyAssignment, NightShift, LeaveRequest, RosterWeek } from '@/types';
 import {
   Calendar,
@@ -33,7 +40,17 @@ interface InstructorPortalProps {
   leaveRequests: LeaveRequest[];
   rosterWeek: RosterWeek;
   onRefresh: () => void;
+  /** Which part of the portal to show; driven by the main app navigation. */
+  section: InstructorSection;
 }
+
+export type InstructorSection = 'schedule' | 'applyLeave' | 'teamLeaves';
+
+const SECTION_COPY: Record<InstructorSection, { eyebrow: string; title?: string; description: string }> = {
+  schedule: { eyebrow: 'My schedule', description: 'Your lectures and night duty for the week.' },
+  applyLeave: { eyebrow: 'Leave', title: 'Apply for leave', description: 'Request time off. Approved leave blocks duty and night shifts automatically.' },
+  teamLeaves: { eyebrow: 'Team', title: "Who's away", description: 'Approved leave across the cadre. Check coverage before you apply.' },
+};
 
 export const InstructorPortal: React.FC<InstructorPortalProps> = ({
   currentUser,
@@ -43,13 +60,14 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
   leaveRequests,
   rosterWeek,
   onRefresh,
+  section,
 }) => {
   const { notify } = useDialog();
   // The "instructors" account is the one shared kiosk login used by
   // whoever's physically at the terminal; every other account here belongs
   // to one real person, so the header shouldn't call it a shared terminal.
   const isSharedKiosk = currentUser.username === 'instructors';
-  const [activeSubTab, setActiveSubTab] = useState<'schedule' | 'applyLeave' | 'teamLeaves'>('schedule');
+  const activeSubTab = section;
   // Selected instructor filter for viewing tasks -- defaults to "just me"
   // for a real individual account, and the full roster for the shared kiosk.
   const [selectedInstructorId, setSelectedInstructorId] = useState<string>(isSharedKiosk ? 'ALL' : currentUser.id);
@@ -65,9 +83,10 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
 
   // Absolute .ics feed URL for the currently filtered instructor (Google Calendar
   // and webcal:// subscriptions both need a fully-qualified URL, not a relative path).
+  const origin = useSyncExternalStore(noopSubscribe, getOrigin, getServerOrigin);
   const getCalendarFeedUrl = (instId: string): string | null => {
-    if (typeof window === 'undefined') return null;
-    return `${window.location.origin}/api/calendar/${instId}`;
+    if (!origin) return null;
+    return `${origin}/api/calendar/${instId}`;
   };
 
   const getGoogleCalendarSubscribeUrl = (instId: string): string | null => {
@@ -202,33 +221,33 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow={<><Users className="size-3" /> {isSharedKiosk ? 'Shared workspace' : 'My schedule'}</>}
-        title={isSharedKiosk ? 'Instructor workspace' : `Hi, ${currentUser.fullName.split(' ')[0]}`}
+        eyebrow={<><Users className="size-3" /> {isSharedKiosk && section === 'schedule' ? 'Shared workspace' : SECTION_COPY[section].eyebrow}</>}
+        title={
+          SECTION_COPY[section].title ??
+          (isSharedKiosk ? 'Instructor workspace' : `Hi, ${currentUser.fullName.split(' ')[0]}`)
+        }
         description={
-          isSharedKiosk
-            ? `Shared terminal for the ${allInstructors.length}-member cadre: lectures, night duty and leave.`
-            : 'Your lectures and night duty for the week, plus leave requests.'
+          isSharedKiosk && section === 'schedule'
+            ? `Shared terminal for the ${allInstructors.length}-member cadre: lectures and night duty.`
+            : SECTION_COPY[section].description
         }
       />
 
       {/* Who + calendar sync */}
+      {section === 'schedule' && (
       <div className="surface-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-3.5">
-        <label className="field flex h-9 w-full items-center gap-2 sm:w-auto">
-          <Filter className="size-3.5 shrink-0 text-neutral-400" />
-          <span className="sr-only">Show schedule for</span>
-          <select
-            value={selectedInstructorId}
-            onChange={(e) => setSelectedInstructorId(e.target.value)}
-            className="w-full cursor-pointer bg-transparent text-xs font-semibold outline-none sm:w-auto"
-          >
-            <option value="ALL" className="bg-white dark:bg-neutral-900">All {allInstructors.length} instructors</option>
-            {allInstructors.map((inst) => (
-              <option key={inst.id} value={inst.id} className="bg-white dark:bg-neutral-900">
-                {inst.fullName}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label="Show schedule for"
+          size="sm"
+          icon={<Filter className="size-3.5" />}
+          value={selectedInstructorId}
+          onChange={setSelectedInstructorId}
+          className="w-full sm:w-56"
+          options={[
+            { value: 'ALL', label: `All ${allInstructors.length} instructors` },
+            ...allInstructors.map((inst) => ({ value: inst.id, label: inst.fullName })),
+          ]}
+        />
 
             {/* Calendar Export Actions */}
             {selectedInstructorId !== 'ALL' ? (
@@ -270,10 +289,10 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                   >
                     <Info className="w-3.5 h-3.5 text-neutral-400" />
                   </button>
-                  <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 p-3.5 bg-white dark:bg-[#141414]/95 border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl backdrop-blur-md text-[11px] text-slate-600 dark:text-slate-300 z-50 invisible group-hover:visible group-focus-within:visible opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto">
+                  <div className="absolute right-0 top-full z-50 mt-2 w-72 origin-top-right rounded-xl border border-neutral-200 bg-white/95 p-3.5 text-[11px] text-neutral-600 shadow-2xl backdrop-blur-xl sm:w-80 dark:border-white/10 dark:bg-[#161616]/95 dark:text-neutral-300 invisible group-hover:visible group-focus-within:visible opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto">
                     <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-white mb-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
-                      <span>Google Calendar Sync Notice</span>
+                      <Calendar className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>Calendar sync</span>
                     </div>
                     <p className="leading-relaxed">
                       Google Calendar refreshes subscribed URL calendars automatically every 8–24 hours.
@@ -290,18 +309,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
               </span>
             )}
       </div>
-
-      <Segmented
-        label="Portal section"
-        value={activeSubTab}
-        onChange={setActiveSubTab}
-        className="w-full sm:w-auto"
-        options={[
-          { value: 'schedule', label: 'Schedule', icon: <Calendar className="size-3.5" /> },
-          { value: 'applyLeave', label: 'Apply for leave', icon: <CalendarPlus className="size-3.5" /> },
-          { value: 'teamLeaves', label: 'Who\'s away', icon: <Users className="size-3.5" /> },
-        ]}
-      />
+      )}
 
       {/* SUBTAB 1: ASSIGNED TASKS & SCHEDULE */}
       {activeSubTab === 'schedule' && (
@@ -329,7 +337,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
               {displayedNightShifts.map((shift) => (
                 <div
                   key={shift.id}
-                  className="bg-slate-50 dark:bg-[#141414] border border-slate-200/80 dark:border-white/[0.08] rounded-xl p-2.5 text-center flex flex-col justify-between"
+                  className="rounded- border border-neutral-200 bg-neutral-50/60 dark:border-white/[0.06] dark:bg-white/[0.025] p-2.5 text-center flex flex-col justify-between"
                 >
                   <div>
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase block">
@@ -358,7 +366,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                         href={getGoogleCalendarNightShiftUrl(shift)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 dark:text-blue-300 hover:text-white bg-blue-500/20 dark:bg-blue-600/30 hover:bg-blue-600 border border-blue-500/30 px-1.5 py-0.5 rounded transition-all shadow-xs cursor-pointer active:scale-95"
+                        className="btn btn-secondary btn-sm h-7"
                         title="Add Night Duty to Google Calendar (All-day, no fixed time)"
                       >
                         <CalendarPlus className="w-2.5 h-2.5" />
@@ -376,7 +384,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
                 <Calendar className="w-5 h-5 text-purple-600" />
-                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
+                <h3 className="font-semibold text-neutral-900 dark:text-white text-sm sm:text-base">
                   Teaching Duties & Lab Sessions ({displayedAssignments.length})
                 </h3>
               </div>
@@ -398,7 +406,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                 {displayedAssignments.map((a) => (
                   <div
                     key={a.id}
-                    className="bg-slate-50 dark:bg-[#141414] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-4 hover:border-purple-500/30 transition-all shadow-2xs flex flex-col justify-between"
+                    className="rounded- border border-neutral-200 bg-neutral-50/60 dark:border-white/[0.06] dark:bg-white/[0.025] p-4 hover:border-neutral-300 dark:hover:border-white/[0.14] transition-all shadow-2xs flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
@@ -430,7 +438,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                         {a.instructorPhone && a.instructorId !== currentUser.id && (
                           <a
                             href={`tel:${a.instructorPhone.replace(/\s+/g, '')}`}
-                            className="inline-flex items-center gap-1 text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-500 bg-purple-500/15 hover:bg-purple-500/25 px-2 py-0.5 rounded font-bold cursor-pointer transition-colors"
+                            className="btn btn-secondary btn-sm h-7"
                             title={`Call ${a.instructorName}`}
                           >
                             <Phone className="w-2.5 h-2.5" />
@@ -439,7 +447,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                         )}
                       </div>
 
-                      <h4 className="font-bold text-slate-900 dark:text-slate-200 text-sm">{a.moduleName ?? a.dutyType}</h4>
+                      <h4 className="font-semibold text-slate-900 dark:text-slate-200 text-sm">{a.moduleName ?? a.dutyType}</h4>
                       {a.notes && <p className="text-xs text-slate-500 dark:text-slate-400 italic mt-1">{a.notes}</p>}
                     </div>
 
@@ -461,7 +469,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                         href={getGoogleCalendarEventUrl(a)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-500 bg-blue-500/10 hover:bg-blue-500/20 px-2.5 py-1 rounded-lg transition-colors cursor-pointer active:scale-95"
+                        className="btn btn-secondary btn-sm h-7 shrink-0"
                         title="Instantly add this session to your personal Google Calendar"
                       >
                         <CalendarPlus className="w-3 h-3" />
@@ -480,24 +488,21 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
       {activeSubTab === 'applyLeave' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-page-in">
           {/* Application Form */}
-          <div className="surface-card lg:col-span-2 p-6">
-            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base mb-1">
-              Apply for Holiday / Leave
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
-              Enter your leave request dates and reason. It will appear in the Leave Approvals queue for the
-              Demonstrator, Executive, or Admin to review.
+          <div className="surface-card lg:col-span-2 p-5 sm:p-6">
+            <h3 className="mb-1 text-sm font-semibold text-neutral-900 sm:text-base dark:text-white">New request</h3>
+            <p className="mb-5 text-xs text-neutral-500">
+              A demonstrator, executive or admin reviews it in Leave Approvals.
             </p>
 
             {successMessage && (
-              <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 text-xs flex items-center space-x-2">
+              <div className="mb-4 flex animate-pop-in items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
                 <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                 <span>{successMessage}</span>
               </div>
             )}
 
             {errorMessage && (
-              <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-600 dark:text-rose-400 text-xs flex items-center space-x-2">
+              <div className="mb-4 flex animate-pop-in items-center gap-2 rounded-xl border border-rose-500/25 bg-rose-500/10 p-3 text-xs text-rose-700 dark:text-rose-300">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                 <span>{errorMessage}</span>
               </div>
@@ -506,24 +511,22 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
             <form onSubmit={handleApplyLeave} className="space-y-4">
               {/* Applicant Name: Strictly locked to authenticated caller */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                  Applicant (Your Account)
+                <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                  Applicant
                 </label>
-                <div className="w-full text-sm bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-slate-100 rounded-xl p-2.5 flex items-center justify-between">
+                <div className="field flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="font-bold text-slate-900 dark:text-white">{currentUser.fullName}</span>
                     <span className="text-xs text-slate-500 dark:text-slate-400">(@{currentUser.username})</span>
                   </div>
-                  <span className="text-[10px] bg-purple-500/20 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded font-medium border border-purple-500/30">
-                    Self-Service Only
-                  </span>
+                  <span className="chip">You</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                    Start Date
+                  <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                    Start date
                   </label>
                   <input
                     type="date"
@@ -534,8 +537,8 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                    End Date (Leave blank if 1-day)
+                  <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                    End date (optional)
                   </label>
                   <input
                     type="date"
@@ -547,8 +550,8 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                  Reason for Holiday / Leave
+                <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                  Reason
                 </label>
                 <textarea
                   rows={3}
@@ -564,19 +567,19 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn btn-primary btn-lg"
+                  className="btn btn-primary btn-lg w-full sm:w-auto"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>{isSubmitting ? 'Submitting...' : 'Submit Holiday Application'}</span>
+                  <span>{isSubmitting ? 'Submitting…' : 'Submit request'}</span>
                 </button>
               </div>
             </form>
           </div>
 
           {/* Leave History / Status Log */}
-          <div className="surface-card p-6 flex flex-col">
-            <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-3">
-              Submitted Holiday Requests
+          <div className="surface-card p-5 sm:p-6 flex flex-col">
+            <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm mb-3">
+              Your requests
             </h4>
 
             <div className="space-y-3 overflow-y-auto max-h-[380px] flex-1">
@@ -588,21 +591,16 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                 displayedLeaves.map((leave) => (
                   <div
                     key={leave.id}
-                    className="bg-slate-50 dark:bg-[#141414] border border-slate-200/80 dark:border-white/[0.08] rounded-xl p-3 text-xs"
+                    className="rounded- border border-neutral-200 bg-neutral-50/60 dark:border-white/[0.06] dark:bg-white/[0.025] p-3 text-xs"
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-bold text-slate-900 dark:text-slate-100">{leave.instructorName}</span>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                          leave.status === 'APPROVED'
-                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                            : leave.status === 'REJECTED'
-                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                            : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                        }`}
+                      <StatusPill
+                        tone={leave.status === 'APPROVED' ? 'emerald' : leave.status === 'REJECTED' ? 'rose' : leave.status === 'PENDING' ? 'amber' : 'neutral'}
+                        pulse={leave.status === 'PENDING'}
                       >
-                        {leave.status}
-                      </span>
+                        {leave.status === 'REJECTED' ? 'Declined' : leave.status.charAt(0) + leave.status.slice(1).toLowerCase()}
+                      </StatusPill>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-slate-500 dark:text-slate-400">
                       <span>{leave.startDate} {leave.startDate !== leave.endDate && `to ${leave.endDate}`}</span>
@@ -626,48 +624,48 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
         </div>
       )}
 
-      {/* SUBTAB 3: COLLEAGUES ON HOLIDAY */}
-      {activeSubTab === 'teamLeaves' && (
-        <div className="surface-card p-5 sm:p-6 animate-page-in">
-          <div className="flex items-center space-x-2 mb-2">
-            <Users className="w-5 h-5 text-purple-600" />
-            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
-              Approved Absence Transparency Board
-            </h3>
+      {/* SUBTAB 3: WHO'S AWAY */}
+      {activeSubTab === 'teamLeaves' && (() => {
+        const today = new Date().toISOString().split('T')[0];
+        const approved = leaveRequests
+          .filter((l) => l.status === 'APPROVED' && l.endDate >= today)
+          .sort((a, b) => a.startDate.localeCompare(b.startDate));
+        return approved.length === 0 ? (
+          <div className="surface-card flex flex-col items-center px-6 py-16 text-center animate-page-in">
+            <div className="flex size-12 animate-pop-in items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
+              <Users className="size-5" />
+            </div>
+            <p className="mt-3 text-sm font-medium text-neutral-900 dark:text-white">Everyone&rsquo;s in</p>
+            <p className="mt-1 text-xs text-neutral-500">No upcoming approved leave across the cadre.</p>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-            Review who is scheduled away to ensure adequate laboratory coverage before applying for leave.
-          </p>
-
-          {leaveRequests.filter((l) => l.status === 'APPROVED').length === 0 ? (
-            <div className="text-center py-12 text-slate-400 dark:text-slate-500 text-xs">
-              No instructors currently on approved leave. Full team capacity available!
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {leaveRequests
-                .filter((l) => l.status === 'APPROVED')
-                .map((leave) => (
-                  <div
-                    key={leave.id}
-                    className="bg-slate-50 dark:bg-[#141414] border border-slate-200/80 dark:border-white/[0.08] rounded-xl p-3.5 flex items-center justify-between"
-                  >
-                    <div>
-                      <h5 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{leave.instructorName}</h5>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Off on: <strong className="text-slate-800 dark:text-slate-200">{leave.startDate}</strong> {leave.startDate !== leave.endDate && `to ${leave.endDate}`}
-                      </p>
-                      <p className="text-[11px] text-slate-600 dark:text-slate-400 italic mt-0.5">&ldquo;{leave.reason}&rdquo;</p>
-                    </div>
-                    <span className="text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-full uppercase">
-                      On Leave
+        ) : (
+          <ul className="grid grid-cols-1 gap-2.5 md:grid-cols-2 stagger-children">
+            {approved.map((leave) => {
+              const awayNow = leave.startDate <= today && leave.endDate >= today;
+              return (
+                <li key={leave.id} className="surface-card flex items-start justify-between gap-3 p-4">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[11px] font-semibold text-neutral-700 dark:bg-white/[0.07] dark:text-neutral-200">
+                      {(leave.instructorName ?? '?').slice(0, 2).toUpperCase()}
                     </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-neutral-900 dark:text-white">{leave.instructorName}</p>
+                      <p className="mt-0.5 font-mono text-xs text-neutral-500">
+                        {leave.startDate}
+                        {leave.startDate !== leave.endDate && ` → ${leave.endDate}`}
+                      </p>
+                      {leave.reason && <p className="mt-1.5 text-xs text-neutral-600 dark:text-neutral-400">{leave.reason}</p>}
+                    </div>
                   </div>
-                ))}
-            </div>
-          )}
-        </div>
-      )}
+                  <StatusPill tone={awayNow ? 'rose' : 'neutral'} pulse={awayNow}>
+                    {awayNow ? 'Away today' : 'Upcoming'}
+                  </StatusPill>
+                </li>
+              );
+            })}
+          </ul>
+        );
+      })()}
     </div>
   );
 };

@@ -5,6 +5,8 @@ import { User } from '@/types';
 import {
   Activity,
   CalendarDays,
+  CalendarPlus,
+  Users,
   CalendarRange,
   ClipboardCheck,
   LogOut,
@@ -25,7 +27,7 @@ import { AppLogo } from './AppLogo';
 import { usePWA } from '@/context/PWAContext';
 import { useTheme, Theme } from '@/context/ThemeContext';
 
-export type AppTab = 'executive' | 'weekly' | 'planner' | 'instructor' | 'leaves' | 'admin' | 'profile';
+export type AppTab = 'executive' | 'weekly' | 'planner' | 'instructor' | 'applyLeave' | 'whosAway' | 'leaves' | 'admin' | 'profile';
 
 interface HeaderProps {
   currentUser: User;
@@ -55,6 +57,8 @@ function navItemsFor(user: User, pendingLeaves: number): NavItem[] {
   const items: NavItem[] = [];
   if (role === 'INSTRUCTOR') {
     items.push({ tab: 'instructor', label: 'My Schedule', short: 'Schedule', icon: CalendarDays });
+    items.push({ tab: 'applyLeave', label: 'Apply for Leave', short: 'Apply leave', icon: CalendarPlus });
+    items.push({ tab: 'whosAway', label: "Who's Away", short: "Who's away", icon: Users });
   }
   if (role === 'EXECUTIVE' || role === 'DEMONSTRATOR' || role === 'ADMIN') {
     items.push({ tab: 'executive', label: role === 'EXECUTIVE' ? 'Cockpit' : 'Live Status', short: 'Today', icon: Activity });
@@ -176,9 +180,8 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  // Phones: tabs move to a bottom bar. Instructors get "Me" as a second tab.
-  const bottomItems: NavItem[] =
-    items.length <= 4 ? [...items, { tab: 'profile', label: 'Profile', short: 'Me', icon: UserRound }] : items;
+  // Phones: the same tabs move to a bottom bar. Profile lives in the account menu (top right).
+  const bottomItems = items;
 
   return (
     <>

@@ -273,8 +273,9 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
           {/* Keyed on the tab so each switch plays the page-in transition. */}
           <div key={activeTab} className="animate-page-in print:animate-none">
           {/* 1. Instructor Portal: ONLY for Instructors */}
-          {isInstructor && activeTab === 'instructor' && (
+          {isInstructor && (activeTab === 'instructor' || activeTab === 'applyLeave' || activeTab === 'whosAway') && (
             <InstructorPortal
+              section={activeTab === 'applyLeave' ? 'applyLeave' : activeTab === 'whosAway' ? 'teamLeaves' : 'schedule'}
               currentUser={currentUser}
               allInstructors={data.instructors}
               dutyAssignments={data.dutyAssignments}

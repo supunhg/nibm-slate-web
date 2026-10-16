@@ -63,42 +63,64 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setPending(null);
   };
 
+  // Escape cancels, like the native dialog it replaces.
+  useEffect(() => {
+    if (!pending) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (pending.kind === 'confirm') pending.resolve(false);
+        else pending.resolve();
+        setPending(null);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [pending]);
+
   const dialog = pending ? (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4"
+      className="fixed inset-0 z-[100] flex animate-fade-in items-end justify-center bg-black/60 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm sm:items-center sm:p-4"
       onClick={() => close(false)}
     >
       <div
-        className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-5"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby={pending.opts.title ? 'slate-dialog-title' : undefined}
+        aria-describedby="slate-dialog-message"
+        className="w-full max-w-sm animate-sheet-up rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl sm:animate-pop-in dark:border-white/10 dark:bg-[#141414]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start space-x-3">
-          <div
-            className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${
-              pending.opts.danger ? 'bg-rose-500/15 text-rose-400' : 'bg-indigo-500/15 text-indigo-400'
-            }`}
-          >
-            {pending.opts.danger ? <AlertTriangle className="w-4 h-4" /> : <Info className="w-4 h-4" />}
-          </div>
-          <div className="min-w-0 pt-0.5">
-            {pending.opts.title && <h3 className="text-sm font-semibold text-white mb-1">{pending.opts.title}</h3>}
-            <p className="text-sm text-slate-300 leading-relaxed">{pending.opts.message}</p>
-          </div>
+        <div
+          className={`flex size-10 items-center justify-center rounded-xl ${
+            pending.opts.danger
+              ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+              : 'bg-neutral-100 text-neutral-700 dark:bg-white/[0.06] dark:text-neutral-200'
+          }`}
+        >
+          {pending.opts.danger ? <AlertTriangle className="size-5" /> : <Info className="size-5" />}
         </div>
-        <div className="flex items-center justify-end gap-2 mt-5">
+        {pending.opts.title && (
+          <h3 id="slate-dialog-title" className="mt-4 text-base font-semibold text-neutral-900 dark:text-white">
+            {pending.opts.title}
+          </h3>
+        )}
+        <p
+          id="slate-dialog-message"
+          className={`${pending.opts.title ? 'mt-1' : 'mt-4'} whitespace-pre-line text-sm leading-relaxed text-neutral-600 dark:text-neutral-400`}
+        >
+          {pending.opts.message}
+        </p>
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           {pending.kind === 'confirm' && (
-            <button
-              onClick={() => close(false)}
-              className="text-sm font-medium text-slate-400 hover:text-slate-200 px-4 py-2 rounded-lg transition-colors cursor-pointer"
-            >
+            <button onClick={() => close(false)} className="btn btn-secondary btn-lg sm:h-9 sm:px-4 sm:text-xs">
               {pending.opts.cancelLabel || 'Cancel'}
             </button>
           )}
           <button
             onClick={() => close(true)}
             autoFocus
-            className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer text-white ${
-              pending.opts.danger ? 'bg-rose-600 hover:bg-rose-500' : 'bg-indigo-600 hover:bg-indigo-500'
+            className={`btn btn-lg sm:h-9 sm:px-4 sm:text-xs ${
+              pending.opts.danger ? 'bg-rose-600 text-white hover:bg-rose-500' : 'btn-primary'
             }`}
           >
             {pending.kind === 'confirm' ? pending.opts.confirmLabel || 'Confirm' : 'OK'}
