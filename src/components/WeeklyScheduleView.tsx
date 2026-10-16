@@ -26,6 +26,7 @@ import {
   FileText,
   Info,
 } from 'lucide-react';
+import { DatePicker } from './ui/DatePicker';
 
 interface SessionCardProps {
   duty: DutyAssignment;
@@ -475,15 +476,14 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
       {/* Week navigation */}
       <div className="surface-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-3.5 print:hidden">
         <div className="flex items-center gap-2">
-          <Calendar className="size-4 shrink-0 text-neutral-400" />
-          <input
-            type="date"
-            aria-label="Week starting"
+          <DatePicker
+            label="Week starting"
+            size="sm"
+            weekWindow
             value={planningStartDate}
-            onChange={(e) => handleDateChange(e.target.value)}
-            className="field h-8 w-auto px-2 text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark]"
+            onChange={handleDateChange}
+            className="w-auto min-w-52"
           />
-          <span className="whitespace-nowrap text-xs text-neutral-500">to {weekEndDate}</span>
         </div>
         <div className="grid grid-cols-4 items-center rounded-lg border border-neutral-200 p-0.5 sm:flex sm:w-fit dark:border-white/[0.08]">
           <button onClick={() => handleShiftDate(-7)} className="btn btn-ghost btn-sm" title="Previous week">

@@ -31,6 +31,7 @@ import { formatApplicationDateTime } from '@/lib/roster-utils';
 import { PageHeader } from './ui/PageHeader';
 import { Select } from './ui/Select';
 import { Segmented } from './ui/Segmented';
+import { DatePicker } from './ui/DatePicker';
 
 const AUDIT_ACTION_LABELS: Record<string, string> = {
   DUTY_ASSIGNED: 'Duty Assigned',
@@ -230,12 +231,12 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           {/* Date + slot toolbar */}
           <div className="surface-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-3.5 print:hidden">
             <div className="flex items-center gap-2">
-              <input
-                type="date"
-                aria-label="Viewing date"
+              <DatePicker
+                label="Viewing date"
+                size="sm"
                 value={selectedDate}
-                onChange={(e) => handleFilterChange(e.target.value, slotFilter)}
-                className="field h-9 w-auto text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark]"
+                onChange={(v) => handleFilterChange(v, slotFilter)}
+                className="w-auto min-w-44"
               />
               <button
                 onClick={() => handleFilterChange(new Date().toISOString().split('T')[0], slotFilter)}
@@ -627,20 +628,8 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   ]}
                 />
 
-                <input
-                  type="date"
-                  value={auditStartDate}
-                  onChange={(e) => setAuditStartDate(e.target.value)}
-                  className="field text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark]"
-                  title="From date"
-                />
-                <input
-                  type="date"
-                  value={auditEndDate}
-                  onChange={(e) => setAuditEndDate(e.target.value)}
-                  className="field text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark]"
-                  title="To date"
-                />
+                <DatePicker label="From date" placeholder="From" size="sm" value={auditStartDate} onChange={setAuditStartDate} max={auditEndDate || undefined} />
+                <DatePicker label="To date" placeholder="To" size="sm" value={auditEndDate} onChange={setAuditEndDate} min={auditStartDate || undefined} />
               </div>
             </div>
 

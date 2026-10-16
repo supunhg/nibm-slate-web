@@ -32,6 +32,8 @@ import {
 import { submitLeaveAction } from '@/lib/actions';
 import { mergeDutyAssignments, formatApplicationDateTime } from '@/lib/roster-utils';
 import { useDialog } from './DialogProvider';
+import { DateRangePicker } from './ui/DatePicker';
+import { todayYmd, addDaysYmd } from '@/lib/week-start';
 
 interface InstructorPortalProps {
   currentUser: User;
@@ -185,6 +187,22 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
     if (selectedInstructorId === 'ALL') return true;
     return l.instructorId === selectedInstructorId;
   });
+
+  // Coverage hints for the leave calendar: colleagues already on approved
+  // leave per day, and the days this instructor has duty.
+  const colleagueAwayDates: Record<string, string[]> = {};
+  for (const l of leaveRequests) {
+    if (l.status !== 'APPROVED' || l.instructorId === currentUser.id) continue;
+    for (let d = l.startDate; d <= l.endDate; d = addDaysYmd(d, 1)) {
+      (colleagueAwayDates[d] ??= []).push(l.instructorName ?? 'Colleague');
+    }
+  }
+  const myDutyDates = new Set(
+    [
+      ...dutyAssignments.filter((a) => a.instructorId === currentUser.id).map((a) => a.dutyDate),
+      ...nightShifts.filter((n) => n.instructorId === currentUser.id).map((n) => n.shiftDate),
+    ],
+  );
 
   const handleApplyLeave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -528,30 +546,21 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">
-                    Start date
-                  </label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="field w-full text-sm cursor-pointer"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">
-                    End date (optional)
-                  </label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="field w-full text-sm cursor-pointer"
-                  />
-                </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">Dates</label>
+                <DateRangePicker
+                  label="Leave dates"
+                  placeholder="Tap a start day, then an end day"
+                  className="w-full"
+                  min={todayYmd()}
+                  value={{ from: startDate, to: endDate }}
+                  onChange={({ from, to }) => {
+                    setStartDate(from);
+                    setEndDate(to);
+                  }}
+                  awayDates={colleagueAwayDates}
+                  dutyDates={myDutyDates}
+                />
               </div>
 
               <div>

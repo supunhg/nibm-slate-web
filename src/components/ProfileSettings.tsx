@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Phone, Lock, CheckCircle2, AlertCircle, UserCircle, Eye, EyeOff, ArrowLeft, Bell, Smartphone, Download, Check, Shield } from 'lucide-react';
+import { CalendarDays, Mail, Phone, Lock, CheckCircle2, AlertCircle, UserCircle, Eye, EyeOff, ArrowLeft, Bell, Smartphone, Download, Check, Shield } from 'lucide-react';
 import { User } from '@/types';
 import { updateProfileAction, changePasswordAction } from '@/lib/actions';
 import { usePWA } from '@/context/PWAContext';
+import { Segmented } from './ui/Segmented';
+import { setWeekStart, useWeekStart } from '@/lib/week-start';
 
 const ROLE_LABELS: Record<User['role'], string> = {
   ADMIN: 'System Administrator',
@@ -23,6 +25,7 @@ interface ProfileSettingsProps {
 
 export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, onUpdated, onBack, isRefreshing }) => {
   const { isInstalled, isInstallable, installPwa, notificationPermission, requestNotificationPermission } = usePWA();
+  const weekStart = useWeekStart();
   const [email, setEmail] = useState(currentUser.email || '');
   const [phone, setPhone] = useState(currentUser.phone || '');
   const [contactError, setContactError] = useState<string | null>(null);
@@ -250,7 +253,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               {/* PWA Mode Status */}
-              <div className="p-4 rounded-xl border border-slate-150 dark:border-white/[0.08] bg-slate-50/60 dark:bg-[#0a0a0a] flex flex-col justify-between">
+              <div className="p-4 rounded-xl border border-slate-150 dark:border-white/[0.08] bg-neutral-50/60 dark:bg-white/[0.025] flex flex-col justify-between">
                 <div>
                   <div className="flex items-center space-x-2 text-xs font-bold text-slate-900 dark:text-white mb-1">
                     <Smartphone className="w-3.5 h-3.5 text-indigo-500" />
@@ -284,7 +287,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
               </div>
 
               {/* Web Push Status */}
-              <div className="p-4 rounded-xl border border-slate-150 dark:border-white/[0.08] bg-slate-50/60 dark:bg-[#0a0a0a] flex flex-col justify-between">
+              <div className="p-4 rounded-xl border border-slate-150 dark:border-white/[0.08] bg-neutral-50/60 dark:bg-white/[0.025] flex flex-col justify-between">
                 <div>
                   <div className="flex items-center space-x-2 text-xs font-bold text-slate-900 dark:text-white mb-1">
                     <Bell className="w-3.5 h-3.5 text-amber-500" />
@@ -308,7 +311,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
                     <button
                       type="button"
                       onClick={() => requestNotificationPermission()}
-                      className="h-7 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 rounded-lg transition-all cursor-pointer shadow-2xs active:scale-95 inline-flex items-center space-x-1"
+                      className="btn btn-secondary btn-sm"
                     >
                       <Bell className="w-3 h-3" />
                       <span>Enable Alerts</span>
@@ -316,6 +319,27 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Calendar preference */}
+            <div className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-neutral-50/60 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-white/[0.06] dark:bg-white/[0.025]">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-neutral-900 dark:text-white">
+                  <CalendarDays className="size-3.5 text-neutral-400" />
+                  Week starts on
+                </div>
+                <p className="mt-1 text-[11px] text-neutral-500">Used by every calendar picker on this device.</p>
+              </div>
+              <Segmented
+                label="Week starts on"
+                size="sm"
+                value={String(weekStart)}
+                onChange={(v) => setWeekStart(v === '1' ? 1 : 0)}
+                options={[
+                  { value: '0', label: 'Sunday' },
+                  { value: '1', label: 'Monday' },
+                ]}
+              />
             </div>
           </div>
         </div>

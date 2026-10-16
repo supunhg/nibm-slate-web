@@ -32,6 +32,7 @@ import {
   findAiSubstitutesAction,
   applyAiScheduleChangesAction,
 } from '@/lib/actions';
+import { DatePicker } from './ui/DatePicker';
 
 interface AiCopilotDrawerProps {
   isOpen: boolean;
@@ -645,12 +646,7 @@ export const AiCopilotDrawer: React.FC<AiCopilotDrawerProps> = ({
                     <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
                       Slot Date:
                     </label>
-                    <input
-                      type="date"
-                      value={subDate}
-                      onChange={(e) => setSubDate(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white [color-scheme:dark]"
-                    />
+                    <DatePicker label="Slot date" size="sm" value={subDate} onChange={setSubDate} className="w-full" />
                   </div>
 
                   <div>
