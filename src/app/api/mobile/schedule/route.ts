@@ -6,8 +6,10 @@ import {
   getNightShifts,
   getCatalog,
   getInstructors,
+  getAllLeaveRequests,
 } from '@/lib/storage';
 import { mergeDutyAssignments } from '@/lib/roster-utils';
+import { scanRosterHealth, extractHealthSummary } from '@/lib/ai-scheduler';
 import { startOfWeek, format } from 'date-fns';
 
 export async function GET(request: Request) {
@@ -26,14 +28,29 @@ export async function GET(request: Request) {
     }
 
     const week = await getOrCreateRosterWeek(startDate);
-    const [rawDuties, nightShifts, catalog, instructors] = await Promise.all([
+    const [rawDuties, nightShifts, catalog, instructors, leaves] = await Promise.all([
       getDutyAssignments(week.id),
       getNightShifts(week.id),
       getCatalog(),
       getInstructors(),
+      getAllLeaveRequests(),
     ]);
 
     const mergedDuties = mergeDutyAssignments(rawDuties);
+
+    let aiHealth = undefined;
+    try {
+      const aiReport = scanRosterHealth({
+        rosterWeek: week,
+        dutyAssignments: rawDuties,
+        nightShifts,
+        leaveRequests: leaves,
+        allInstructors: instructors,
+      });
+      aiHealth = extractHealthSummary(aiReport);
+    } catch (e) {
+      console.warn('[Mobile Schedule] AI scan skipped:', e);
+    }
 
     return NextResponse.json({
       week,
@@ -42,6 +59,7 @@ export async function GET(request: Request) {
       nightShifts,
       catalog,
       instructors,
+      aiHealth,
     });
   } catch (error) {
     console.error('Error fetching mobile schedule:', error);

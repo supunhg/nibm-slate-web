@@ -8,6 +8,7 @@ import {
   AcademicCatalog,
   LeaveRequest,
   ExecutiveStatusReport,
+  AiHealthSummary,
 } from '../types';
 
 const STORE_TOKEN_KEY = 'nibm_slate_token';
@@ -204,6 +205,7 @@ export interface ScheduleResponse {
   nightShifts: NightShift[];
   catalog: AcademicCatalog;
   instructors: User[];
+  aiHealth?: AiHealthSummary;
 }
 
 export async function apiGetSchedule(startDate?: string): Promise<ScheduleResponse> {

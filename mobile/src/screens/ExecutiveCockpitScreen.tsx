@@ -119,6 +119,78 @@ export const ExecutiveCockpitScreen: React.FC = () => {
         </View>
       ) : (
         <>
+          {/* AI Roster Health Radar */}
+          {report?.aiHealth && (
+            <View style={styles.aiHealthCard}>
+              <View style={styles.aiHealthHeader}>
+                <View style={styles.aiHeaderTitleRow}>
+                  <View style={styles.aiSparkleIconBox}>
+                    <Sparkles size={13} color="#c084fc" />
+                  </View>
+                  <Text style={styles.aiHealthTitle}>AI Health Radar</Text>
+                </View>
+                <View
+                  style={[
+                    styles.aiStatusBadge,
+                    report.aiHealth.status === 'OPTIMAL' && styles.aiBadgeOptimal,
+                    report.aiHealth.status === 'GOOD' && styles.aiBadgeGood,
+                    report.aiHealth.status === 'WARNING' && styles.aiBadgeWarning,
+                    report.aiHealth.status === 'CRITICAL' && styles.aiBadgeCritical,
+                  ]}
+                >
+                  <Text style={styles.aiScoreText}>{report.aiHealth.score}%</Text>
+                  <Text style={styles.aiStatusText}>{report.aiHealth.status}</Text>
+                </View>
+              </View>
+
+              {/* Metric Chips Row */}
+              <View style={styles.aiChipsRow}>
+                <View style={styles.aiChip}>
+                  <Text style={styles.aiChipLabel}>Conflicts</Text>
+                  <Text
+                    style={[
+                      styles.aiChipValue,
+                      { color: report.aiHealth.conflictsCount === 0 ? colors.success : colors.danger },
+                    ]}
+                  >
+                    {report.aiHealth.conflictsCount === 0 ? '0 Clashes' : `${report.aiHealth.conflictsCount} Critical`}
+                  </Text>
+                </View>
+                <View style={styles.aiChip}>
+                  <Text style={styles.aiChipLabel}>Night Duty</Text>
+                  <Text
+                    style={[
+                      styles.aiChipValue,
+                      { color: report.aiHealth.unassignedNightsCount === 0 ? colors.nightBadge : colors.warning },
+                    ]}
+                  >
+                    {report.aiHealth.unassignedNightsCount === 0 ? 'Staffed' : `${report.aiHealth.unassignedNightsCount} Open`}
+                  </Text>
+                </View>
+                <View style={styles.aiChip}>
+                  <Text style={styles.aiChipLabel}>Lecture Slots</Text>
+                  <Text style={[styles.aiChipValue, { color: colors.info }]}>
+                    {report.aiHealth.unassignedSlotsCount === 0 ? 'Complete' : `${report.aiHealth.unassignedSlotsCount} Free`}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Optimization Insights */}
+              {report.aiHealth.topRecommendations && report.aiHealth.topRecommendations.length > 0 && (
+                <View style={styles.aiRecBox}>
+                  {report.aiHealth.topRecommendations.slice(0, 2).map((rec, idx) => (
+                    <View key={idx} style={styles.aiRecItem}>
+                      <View style={styles.aiRecDot} />
+                      <Text style={styles.aiRecText} numberOfLines={2}>
+                        {rec}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+
           {/* 4-Stat Grid */}
           <View style={styles.statsGrid}>
             {/* Total Cadre */}
@@ -726,5 +798,127 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 13,
     fontStyle: 'italic',
+  },
+  aiHealthCard: {
+    backgroundColor: '#0f172a',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(168, 85, 247, 0.25)',
+    shadowColor: '#a855f7',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  aiHealthHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  aiHeaderTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  aiSparkleIconBox: {
+    width: 26,
+    height: 26,
+    borderRadius: 7,
+    backgroundColor: 'rgba(168, 85, 247, 0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiHealthTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    letterSpacing: -0.2,
+  },
+  aiStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  aiBadgeOptimal: {
+    backgroundColor: 'rgba(16, 185, 129, 0.14)',
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+  },
+  aiBadgeGood: {
+    backgroundColor: 'rgba(59, 130, 246, 0.14)',
+    borderColor: 'rgba(59, 130, 246, 0.35)',
+  },
+  aiBadgeWarning: {
+    backgroundColor: 'rgba(245, 158, 11, 0.14)',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+  },
+  aiBadgeCritical: {
+    backgroundColor: 'rgba(239, 68, 68, 0.14)',
+    borderColor: 'rgba(239, 68, 68, 0.35)',
+  },
+  aiScoreText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: colors.textPrimary,
+  },
+  aiStatusText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.accentLight,
+    textTransform: 'uppercase',
+  },
+  aiChipsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  aiChip: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  aiChipLabel: {
+    fontSize: 10,
+    color: colors.textMuted,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  aiChipValue: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  aiRecBox: {
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    gap: 5,
+  },
+  aiRecItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  aiRecDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#c084fc',
+    marginTop: 5,
+  },
+  aiRecText: {
+    flex: 1,
+    fontSize: 10.5,
+    color: colors.textSecondary,
+    lineHeight: 14,
   },
 });

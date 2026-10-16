@@ -78,6 +78,15 @@ export interface AcademicCatalog {
   autoRefreshSeconds?: number;
 }
 
+export interface AiHealthSummary {
+  score: number; // 0 - 100
+  status: 'OPTIMAL' | 'GOOD' | 'WARNING' | 'CRITICAL';
+  conflictsCount: number;
+  unassignedSlotsCount: number;
+  unassignedNightsCount: number;
+  topRecommendations: string[];
+}
+
 export interface ExecutiveStatusReport {
   date: string;
   activeSlotLabel: string;
@@ -91,6 +100,7 @@ export interface ExecutiveStatusReport {
     leave: LeaveRequest;
   }>;
   nightDutyInstructor?: User;
+  aiHealth?: AiHealthSummary;
 }
 
 export type TabScreen = 'schedule' | 'portal' | 'executive' | 'profile';

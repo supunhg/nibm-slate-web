@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
 import { authenticateMobileRequest, mobileAuthErrorResponse } from '@/lib/mobile-auth';
-import { getExecutiveStatus } from '@/lib/storage';
-import { format } from 'date-fns';
+import {
+  getExecutiveStatus,
+  getOrCreateRosterWeek,
+  getDutyAssignments,
+  getNightShifts,
+  getAllLeaveRequests,
+  getInstructors,
+} from '@/lib/storage';
+import { scanRosterHealth, extractHealthSummary } from '@/lib/ai-scheduler';
+import { format, parseISO, startOfWeek } from 'date-fns';
 
 export async function GET(request: Request) {
   const auth = await authenticateMobileRequest(request);
@@ -15,6 +23,30 @@ export async function GET(request: Request) {
     const targetDate = dateParam || format(new Date(), 'yyyy-MM-dd');
 
     const report = await getExecutiveStatus(targetDate, 'ALL');
+
+    // Synthesize real-time AI Health Radar for the active week
+    try {
+      const weekMonday = format(startOfWeek(parseISO(targetDate), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+      const week = await getOrCreateRosterWeek(weekMonday);
+      const [duties, nightShifts, leaves, instructors] = await Promise.all([
+        getDutyAssignments(week.id),
+        getNightShifts(week.id),
+        getAllLeaveRequests(),
+        getInstructors(),
+      ]);
+
+      const aiReport = scanRosterHealth({
+        rosterWeek: week,
+        dutyAssignments: duties,
+        nightShifts,
+        leaveRequests: leaves,
+        allInstructors: instructors,
+      });
+
+      report.aiHealth = extractHealthSummary(aiReport);
+    } catch (aiErr) {
+      console.warn('[Mobile Dashboard] Could not compute AI health summary:', aiErr);
+    }
 
     return NextResponse.json({
       date: targetDate,

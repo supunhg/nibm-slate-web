@@ -110,6 +110,16 @@ export interface ExecutiveStatusReport {
     leave: LeaveRequest;
   }>;
   nightDutyInstructor?: User;
+  aiHealth?: AiHealthSummary;
+}
+
+export interface AiHealthSummary {
+  score: number; // 0 - 100
+  status: 'OPTIMAL' | 'GOOD' | 'WARNING' | 'CRITICAL';
+  conflictsCount: number;
+  unassignedSlotsCount: number;
+  unassignedNightsCount: number;
+  topRecommendations: string[];
 }
 
 export interface AcademicCatalog {
@@ -138,6 +148,22 @@ export interface AiProposedDuty {
 }
 
 export interface AiConflictReport {
+  healthScore?: number;
+  status?: 'OPTIMAL' | 'GOOD' | 'WARNING' | 'CRITICAL';
+  metrics?: {
+    conflictFreeScore: number;
+    nightCoverageScore: number;
+    workloadBalanceScore: number;
+    curriculumCoverageScore: number;
+  };
+  smartFixSuggestions?: Array<{
+    id: string;
+    title: string;
+    actionType: 'RESOLVE_CLASH' | 'ASSIGN_NIGHT' | 'REBALANCE';
+    description: string;
+    impact: string;
+    targetDate?: string;
+  }>;
   unassignedSlotsCount: number;
   unassignedNightShiftsCount: number;
   workloadImbalances: Array<{

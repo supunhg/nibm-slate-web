@@ -52,3 +52,10 @@
 - **Context**: Multi-agent workflows need a single, fast, deterministic verification signal to validate changes and self-heal before completing tasks.
 - **Decision**: Created `scripts/verify-all.ts` running ESLint, 35 Domain Invariants, 28 Mobile Endpoints, Mobile TypeScript Check, and Next.js Build sequentially in under 35 seconds.
 - **Status**: Bound to `npm run verify` in `package.json`.
+
+---
+
+## ADR-008: Real-Time Mobile & Web AI Health Radar & Remediation Engine
+- **Context**: AI conflict radar metrics were confined to the web drawer, preventing mobile executives from assessing schedule integrity at a glance, and lacked structured one-click remediation actions.
+- **Decision**: Extended `scanRosterHealth` with a normalized 0-100% composite health index, 4 multi-constraint metrics (Conflict-Free, Night Coverage, Cadre Balance, Curriculum Slots), and actionable smart fix suggestions. Enriched mobile companion `/api/mobile/dashboard` and `/api/mobile/schedule` with `AiHealthSummary`. Added an executive-grade AI Health Radar card to `ExecutiveCockpitScreen` and status pills to `ScheduleScreen`.
+- **Status**: Implemented and verified across Web & Mobile.

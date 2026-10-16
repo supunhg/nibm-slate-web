@@ -8,6 +8,7 @@ import {
   AiProposedDuty,
   AiConflictReport,
   AiSubstituteSuggestion,
+  AiHealthSummary,
 } from '@/types';
 
 /**
@@ -198,12 +199,115 @@ export function scanRosterHealth(params: {
     );
   }
 
+  // --- AI Advanced Metrics & Health Score Synthesis ---
+  const criticalConflicts = conflicts.filter((c) => c.type === 'DOUBLE_BOOKING' || c.type === 'LEAVE_COLLISION').length;
+  const conflictFreeScore = Math.max(0, 100 - criticalConflicts * 30);
+  const nightCoverageScore = Math.round(Math.max(0, Math.min(100, ((7 - unassignedNightShiftsCount) / 7) * 100)));
+  const balancedCadreCount = workloadImbalances.filter((w) => w.status === 'BALANCED').length;
+  const workloadBalanceScore = cadre.length > 0 ? Math.round((balancedCadreCount / cadre.length) * 100) : 100;
+  const expectedLectureSlots = 15; // 7 days * 2 sessions + Sunday CCS
+  const curriculumCoverageScore = Math.round(
+    Math.max(0, Math.min(100, ((expectedLectureSlots - Math.min(expectedLectureSlots, unassignedSlotsCount)) / expectedLectureSlots) * 100))
+  );
+
+  const healthScore = Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(
+        conflictFreeScore * 0.4 +
+        nightCoverageScore * 0.25 +
+        workloadBalanceScore * 0.2 +
+        curriculumCoverageScore * 0.15
+      )
+    )
+  );
+
+  let status: 'OPTIMAL' | 'GOOD' | 'WARNING' | 'CRITICAL' = 'OPTIMAL';
+  if (healthScore >= 90 && criticalConflicts === 0) {
+    status = 'OPTIMAL';
+  } else if (healthScore >= 75) {
+    status = 'GOOD';
+  } else if (healthScore >= 50) {
+    status = 'WARNING';
+  } else {
+    status = 'CRITICAL';
+  }
+
+  // --- Smart Remediation Fix Suggestions ---
+  const smartFixSuggestions: AiConflictReport['smartFixSuggestions'] = [];
+  for (const c of conflicts) {
+    if (c.type === 'UNSTAFFED_NIGHT') {
+      smartFixSuggestions.push({
+        id: `fix-night-${c.date}`,
+        title: `Assign Caretaker for ${c.date}`,
+        actionType: 'ASSIGN_NIGHT',
+        description: `Schedule lowest-duty cadre instructor to cover overnight facility monitoring on ${c.date}`,
+        impact: '+15% Night Shift Coverage',
+        targetDate: c.date,
+      });
+    } else if (c.type === 'LEAVE_COLLISION') {
+      smartFixSuggestions.push({
+        id: `fix-leave-${c.date}-${c.slot || 'slot'}`,
+        title: `Reassign Clashing Duty (${c.date})`,
+        actionType: 'RESOLVE_CLASH',
+        description: `Substitute available standby faculty for ${c.instructorName || 'instructor'} currently on approved leave`,
+        impact: '+20% Conflict Elimination',
+        targetDate: c.date,
+      });
+    } else if (c.type === 'DOUBLE_BOOKING') {
+      smartFixSuggestions.push({
+        id: `fix-clash-${c.date}-${c.slot || 'slot'}`,
+        title: `Resolve Concurrent Booking (${c.date})`,
+        actionType: 'RESOLVE_CLASH',
+        description: `Deconflict concurrent sessions assigned to ${c.instructorName || 'instructor'} into distinct slots`,
+        impact: '+30% Integrity Restoration',
+        targetDate: c.date,
+      });
+    }
+  }
+
+  const overloaded = workloadImbalances.filter((w) => w.status === 'OVERLOAD');
+  const underloaded = workloadImbalances.filter((w) => w.status === 'UNDERLOAD');
+  if (overloaded.length > 0 && underloaded.length > 0) {
+    smartFixSuggestions.push({
+      id: 'fix-rebalance',
+      title: 'Rebalance Cadre Teaching Workload',
+      actionType: 'REBALANCE',
+      description: `Shift upcoming lecture allocations from ${overloaded.map((o) => o.instructorName).join(', ')} to ${underloaded.map((u) => u.instructorName).join(', ')}`,
+      impact: '+15% Cadre Equilibrium',
+    });
+  }
+
   return {
+    healthScore,
+    status,
+    metrics: {
+      conflictFreeScore,
+      nightCoverageScore,
+      workloadBalanceScore,
+      curriculumCoverageScore,
+    },
+    smartFixSuggestions: smartFixSuggestions.slice(0, 5),
     unassignedSlotsCount,
     unassignedNightShiftsCount,
     workloadImbalances,
     conflicts,
     recommendations: Array.from(new Set(recommendations)).slice(0, 6),
+  };
+}
+
+/**
+ * Extract a lightweight AI health summary for mobile dashboards and status chips.
+ */
+export function extractHealthSummary(report: AiConflictReport): AiHealthSummary {
+  return {
+    score: report.healthScore ?? 100,
+    status: report.status ?? 'OPTIMAL',
+    conflictsCount: report.conflicts.length,
+    unassignedSlotsCount: report.unassignedSlotsCount,
+    unassignedNightsCount: report.unassignedNightShiftsCount,
+    topRecommendations: report.recommendations.slice(0, 3),
   };
 }
 

@@ -40,6 +40,7 @@ import {
   UserPlus,
   CheckCircle,
   Calendar,
+  Sparkles,
 } from 'lucide-react-native';
 import { addDays, format, parseISO, startOfWeek, subDays } from 'date-fns';
 
@@ -382,6 +383,23 @@ export const ScheduleScreen: React.FC = () => {
                   }
                 >
                   {data?.week?.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT'}
+                </Text>
+              </View>
+            )}
+
+            {data?.aiHealth && (
+              <View
+                style={[
+                  styles.aiHealthPill,
+                  data.aiHealth.status === 'OPTIMAL' && styles.aiHealthPillOptimal,
+                  data.aiHealth.status === 'GOOD' && styles.aiHealthPillGood,
+                  data.aiHealth.status === 'WARNING' && styles.aiHealthPillWarning,
+                  data.aiHealth.status === 'CRITICAL' && styles.aiHealthPillCritical,
+                ]}
+              >
+                <Sparkles size={10} color="#c084fc" style={{ marginRight: 3 }} />
+                <Text style={styles.aiHealthPillText}>
+                  {data.aiHealth.score}% AI Health
                 </Text>
               </View>
             )}
@@ -853,6 +871,40 @@ const styles = StyleSheet.create({
   },
   badgeRow: {
     marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  aiHealthPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    borderWidth: 1,
+    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    borderColor: 'rgba(168, 85, 247, 0.25)',
+  },
+  aiHealthPillOptimal: {
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+  },
+  aiHealthPillGood: {
+    borderColor: 'rgba(59, 130, 246, 0.35)',
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+  },
+  aiHealthPillWarning: {
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+  },
+  aiHealthPillCritical: {
+    borderColor: 'rgba(239, 68, 68, 0.35)',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+  },
+  aiHealthPillText: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   badgeTouchable: {
     flexDirection: 'row',

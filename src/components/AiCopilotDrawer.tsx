@@ -24,6 +24,8 @@ import {
   RefreshCw,
   Phone,
   ArrowRight,
+  Activity,
+  Zap,
 } from 'lucide-react';
 import {
   scanRosterHealthAction,
@@ -522,6 +524,130 @@ export const AiCopilotDrawer: React.FC<AiCopilotDrawerProps> = ({
 
               {radarReport && (
                 <div className="space-y-3">
+                  {/* Overall AI Composite Health Card */}
+                  {typeof radarReport.healthScore === 'number' && (
+                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-4 rounded-xl border border-purple-500/30 shadow-lg shadow-purple-950/20 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400">
+                            <Activity className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-white uppercase tracking-wider">
+                              Composite AI Health Index
+                            </div>
+                            <div className="text-[10px] text-slate-400">
+                              Automated multi-constraint schedule equilibrium
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          className={`px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider border flex items-center gap-1.5 ${
+                            radarReport.status === 'OPTIMAL'
+                              ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                              : radarReport.status === 'GOOD'
+                              ? 'bg-blue-500/15 border-blue-500/30 text-blue-400'
+                              : radarReport.status === 'WARNING'
+                              ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                              : 'bg-rose-500/15 border-rose-500/30 text-rose-400'
+                          }`}
+                        >
+                          <span>{radarReport.healthScore}%</span>
+                          <span>•</span>
+                          <span>{radarReport.status}</span>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-700">
+                        <div
+                          className={`h-full transition-all duration-500 ${
+                            radarReport.status === 'OPTIMAL'
+                              ? 'bg-emerald-500'
+                              : radarReport.status === 'GOOD'
+                              ? 'bg-blue-500'
+                              : radarReport.status === 'WARNING'
+                              ? 'bg-amber-500'
+                              : 'bg-rose-500'
+                          }`}
+                          style={{ width: `${radarReport.healthScore}%` }}
+                        />
+                      </div>
+
+                      {/* 4-Metric Grid */}
+                      {radarReport.metrics && (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px]">
+                          <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                            <div className="text-slate-400 text-[10px]">Conflict-Free</div>
+                            <div className="font-bold text-slate-200 mt-0.5">
+                              {radarReport.metrics.conflictFreeScore}%
+                            </div>
+                          </div>
+                          <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                            <div className="text-slate-400 text-[10px]">Night Coverage</div>
+                            <div className="font-bold text-slate-200 mt-0.5">
+                              {radarReport.metrics.nightCoverageScore}%
+                            </div>
+                          </div>
+                          <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                            <div className="text-slate-400 text-[10px]">Cadre Balance</div>
+                            <div className="font-bold text-slate-200 mt-0.5">
+                              {radarReport.metrics.workloadBalanceScore}%
+                            </div>
+                          </div>
+                          <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                            <div className="text-slate-400 text-[10px]">Lecture Slots</div>
+                            <div className="font-bold text-slate-200 mt-0.5">
+                              {radarReport.metrics.curriculumCoverageScore}%
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Smart Remediation Actions */}
+                  {radarReport.smartFixSuggestions && radarReport.smartFixSuggestions.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-[11px] font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <Zap className="w-3.5 h-3.5 text-amber-400" />
+                        <span>One-Click Smart Remediations</span>
+                      </div>
+                      <div className="space-y-2">
+                        {radarReport.smartFixSuggestions.map((fix) => (
+                          <div
+                            key={fix.id}
+                            className="bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 p-3 rounded-xl flex items-center justify-between text-xs gap-3 transition-colors"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="font-bold text-white flex items-center gap-2">
+                                <span>{fix.title}</span>
+                                <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded">
+                                  {fix.impact}
+                                </span>
+                              </div>
+                              <div className="text-[11px] text-slate-400 mt-0.5 truncate">
+                                {fix.description}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setActiveTab('auto-schedule');
+                                setPrompt(fix.title);
+                                if (fix.targetDate) setTargetDate(fix.targetDate);
+                                handleGenerate(fix.title);
+                              }}
+                              className="shrink-0 bg-purple-600 hover:bg-purple-500 text-white font-bold px-2.5 py-1.5 rounded-lg text-[11px] flex items-center gap-1 cursor-pointer transition-colors"
+                            >
+                              <span>Apply</span>
+                              <ArrowRight className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Metric Summary Banner */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
