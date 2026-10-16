@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { getExecutiveReportAction } from '@/lib/actions';
 import { AppLogo } from './AppLogo';
+import { DatePicker } from './ui/DatePicker';
 
 interface PublicStatusBoardProps {
   initialReport: ExecutiveStatusReport;
@@ -105,12 +106,7 @@ export const PublicStatusBoard: React.FC<PublicStatusBoardProps> = ({
               </span>
               <div className="text-sm font-bold text-white flex items-center space-x-2">
                 <span>{dayOfWeek}, {formattedDate}</span>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => handleFilterChange(e.target.value, slotFilter)}
-                  className="field text-xs cursor-pointer [color-scheme:dark]"
-                />
+                <DatePicker label="Date" size="sm" value={selectedDate} onChange={(v) => handleFilterChange(v, slotFilter)} className="w-auto" />
               </div>
             </div>
           </div>

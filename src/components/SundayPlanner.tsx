@@ -58,6 +58,8 @@ import { getMatchingOppositeSlotDuty, mergeDutyAssignments } from '@/lib/roster-
 import { useDialog } from './DialogProvider';
 import { AiCopilotDrawer } from './AiCopilotDrawer';
 import { PageHeader, StatusPill } from './ui/PageHeader';
+import { DatePicker } from './ui/DatePicker';
+import { addDaysYmd, todayYmd } from '@/lib/week-start';
 
 interface SundayPlannerProps {
   rosterWeek: RosterWeek;
@@ -752,15 +754,20 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
           <div className="min-w-0">
             <div className="eyebrow">Week starting</div>
             <div className="mt-0.5 flex flex-wrap items-center gap-2">
-              <input
-                type="date"
+              <DatePicker
+                label="Week starting"
+                size="sm"
+                weekWindow
                 value={planningStartDate}
-                onChange={(e) => handleDateChange(e.target.value)}
-                className="field h-8 w-auto px-2 text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark]"
+                onChange={handleDateChange}
+                className="w-auto min-w-52"
+                shortcuts={[
+                  { label: 'Today', value: todayYmd() },
+                  { label: 'Next week', value: addDaysYmd(planningStartDate, 7) },
+                  { label: 'Last week', value: addDaysYmd(planningStartDate, -7) },
+                ]}
               />
-              <span className="text-xs text-neutral-500">
-                to {weekDays[6]?.formattedDate}
-              </span>
+
             </div>
           </div>
         </div>
