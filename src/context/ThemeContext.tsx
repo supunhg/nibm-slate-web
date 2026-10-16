@@ -11,7 +11,7 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'system',
+  theme: 'dark',
   resolvedTheme: 'dark',
   setTheme: () => {},
 });
@@ -38,11 +38,12 @@ function getThemeSnapshot(): Theme {
     const val = localStorage.getItem(STORAGE_KEY);
     if (val === 'light' || val === 'dark' || val === 'system') return val;
   } catch {}
-  return 'system';
+  // SLATE is designed dark-first; light remains available from the theme menu.
+  return 'dark';
 }
 
 function getThemeServerSnapshot(): Theme {
-  return 'system';
+  return 'dark';
 }
 
 function subscribeMedia(callback: () => void) {

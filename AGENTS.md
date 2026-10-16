@@ -84,7 +84,7 @@ Every non-trivial modification MUST follow this closed loop:
 4. **Lexicographical Date Format**: All dates (`startDate`, `endDate`, `dutyDate`, `shiftDate`) MUST strictly be plain `"YYYY-MM-DD"` strings to prevent UTC timezone-shift bugs.
 5. **Unified Full-Day Session Model**: Identical morning (`09:00 - 12:00`) and afternoon (`13:00 - 16:00`) blocks are unified into seamless `09:00 - 16:00` sessions.
 6. **Sunday Evening CCS Slot**: Special slot (`16:30 - 17:30`) automatically attached whenever Sunday falls in the horizon.
-7. **PWA Zero-Prompt Rule**: Web updates MUST activate silently via Service Worker (`public/sw.js`) without disrupting user sessions or prompting for downloads.
+7. **Prompted Update Rule** (replaced the zero-prompt rule, Oct 2026, at the owner's request): every deploy must surface an "Update available → Reload now" prompt in the web/PWA (`PWAContext` + `PWAInstallBanner`; `/sw.js?v=<buildId>` waits for SKIP_WAITING, `/api/version` is polled). The Android app shows an update modal driven by `version.json` published by `build-apk.yml`. Never auto-reload a user's session without their tap.
 8. **React 19 State Rule**: Never call `setState` synchronously within `useEffect` body; use `useSyncExternalStore` or lazy initial state for browser APIs.
 
 ---

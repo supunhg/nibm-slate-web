@@ -56,6 +56,7 @@ import {
 import { getMatchingOppositeSlotDuty, mergeDutyAssignments } from '@/lib/roster-utils';
 import { useDialog } from './DialogProvider';
 import { AiCopilotDrawer } from './AiCopilotDrawer';
+import { PageHeader, StatusPill } from './ui/PageHeader';
 
 interface SundayPlannerProps {
   rosterWeek: RosterWeek;
@@ -688,172 +689,108 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Banner: Planner Studio Header */}
-      <div className="bg-white dark:bg-[#11192d] rounded-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md transition-colors">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center space-x-2 text-emerald-700 dark:text-emerald-400 text-sm font-semibold mb-1">
-              <Sparkles className="w-4 h-4" />
-              <span>Sunday Planning Studio • Demonstrator Console</span>
-            </div>
-            <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-              Weekly Task & Duty Allocator
-            </h2>
-          </div>
-
-          {/* Roster Status & Action */}
-          <div className="flex items-center flex-wrap gap-2.5 bg-slate-50 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
-            <div className="text-right mr-2">
-              <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">
-                Roster State
-              </div>
-              <div className="flex items-center space-x-1.5 justify-end">
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    rosterWeek.status === 'PUBLISHED' ? 'bg-emerald-500' : 'bg-amber-400 animate-pulse'
-                  }`}
-                ></span>
-                <span
-                  className={`text-xs font-black uppercase ${
-                    rosterWeek.status === 'PUBLISHED' ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'
-                  }`}
-                >
-                  {rosterWeek.status}
-                </span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setAiDrawerOpen(true)}
-              className="h-8.5 flex items-center space-x-1.5 text-xs font-bold px-3.5 rounded-lg shadow-xs transition-all bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:via-indigo-500 hover:to-blue-500 text-white cursor-pointer active:scale-95 border border-purple-400/40 shadow-purple-900/30"
-              title="AI Roster Co-Pilot (Ctrl+K / ⌘K)"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-              <span>AI Co-Pilot</span>
-              <span className="hidden sm:inline-block ml-1 text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono">⌘K</span>
-            </button>
-
-            <button
-              onClick={() => setCatalogModalOpen(true)}
-              className="h-8.5 flex items-center space-x-1.5 text-xs font-bold px-3.5 rounded-lg shadow-2xs transition-all bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-600 cursor-pointer active:scale-95"
-            >
-              <LibraryBig className="w-3.5 h-3.5 text-slate-500 dark:text-slate-300" />
-              <span>Catalog</span>
-            </button>
-
-            <button
-              onClick={() => setDispatchOpen(true)}
-              className="h-8.5 flex items-center space-x-1.5 text-xs font-bold px-3.5 rounded-lg shadow-xs transition-all bg-[#25D366] hover:bg-[#20bd5a] text-white cursor-pointer active:scale-95"
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-              <span>WhatsApp</span>
-            </button>
-
-            <button
-              onClick={handlePublish}
-              disabled={rosterWeek.status === 'PUBLISHED'}
-              className={`h-8.5 flex items-center space-x-1.5 text-xs font-bold px-3.5 rounded-lg shadow-xs transition-all ${
-                rosterWeek.status === 'PUBLISHED'
-                  ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
-                  : 'bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer active:scale-95'
-              }`}
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>{rosterWeek.status === 'PUBLISHED' ? 'Published' : 'Publish Roster'}</span>
-            </button>
-          </div>
-        </div>
+      {/* Header */}
+      <div className="space-y-4">
+        <PageHeader
+          eyebrow={<><Sparkles className="size-3" /> Planning Studio</>}
+          title="Weekly duty planner"
+          description="Assign sessions and night duty, check balance, then publish the week to the cadre."
+          status={
+            rosterWeek.status === 'PUBLISHED' ? (
+              <StatusPill tone="emerald">Published</StatusPill>
+            ) : (
+              <StatusPill tone="amber" pulse>Draft</StatusPill>
+            )
+          }
+          actions={
+            <>
+              <button
+                onClick={() => setAiDrawerOpen(true)}
+                className="btn btn-secondary"
+                title="AI Roster Co-Pilot (Ctrl+K / ⌘K)"
+              >
+                <Sparkles className="text-indigo-400" />
+                AI Co-Pilot
+                <kbd className="ml-0.5 hidden rounded border border-neutral-200 px-1 font-mono text-[10px] text-neutral-500 sm:inline dark:border-white/10">⌘K</kbd>
+              </button>
+              <button onClick={() => setCatalogModalOpen(true)} className="btn btn-secondary">
+                <LibraryBig className="text-neutral-400" />
+                Catalog
+              </button>
+              <button onClick={() => setDispatchOpen(true)} className="btn btn-secondary">
+                <MessageCircle className="text-[#25D366]" />
+                WhatsApp
+              </button>
+              <button
+                onClick={handlePublish}
+                disabled={rosterWeek.status === 'PUBLISHED'}
+                className="btn btn-primary"
+              >
+                {rosterWeek.status === 'PUBLISHED' ? <CheckCircle2 /> : <Send />}
+                {rosterWeek.status === 'PUBLISHED' ? 'Published' : 'Publish week'}
+              </button>
+            </>
+          }
+        />
 
         {publishMessage && (
-          <div className="mt-4 p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-800 dark:text-emerald-200 text-xs flex items-center space-x-2">
+          <div className="animate-fade-in p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-800 dark:text-emerald-200 text-xs flex items-center space-x-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span>{publishMessage}</span>
           </div>
         )}
       </div>
 
-      {/* Interactive Planning Horizon & Week Start Selector */}
-      <div className="bg-white dark:bg-[#11192d] text-slate-900 dark:text-white rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors">
-        <div className="flex items-center space-x-3.5">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-600/20 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shrink-0">
-            <Calendar className="w-5 h-5" />
+      {/* Week selector */}
+      <div className="surface-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-3.5">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 text-neutral-600 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-neutral-300">
+            <Calendar className="size-4.5" />
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 tracking-wider">
-                Planning Horizon
-              </span>
-              <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-                7 Days Window
-              </span>
-            </div>
-            <div className="text-sm font-black text-slate-900 dark:text-white flex items-center space-x-2 mt-0.5">
-              <span>Week Starting:</span>
+          <div className="min-w-0">
+            <div className="eyebrow">Week starting</div>
+            <div className="mt-0.5 flex flex-wrap items-center gap-2">
               <input
                 type="date"
                 value={planningStartDate}
                 onChange={(e) => handleDateChange(e.target.value)}
-                className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-bold border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
+                className="field h-8 w-auto px-2 text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark]"
               />
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-normal hidden sm:inline">
-                → {weekDays[6]?.formattedDate} ({weekDays[6]?.dateStr})
+              <span className="text-xs text-neutral-500">
+                to {weekDays[6]?.formattedDate}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Quick Horizon Jump Controls */}
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => handleShiftDate(-7)}
-            className="h-8 flex items-center space-x-1 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer active:scale-95 font-medium"
-            title="Shift backward by 7 days"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-            <span>Prev 7 Days</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleJumpToSunday}
-            className="h-8 text-xs bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/80 dark:hover:bg-purple-900 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-3 rounded-lg font-bold transition-colors cursor-pointer active:scale-95"
-            title="Jump to this Sunday"
-          >
-            Start on Sunday
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              const today = new Date().toISOString().split('T')[0];
-              handleDateChange(today);
-            }}
-            className="h-8 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 rounded-lg border border-slate-200 dark:border-slate-700 font-bold transition-colors cursor-pointer active:scale-95"
-            title="Start from Today"
-          >
-            Today
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleShiftDate(7)}
-            className="h-8 flex items-center space-x-1 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer active:scale-95 font-medium"
-            title="Shift forward by 7 days"
-          >
-            <span>Next 7 Days</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-
+        <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex items-center rounded-lg border border-neutral-200 p-0.5 dark:border-white/[0.08]">
+            <button type="button" onClick={() => handleShiftDate(-7)} className="btn btn-ghost btn-sm" title="Previous week">
+              <ChevronLeft /> Prev
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDateChange(new Date().toISOString().split('T')[0])}
+              className="btn btn-ghost btn-sm"
+            >
+              Today
+            </button>
+            <button type="button" onClick={handleJumpToSunday} className="btn btn-ghost btn-sm" title="Start the window on this Sunday">
+              Sunday
+            </button>
+            <button type="button" onClick={() => handleShiftDate(7)} className="btn btn-ghost btn-sm" title="Next week">
+              Next <ChevronRight />
+            </button>
+          </div>
           <button
             type="button"
             onClick={handleCloneWeek}
             disabled={isCloning}
-            className="flex items-center space-x-1.5 text-xs bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 border border-indigo-800 px-3 py-1.5 rounded-lg font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Import all assignments from the preceding week into this draft"
+            className="btn btn-secondary btn-sm"
+            title="Copy every assignment from the previous week into this draft"
           >
-            <CopyPlus className="w-3.5 h-3.5" />
-            <span>{isCloning ? 'Cloning...' : 'Clone Previous Week'}</span>
+            <CopyPlus />
+            {isCloning ? 'Cloning…' : 'Clone last week'}
           </button>
         </div>
       </div>
@@ -865,86 +802,91 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
         </div>
       )}
 
-      {/* Workload Balancer Widget */}
-      <div className="bg-white dark:bg-[#0d1424] rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <Layers className="w-4 h-4 text-emerald-600" />
-            <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-              Workload Balancer (Cadre Allocation Meter)
+      {/* Workload balance */}
+      <section className="surface-card overflow-hidden p-4 sm:p-5">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-white">
+              <Layers className="size-4 text-neutral-400" /> Workload balance
             </h3>
+            <p className="mt-0.5 text-xs text-neutral-500">Sessions and night duties per instructor this week.</p>
           </div>
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-            Keep distribution balanced across all {allInstructors.length} instructors
-          </span>
+          <div className="hidden items-center gap-3 text-[11px] text-neutral-500 sm:flex">
+            <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-neutral-900 dark:bg-white" /> Sessions</span>
+            <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-amber-400" /> Night</span>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2">
-          {allInstructors.map((inst) => {
-            const data = workloadMap[inst.id] || { sessions: 0, nightShifts: 0 };
-            return (
-              <div
-                key={inst.id}
-                className="bg-slate-50 dark:bg-[#11192d] rounded-xl p-2.5 border border-slate-200/80 dark:border-slate-800 text-center flex flex-col justify-between"
-              >
-                <div className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate" title={inst.fullName}>
-                  {inst.fullName.split(' ')[0]}
-                </div>
-                <div className="my-1.5 flex items-center justify-center space-x-2 text-xs">
-                  <span className="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-bold px-1.5 py-0.5 rounded text-[11px]" title="Teaching Slots">
-                    {data.sessions} sess
-                  </span>
-                  <span className="bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold px-1.5 py-0.5 rounded text-[11px]" title="Night Duty">
-                    {data.nightShifts} 🌙
-                  </span>
-                </div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                  Total: {data.sessions + data.nightShifts} duties
-                </div>
-                {inst.phone && (
-                  <a
-                    href={`tel:${inst.phone.replace(/\s+/g, '')}`}
-                    className="inline-flex items-center justify-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 font-semibold mt-1 hover:underline cursor-pointer"
-                    title={`Call ${inst.fullName}`}
+        {(() => {
+          const maxLoad = Math.max(
+            1,
+            ...allInstructors.map((i) => (workloadMap[i.id]?.sessions ?? 0) + (workloadMap[i.id]?.nightShifts ?? 0)),
+          );
+          return (
+            <div className="no-scrollbar -mx-4 flex snap-x gap-2 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 md:grid-cols-5 lg:grid-cols-9 stagger-children">
+              {allInstructors.map((inst) => {
+                const data = workloadMap[inst.id] || { sessions: 0, nightShifts: 0 };
+                const total = data.sessions + data.nightShifts;
+                return (
+                  <div
+                    key={inst.id}
+                    className="flex w-32 shrink-0 snap-start flex-col rounded-xl border border-neutral-200 bg-neutral-50/60 p-3 sm:w-auto dark:border-white/[0.06] dark:bg-white/[0.025]"
                   >
-                    <Phone className="w-2.5 h-2.5" />
-                    <span>{inst.phone}</span>
-                  </a>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+                    <div className="flex items-baseline justify-between gap-1">
+                      <span className="truncate text-xs font-semibold text-neutral-900 dark:text-white" title={inst.fullName}>
+                        {inst.fullName.split(' ')[0]}
+                      </span>
+                      <span className="font-mono text-sm font-semibold tabular-nums text-neutral-900 dark:text-white">{total}</span>
+                    </div>
+                    <div className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-neutral-200 dark:bg-white/[0.06]" aria-hidden>
+                      <span
+                        className="h-full bg-neutral-900 transition-[width] duration-500 ease-[var(--ease-soft)] dark:bg-white"
+                        style={{ width: `${(data.sessions / maxLoad) * 100}%` }}
+                      />
+                      <span
+                        className="h-full bg-amber-400 transition-[width] duration-500 ease-[var(--ease-soft)]"
+                        style={{ width: `${(data.nightShifts / maxLoad) * 100}%` }}
+                      />
+                    </div>
+                    <div className="mt-1.5 text-[10px] text-neutral-500">
+                      {data.sessions} sess · {data.nightShifts} night
+                    </div>
+                    {inst.phone && (
+                      <a
+                        href={`tel:${inst.phone.replace(/\s+/g, '')}`}
+                        className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-medium text-neutral-500 transition-colors hover:text-neutral-900 dark:hover:text-white"
+                        title={`Call ${inst.fullName}`}
+                      >
+                        <Phone className="size-2.5" />
+                        {inst.phone}
+                      </a>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+      </section>
 
-      {/* The 7-Day Planning Matrix */}
-      <div className="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#11192d]/50 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-4 h-4 text-emerald-600" />
-            <h3 className="font-bold text-slate-800 dark:text-slate-200 text-base">Weekly Schedule Matrix</h3>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              ({planningStartDate} to {weekDays[6]?.dateStr})
-            </span>
+      {/* The 7-Day Planning Matrix (overflow-clip, not hidden, so day headers can stick) */}
+      <div className="surface-card overflow-clip">
+        <div className="flex flex-col gap-2 border-b border-neutral-100 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between dark:border-white/[0.06]">
+          <div>
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-white">
+              <Calendar className="size-4 text-neutral-400" /> Week matrix
+            </h3>
+            <p className="mt-0.5 text-xs text-neutral-500">Tap + in a slot to assign. Morning and afternoon for the same class merge into a full day.</p>
           </div>
-          <div className="flex items-center space-x-3 text-xs text-slate-500 dark:text-slate-400">
-            <span className="flex items-center space-x-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-              <span>Morning (9-12)</span>
-            </span>
-            <span className="flex items-center space-x-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
-              <span>Afternoon (1-4)</span>
-            </span>
-            <span className="flex items-center space-x-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block"></span>
-              <span>Sunday CCS (4:30-5:30)</span>
-            </span>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-neutral-500">
+            <span className="flex items-center gap-1.5"><span className="h-3 w-[3px] rounded-full bg-emerald-500" /> Morning 9–12</span>
+            <span className="flex items-center gap-1.5"><span className="h-3 w-[3px] rounded-full bg-blue-500" /> Afternoon 1–4</span>
+            <span className="flex items-center gap-1.5"><span className="h-3 w-[3px] rounded-full bg-indigo-500" /> Sunday CCS 4:30–5:30</span>
           </div>
         </div>
 
         {/* Matrix Grid Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-7 divide-y md:divide-y-0 md:divide-x divide-slate-200 dark:divide-slate-800">
+        <div className="grid grid-cols-1 md:grid-cols-7 divide-y md:divide-y-0 md:divide-x divide-slate-200 dark:divide-white/[0.06]">
           {weekDays.map((day) => {
             const dayAssignments = dutyAssignments.filter((a) => a.dutyDate === day.dateStr);
             const nightShift = nightShifts.find((s) => s.shiftDate === day.dateStr);
@@ -952,24 +894,24 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
             return (
               <div
                 key={day.dateStr}
-                className={`flex flex-col min-h-[560px] ${
-                  day.isSunday ? 'bg-purple-50/30 dark:bg-purple-950/10' : 'bg-white dark:bg-[#0d1424]'
+                className={`flex flex-col md:min-h-[560px] ${
+                  day.isSunday ? 'bg-indigo-50/30 dark:bg-indigo-500/[0.03]' : ''
                 }`}
               >
                 {/* Day Header */}
                 <div
-                  className={`p-3 text-center border-b ${
+                  className={`sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-10 flex items-baseline justify-between gap-2 border-b px-3 py-2.5 backdrop-blur-xl md:static md:block md:text-center ${
                     day.isSunday
-                      ? 'bg-purple-100/60 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800/50 text-purple-900 dark:text-purple-300 font-bold'
-                      : 'bg-slate-50 dark:bg-[#11192d] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 font-bold'
+                      ? 'border-indigo-500/20 bg-indigo-50/90 text-indigo-900 md:bg-indigo-50/60 dark:bg-indigo-950/80 dark:text-indigo-200 dark:md:bg-indigo-500/[0.08]'
+                      : 'border-neutral-100 bg-white/90 text-neutral-900 md:bg-neutral-50 dark:border-white/[0.06] dark:bg-[#111111]/90 dark:text-white dark:md:bg-white/[0.02]'
                   }`}
                 >
-                  <div className="text-sm">{day.dayName}</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 font-normal">{day.formattedDate}</div>
+                  <div className="text-sm font-semibold">{day.dayName}</div>
+                  <div className="text-xs font-normal text-neutral-500">{day.formattedDate}</div>
                 </div>
 
                 {/* Slot 1: Morning (09:00 - 12:00) */}
-                <div className="p-2 border-b border-slate-200 dark:border-slate-800 flex-1">
+                <div className="p-2 border-b border-slate-200 dark:border-white/[0.08] flex-1">
                   <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
                     <span className="text-emerald-600 dark:text-emerald-400">09:00 - 12:00</span>
                     <button
@@ -1003,9 +945,9 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                         return (
                           <div
                             key={assignment.id}
-                            className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2.5 text-xs relative group shadow-2xs flex flex-col justify-between"
+                            className="relative group flex flex-col justify-between overflow-hidden rounded-lg border border-neutral-200 bg-white p-2.5 pl-3 text-xs shadow-2xs transition-[border-color,background-color] duration-200 hover:border-neutral-300 dark:border-white/[0.06] dark:bg-white/[0.03] dark:hover:border-white/[0.14] dark:hover:bg-white/[0.05] animate-rise-in before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-r-full before:bg-emerald-500"
                           >
-                            <div className="absolute top-1.5 right-1.5 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute top-1.5 right-1.5 flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity">
                               {!hasAfternoon && (
                                 <button
                                   type="button"
@@ -1034,11 +976,11 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                             </div>
 
                             <div>
-                              <div className="font-bold text-emerald-700 dark:text-emerald-300 truncate pr-12">
+                              <div className="font-semibold text-neutral-900 dark:text-white truncate pr-12">
                                 {assignment.instructorName}
                               </div>
                               {assignment.batchName && (
-                                <div className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-400 truncate">
+                                <div className="text-[11px] font-medium text-neutral-600 dark:text-neutral-300 truncate">
                                   {assignment.batchName}
                                 </div>
                               )}
@@ -1047,7 +989,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                               </div>
                               {assignment.notes && (
                                 <div
-                                  className="mt-0.5 inline-flex items-center gap-1 text-[9px] text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/80 px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700/60 max-w-full cursor-help"
+                                  className="mt-0.5 inline-flex items-center gap-1 text-[9px] text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/[0.06] px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700/60 max-w-full cursor-help"
                                   title={`Notes: ${assignment.notes}`}
                                 >
                                   <FileText className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -1079,7 +1021,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                 </div>
 
                 {/* Slot 2: Afternoon (13:00 - 16:00) */}
-                <div className="p-2 border-b border-slate-200 dark:border-slate-800 flex-1">
+                <div className="p-2 border-b border-slate-200 dark:border-white/[0.08] flex-1">
                   <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
                     <span className="text-blue-600 dark:text-blue-400">13:00 - 16:00</span>
                     <button
@@ -1113,9 +1055,9 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                         return (
                           <div
                             key={assignment.id}
-                            className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-2.5 text-xs relative group shadow-2xs flex flex-col justify-between"
+                            className="relative group flex flex-col justify-between overflow-hidden rounded-lg border border-neutral-200 bg-white p-2.5 pl-3 text-xs shadow-2xs transition-[border-color,background-color] duration-200 hover:border-neutral-300 dark:border-white/[0.06] dark:bg-white/[0.03] dark:hover:border-white/[0.14] dark:hover:bg-white/[0.05] animate-rise-in before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-r-full before:bg-blue-500"
                           >
-                            <div className="absolute top-1.5 right-1.5 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute top-1.5 right-1.5 flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity">
                               {!hasMorning && (
                                 <button
                                   type="button"
@@ -1144,11 +1086,11 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                             </div>
 
                             <div>
-                              <div className="font-bold text-blue-700 dark:text-blue-300 truncate pr-12">
+                              <div className="font-semibold text-neutral-900 dark:text-white truncate pr-12">
                                 {assignment.instructorName}
                               </div>
                               {assignment.batchName && (
-                                <div className="text-[11px] font-semibold text-blue-800 dark:text-blue-400 truncate">
+                                <div className="text-[11px] font-medium text-neutral-600 dark:text-neutral-300 truncate">
                                   {assignment.batchName}
                                 </div>
                               )}
@@ -1157,7 +1099,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                               </div>
                               {assignment.notes && (
                                 <div
-                                  className="mt-0.5 inline-flex items-center gap-1 text-[9px] text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/80 px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700/60 max-w-full cursor-help"
+                                  className="mt-0.5 inline-flex items-center gap-1 text-[9px] text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/[0.06] px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700/60 max-w-full cursor-help"
                                   title={`Notes: ${assignment.notes}`}
                                 >
                                   <FileText className="w-2.5 h-2.5 text-blue-600 dark:text-blue-400 shrink-0" />
@@ -1215,20 +1157,20 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                         .map((assignment) => (
                           <div
                             key={assignment.id}
-                            className="bg-purple-500/15 border border-purple-500/20 rounded-lg p-2 text-xs relative group shadow-2xs"
+                            className="relative group flex flex-col justify-between overflow-hidden rounded-lg border border-neutral-200 bg-white p-2.5 pl-3 text-xs shadow-2xs transition-[border-color,background-color] duration-200 hover:border-neutral-300 dark:border-white/[0.06] dark:bg-white/[0.03] dark:hover:border-white/[0.14] dark:hover:bg-white/[0.05] animate-rise-in before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-r-full before:bg-indigo-500"
                           >
                             <button
                               onClick={() => handleDeleteDuty(assignment.id)}
-                              className="absolute top-1 right-1 p-1 text-slate-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                              className="absolute top-1 right-1 p-1 text-slate-400 hover:text-rose-600 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity cursor-pointer"
                               title="Remove assignment"
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
-                            <div className="font-bold text-purple-700 dark:text-purple-300 truncate pr-3">
+                            <div className="font-semibold text-neutral-900 dark:text-white truncate pr-3">
                               {assignment.instructorName}
                             </div>
                             {assignment.batchName && (
-                              <div className="text-[11px] font-semibold text-purple-800 dark:text-purple-400 truncate">
+                              <div className="text-[11px] font-medium text-neutral-600 dark:text-neutral-300 truncate">
                                 {assignment.batchName}
                               </div>
                             )}
@@ -1237,7 +1179,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                             </div>
                             {assignment.notes && (
                               <div
-                                className="mt-0.5 inline-flex items-center gap-1 text-[9px] text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/80 px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700/60 max-w-full cursor-help"
+                                className="mt-0.5 inline-flex items-center gap-1 text-[9px] text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/[0.06] px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700/60 max-w-full cursor-help"
                                 title={`Notes: ${assignment.notes}`}
                               >
                                 <FileText className="w-2.5 h-2.5 text-purple-600 dark:text-purple-400 shrink-0" />
@@ -1256,7 +1198,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                 )}
 
                 {/* 7-Day Night Duty Row */}
-                <div className="p-2.5 bg-slate-50 dark:bg-[#11192d] text-slate-800 dark:text-white rounded-b-md mt-auto border-t border-slate-200 dark:border-slate-800">
+                <div className="p-2.5 bg-slate-50 dark:bg-[#141414] text-slate-800 dark:text-white rounded-b-md mt-auto border-t border-slate-200 dark:border-white/[0.08]">
                   <div className="flex items-center justify-between text-[10px] font-bold text-amber-600 dark:text-amber-300 mb-1.5 uppercase tracking-wider">
                     <span className="flex items-center space-x-1">
                       <Moon className="w-3 h-3" />
@@ -1267,7 +1209,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                   <select
                     value={nightShift?.instructorId || ''}
                     onChange={(e) => handleSetNightShift(day.dateStr, e.target.value)}
-                    className="w-full text-xs bg-white dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg px-2 py-1.5 focus:outline-none cursor-pointer"
+                    className="field w-full text-xs cursor-pointer"
                   >
                     <option value="">{nightShift ? 'Remove night duty...' : 'Select Instructor...'}</option>
                     {allInstructors.map((inst) => {
@@ -1277,7 +1219,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                           key={inst.id}
                           value={inst.id}
                           disabled={onLeave}
-                          className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                          className="bg-white dark:bg-neutral-900 text-slate-900 dark:text-white"
                         >
                           {inst.fullName} {onLeave ? '(On Leave)' : ''}
                         </option>
@@ -1293,9 +1235,9 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
 
       {/* Modal: Add Duty Assignment */}
       {modalOpen && modalData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
-          <div className="bg-white dark:bg-[#0d1424] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in sm:items-center sm:p-4">
+          <div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-neutral-200 bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl animate-sheet-up sm:rounded-2xl sm:p-6 sm:animate-pop-in dark:border-white/[0.08] dark:bg-[#141414]">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/[0.08]">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Assign {dutyType || 'Duty'}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -1326,7 +1268,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                 <select
                   value={instructorId}
                   onChange={(e) => setInstructorId(e.target.value)}
-                  className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 cursor-pointer"
+                  className="field w-full text-sm cursor-pointer"
                   required
                 >
                   <option value="">Select Instructor...</option>
@@ -1353,7 +1295,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                     placeholder="e.g. Teaching Duty or CGU Call Handling"
                     value={dutyType}
                     onChange={(e) => setDutyType(e.target.value)}
-                    className="flex-1 min-w-0 text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                    className="field flex-1 min-w-0 text-sm"
                     required
                   />
                   {dutyType.trim() &&
@@ -1363,7 +1305,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                         onClick={handleSaveDutyTypeInline}
                         disabled={catalogBusy}
                         title="Save this duty type to the catalog permanently"
-                        className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
+                        className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-100 dark:bg-white/[0.06] hover:bg-emerald-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Save</span>
@@ -1384,7 +1326,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                       className={`text-[11px] px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
                         dutyType.trim().toLowerCase() === dt.toLowerCase()
                           ? 'bg-emerald-600 text-white font-medium'
-                          : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                          : 'bg-slate-100 dark:bg-white/[0.06] hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300'
                       }`}
                     >
                       {dt}
@@ -1407,7 +1349,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                         placeholder="e.g. DSE 24.1F or CCS Batch"
                         value={batchName}
                         onChange={(e) => setBatchName(e.target.value)}
-                        className="flex-1 min-w-0 text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                        className="field flex-1 min-w-0 text-sm"
                         required
                       />
                       {batchName.trim() &&
@@ -1417,7 +1359,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                             onClick={handleSaveBatchInline}
                             disabled={catalogBusy}
                             title="Save this batch to the catalog permanently"
-                            className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
+                            className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-100 dark:bg-white/[0.06] hover:bg-emerald-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" />
                             <span>Save</span>
@@ -1435,7 +1377,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                           key={b}
                           type="button"
                           onClick={() => setBatchName(b)}
-                          className="text-[11px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+                          className="text-[11px] bg-slate-100 dark:bg-white/[0.06] hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
                         >
                           {b}
                         </button>
@@ -1455,7 +1397,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                         placeholder="e.g. Database Management Systems"
                         value={moduleName}
                         onChange={(e) => setModuleName(e.target.value)}
-                        className="flex-1 min-w-0 text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                        className="field flex-1 min-w-0 text-sm"
                         required
                       />
                       {moduleName.trim() &&
@@ -1465,7 +1407,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                             onClick={handleSaveModuleInline}
                             disabled={catalogBusy}
                             title="Save this module to the catalog permanently"
-                            className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
+                            className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-100 dark:bg-white/[0.06] hover:bg-emerald-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" />
                             <span>Save</span>
@@ -1483,7 +1425,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                           key={m}
                           type="button"
                           onClick={() => setModuleName(m)}
-                          className="text-[11px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md transition-colors truncate max-w-[200px] cursor-pointer"
+                          className="text-[11px] bg-slate-100 dark:bg-white/[0.06] hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md transition-colors truncate max-w-[200px] cursor-pointer"
                         >
                           {m}
                         </button>
@@ -1501,7 +1443,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                     onChange={(e) => setDutyNotes(e.target.value)}
                     placeholder={`e.g. ${dutyType === 'Lab Inspection' ? 'Quarterly check, Lab 03' : 'Fielding calls 9-12'}`}
                     rows={3}
-                    className="w-full text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 resize-none"
+                    className="field h-auto py-2.5 w-full text-sm resize-none"
                   />
                 </div>
               )}
@@ -1518,7 +1460,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                     placeholder="e.g. Lab 01"
                     value={roomLab}
                     onChange={(e) => setRoomLab(e.target.value)}
-                    className="flex-1 min-w-0 text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                    className="field flex-1 min-w-0 text-sm"
                   />
                   {roomLab.trim() &&
                     !catalog.rooms.some((r) => r.toLowerCase() === roomLab.trim().toLowerCase()) && (
@@ -1527,7 +1469,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                         onClick={handleSaveRoomInline}
                         disabled={catalogBusy}
                         title="Save this room/lab to the catalog permanently"
-                        className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
+                        className="shrink-0 flex items-center gap-1 text-[11px] font-bold bg-slate-100 dark:bg-white/[0.06] hover:bg-emerald-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 hover:text-white px-2.5 rounded-xl transition-colors cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Save</span>
@@ -1545,7 +1487,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                       key={r}
                       type="button"
                       onClick={() => setRoomLab(r)}
-                      className="text-[11px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+                      className="text-[11px] bg-slate-100 dark:bg-white/[0.06] hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
                     >
                       {r}
                     </button>
@@ -1593,18 +1535,18 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
               )}
 
               {/* Submit Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-200 dark:border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="h-9 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 rounded-xl transition-all cursor-pointer active:scale-95"
+                  className="h-9 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.08] px-4 rounded-xl transition-all cursor-pointer active:scale-95"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white px-5 rounded-xl transition-all shadow-sm cursor-pointer active:scale-95"
+                  className="btn btn-primary"
                 >
                   {isSubmitting ? 'Validating...' : 'Assign Slot'}
                 </button>
@@ -1616,14 +1558,14 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
 
       {/* WhatsApp Cadre Dispatcher Drawer */}
       {dispatchOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fade-in">
           <button
             aria-label="Close dispatch drawer"
             onClick={() => setDispatchOpen(false)}
             className="absolute inset-0 cursor-default"
           />
-          <div className="relative bg-white dark:bg-[#0d1424] w-full max-w-md h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col animate-in slide-in-from-right duration-200">
-            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-[#075E54] text-white">
+          <div className="relative bg-white dark:bg-[#111111] w-full max-w-md h-full shadow-2xl border-l border-slate-200 dark:border-white/[0.08] flex flex-col animate-drawer-in">
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-white/[0.08] bg-[#075E54] text-white">
               <div>
                 <div className="flex items-center space-x-2 text-emerald-200 text-xs font-bold uppercase tracking-wider">
                   <MessageCircle className="w-3.5 h-3.5" />
@@ -1640,7 +1582,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
               </button>
             </div>
 
-            <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#11192d]/60">
+            <div className="p-5 border-b border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#141414]/60">
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
                 Copy a single formatted summary of the entire week&apos;s roster for posting to the NIBM Faculty WhatsApp group.
               </p>
@@ -1657,7 +1599,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-200 dark:divide-slate-800">
+            <div className="flex-1 overflow-y-auto divide-y divide-slate-200 dark:divide-white/[0.06]">
               {allInstructors.map((inst) => {
                 const link = getWhatsAppLink(inst);
                 const entries = getInstructorWeekEntries(inst.id);
@@ -1696,14 +1638,14 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
 
       {/* Academic Catalog Manager Modal */}
       {catalogModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
           <button
             aria-label="Close catalog manager"
             onClick={() => setCatalogModalOpen(false)}
             className="absolute inset-0 cursor-default"
           />
-          <div className="relative bg-white dark:bg-[#0d1424] rounded-2xl max-w-6xl w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+          <div className="surface-card relative max-w-6xl w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl animate-pop-in">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/[0.08]">
               <div>
                 <div className="flex items-center space-x-2 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
                   <LibraryBig className="w-3.5 h-3.5" />
@@ -1741,12 +1683,12 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                     value={newBatchName}
                     onChange={(e) => setNewBatchName(e.target.value)}
                     placeholder="e.g. DSE 24.2F"
-                    className="flex-1 min-w-0 text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                    className="field flex-1 min-w-0 text-sm"
                   />
                   <button
                     type="submit"
                     disabled={catalogBusy || !newBatchName.trim()}
-                    className="shrink-0 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg transition-colors cursor-pointer active:scale-95"
+                    className="btn btn-primary btn-sm shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -1759,7 +1701,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                       editingCatalogItem?.kind === 'batch' && editingCatalogItem.original === b ? (
                         <div
                           key={b}
-                          className="flex items-center justify-between gap-1.5 bg-slate-100 dark:bg-slate-800/60 border border-emerald-500/60 rounded-lg px-2.5 py-1.5"
+                          className="flex items-center justify-between gap-1.5 bg-slate-100 dark:bg-white/[0.05] border border-emerald-500/60 rounded-lg px-2.5 py-1.5"
                         >
                           <input
                             type="text"
@@ -1770,7 +1712,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                               if (e.key === 'Escape') handleCancelEditCatalogItem();
                             }}
                             autoFocus
-                            className="flex-1 min-w-0 text-xs bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded px-2 py-1 focus:outline-none"
+                            className="field flex-1 min-w-0 text-xs"
                           />
                           <button
                             onClick={handleSaveEditCatalogItem}
@@ -1792,7 +1734,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                       ) : (
                         <div
                           key={b}
-                          className="flex items-center justify-between bg-slate-50 dark:bg-[#11192d] border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5"
+                          className="flex items-center justify-between bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-white/[0.08] rounded-lg px-2.5 py-1.5"
                         >
                           <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{b}</span>
                           <div className="flex items-center gap-2 ml-2 shrink-0">
@@ -1831,12 +1773,12 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                     value={newRoomName}
                     onChange={(e) => setNewRoomName(e.target.value)}
                     placeholder="e.g. Lab 05"
-                    className="flex-1 min-w-0 text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                    className="field flex-1 min-w-0 text-sm"
                   />
                   <button
                     type="submit"
                     disabled={catalogBusy || !newRoomName.trim()}
-                    className="shrink-0 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg transition-colors cursor-pointer active:scale-95"
+                    className="btn btn-primary btn-sm shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -1849,7 +1791,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                       editingCatalogItem?.kind === 'room' && editingCatalogItem.original === r ? (
                         <div
                           key={r}
-                          className="flex items-center justify-between gap-1.5 bg-slate-100 dark:bg-slate-800/60 border border-emerald-500/60 rounded-lg px-2.5 py-1.5"
+                          className="flex items-center justify-between gap-1.5 bg-slate-100 dark:bg-white/[0.05] border border-emerald-500/60 rounded-lg px-2.5 py-1.5"
                         >
                           <input
                             type="text"
@@ -1860,7 +1802,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                               if (e.key === 'Escape') handleCancelEditCatalogItem();
                             }}
                             autoFocus
-                            className="flex-1 min-w-0 text-xs bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded px-2 py-1 focus:outline-none"
+                            className="field flex-1 min-w-0 text-xs"
                           />
                           <button
                             onClick={handleSaveEditCatalogItem}
@@ -1882,7 +1824,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                       ) : (
                         <div
                           key={r}
-                          className="flex items-center justify-between bg-slate-50 dark:bg-[#11192d] border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5"
+                          className="flex items-center justify-between bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-white/[0.08] rounded-lg px-2.5 py-1.5"
                         >
                           <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{r}</span>
                           <div className="flex items-center gap-2 ml-2 shrink-0">
@@ -1921,12 +1863,12 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                     value={newModuleName}
                     onChange={(e) => setNewModuleName(e.target.value)}
                     placeholder="e.g. Cloud Computing Essentials"
-                    className="flex-1 min-w-0 text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                    className="field flex-1 min-w-0 text-sm"
                   />
                   <button
                     type="submit"
                     disabled={catalogBusy || !newModuleName.trim()}
-                    className="shrink-0 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg transition-colors cursor-pointer active:scale-95"
+                    className="btn btn-primary btn-sm shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -1939,7 +1881,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                       editingCatalogItem?.kind === 'module' && editingCatalogItem.original === m ? (
                         <div
                           key={m}
-                          className="flex items-center justify-between gap-1.5 bg-slate-100 dark:bg-slate-800/60 border border-emerald-500/60 rounded-lg px-2.5 py-1.5"
+                          className="flex items-center justify-between gap-1.5 bg-slate-100 dark:bg-white/[0.05] border border-emerald-500/60 rounded-lg px-2.5 py-1.5"
                         >
                           <input
                             type="text"
@@ -1950,7 +1892,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                               if (e.key === 'Escape') handleCancelEditCatalogItem();
                             }}
                             autoFocus
-                            className="flex-1 min-w-0 text-xs bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded px-2 py-1 focus:outline-none"
+                            className="field flex-1 min-w-0 text-xs"
                           />
                           <button
                             onClick={handleSaveEditCatalogItem}
@@ -1972,7 +1914,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                       ) : (
                         <div
                           key={m}
-                          className="flex items-center justify-between bg-slate-50 dark:bg-[#11192d] border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5"
+                          className="flex items-center justify-between bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-white/[0.08] rounded-lg px-2.5 py-1.5"
                         >
                           <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{m}</span>
                           <div className="flex items-center gap-2 ml-2 shrink-0">
@@ -2011,12 +1953,12 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                     value={newDutyTypeName}
                     onChange={(e) => setNewDutyTypeName(e.target.value)}
                     placeholder="e.g. Exam Invigilation"
-                    className="flex-1 min-w-0 text-sm bg-slate-50 dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                    className="field flex-1 min-w-0 text-sm"
                   />
                   <button
                     type="submit"
                     disabled={catalogBusy || !newDutyTypeName.trim()}
-                    className="shrink-0 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg transition-colors cursor-pointer active:scale-95"
+                    className="btn btn-primary btn-sm shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -2029,7 +1971,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                       editingCatalogItem?.kind === 'dutyType' && editingCatalogItem.original === dt ? (
                         <div
                           key={dt}
-                          className="flex items-center justify-between gap-1.5 bg-slate-100 dark:bg-slate-800/60 border border-emerald-500/60 rounded-lg px-2.5 py-1.5"
+                          className="flex items-center justify-between gap-1.5 bg-slate-100 dark:bg-white/[0.05] border border-emerald-500/60 rounded-lg px-2.5 py-1.5"
                         >
                           <input
                             type="text"
@@ -2040,7 +1982,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                               if (e.key === 'Escape') handleCancelEditCatalogItem();
                             }}
                             autoFocus
-                            className="flex-1 min-w-0 text-xs bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded px-2 py-1 focus:outline-none"
+                            className="field flex-1 min-w-0 text-xs"
                           />
                           <button
                             onClick={handleSaveEditCatalogItem}
@@ -2062,7 +2004,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                       ) : (
                         <div
                           key={dt}
-                          className="flex items-center justify-between bg-slate-50 dark:bg-[#11192d] border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5"
+                          className="flex items-center justify-between bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-white/[0.08] rounded-lg px-2.5 py-1.5"
                         >
                           <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{dt}</span>
                           <div className="flex items-center gap-2 ml-2 shrink-0">

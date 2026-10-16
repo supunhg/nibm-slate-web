@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import { User, LeaveRequest } from '@/types';
-import { Clock } from 'lucide-react';
+import { CalendarDays, Check, ClipboardCheck, Clock, Inbox, Loader2, MessageSquare, X } from 'lucide-react';
 import { reviewLeaveAction } from '@/lib/actions';
 import { formatApplicationDateTime } from '@/lib/roster-utils';
+import { PageHeader, StatusPill } from './ui/PageHeader';
+import { Segmented } from './ui/Segmented';
 
 interface LeaveManagementProps {
   currentUser: User;
@@ -12,26 +14,25 @@ interface LeaveManagementProps {
   onRefresh: () => void;
 }
 
-export const LeaveManagement: React.FC<LeaveManagementProps> = ({
-  currentUser,
-  leaveRequests,
-  onRefresh,
-}) => {
-  const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING');
+type Filter = 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED';
+
+const STATUS_TONE = { APPROVED: 'emerald', REJECTED: 'rose', PENDING: 'amber', CANCELLED: 'neutral' } as const;
+const STATUS_LABEL = { APPROVED: 'Approved', REJECTED: 'Declined', PENDING: 'Pending', CANCELLED: 'Cancelled' } as const;
+
+export const LeaveManagement: React.FC<LeaveManagementProps> = ({ currentUser, leaveRequests, onRefresh }) => {
+  const [filter, setFilter] = useState<Filter>('PENDING');
   const [actionId, setActionId] = useState<string | null>(null);
   const [comment, setComment] = useState<string>('');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [processing, setProcessing] = useState<'APPROVED' | 'REJECTED' | null>(null);
 
   const canApprove =
     currentUser.role === 'DEMONSTRATOR' || currentUser.role === 'EXECUTIVE' || currentUser.role === 'ADMIN';
 
-  const filteredRequests = leaveRequests.filter((l) => {
-    if (filter === 'ALL') return true;
-    return l.status === filter;
-  });
+  const count = (st: Filter) => leaveRequests.filter((l) => (st === 'ALL' ? true : l.status === st)).length;
+  const filteredRequests = leaveRequests.filter((l) => filter === 'ALL' || l.status === filter);
 
   const handleReview = async (leaveId: string, status: 'APPROVED' | 'REJECTED') => {
-    setIsProcessing(true);
+    setProcessing(status);
     try {
       await reviewLeaveAction(leaveId, status, comment.trim());
       setActionId(null);
@@ -40,171 +41,142 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({
     } catch (err) {
       console.error('Error updating leave status:', err);
     } finally {
-      setIsProcessing(false);
+      setProcessing(null);
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-white dark:bg-[#0d1424] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center space-x-2 text-amber-600 dark:text-amber-400 text-sm font-semibold mb-1">
-              <Clock className="w-4 h-4" />
-              <span>Leave & Absence Authority</span>
-            </div>
-            <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-              Leave Management & Review
-            </h2>
-          </div>
+      <PageHeader
+        eyebrow={<><ClipboardCheck className="size-3" /> Leave</>}
+        title="Leave approvals"
+        description={
+          canApprove
+            ? 'Review leave requests. Approved leave automatically blocks duty and night-shift assignment.'
+            : 'You can view leave requests, but your role cannot approve or decline them.'
+        }
+      />
 
-          {/* Current Reviewer Identity Badge */}
-          <div className="bg-slate-50 dark:bg-[#11192d] p-3 rounded-xl border border-slate-200 dark:border-slate-700/80 text-right">
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">
-              Reviewing Authority
-            </span>
-            <span className="text-sm font-bold text-amber-700 dark:text-amber-300">
-              {currentUser.fullName} ({currentUser.role})
-            </span>
-            {!canApprove && (
-              <span className="text-[10px] text-rose-500 dark:text-rose-400 block mt-0.5">
-                (View-only: your role cannot approve or reject leave requests)
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Filter Pills */}
-        <div className="flex items-center flex-wrap gap-2 mt-6 pt-4 border-t border-slate-200 dark:border-slate-800/80 text-xs">
-          <span className="text-slate-500 dark:text-slate-400 font-medium mr-2">Filter by Status:</span>
-          {(['PENDING', 'APPROVED', 'REJECTED', 'ALL'] as const).map((st) => (
-            <button
-              key={st}
-              onClick={() => setFilter(st)}
-              className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer active:scale-95 ${
-                filter === st
-                  ? 'bg-amber-500 text-slate-950 shadow-sm'
-                  : 'bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
-              }`}
-            >
-              {st} ({leaveRequests.filter((l) => (st === 'ALL' ? true : l.status === st)).length})
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Segmented<Filter>
+          label="Filter by status"
+          value={filter}
+          onChange={(v) => {
+            setFilter(v);
+            setActionId(null);
+          }}
+          options={(['PENDING', 'APPROVED', 'REJECTED', 'ALL'] as const).map((st) => ({
+            value: st,
+            label: (
+              <>
+                {st === 'ALL' ? 'All' : STATUS_LABEL[st]}
+                <span className="font-mono text-[10px] tabular-nums text-neutral-400">{count(st)}</span>
+              </>
+            ),
+          }))}
+        />
+        <span className="text-xs text-neutral-500">Newest first</span>
       </div>
 
-      {/* Leave Requests Table / Cards */}
-      <div className="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#11192d]/50 flex items-center justify-between">
-          <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
-            Applications Record ({filteredRequests.length})
-          </h3>
-          <span className="text-xs text-slate-500 dark:text-slate-400">Sorted by submission date</span>
-        </div>
-
-        {filteredRequests.length === 0 ? (
-          <div className="text-center py-16 text-slate-400 dark:text-slate-500 text-sm">
-            No leave requests found for the selected filter.
+      {filteredRequests.length === 0 ? (
+        <div className="surface-card flex flex-col items-center px-6 py-16 text-center">
+          <div className="flex size-12 animate-pop-in items-center justify-center rounded-full bg-neutral-100 text-neutral-400 dark:bg-white/[0.05]">
+            <Inbox className="size-5" />
           </div>
-        ) : (
-          <div className="divide-y divide-slate-200 dark:divide-slate-800">
-            {filteredRequests.map((leave) => (
-              <div key={leave.id} className="p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-center space-x-3">
-                      <span className="font-bold text-slate-900 dark:text-slate-100 text-base">{leave.instructorName}</span>
-                      <span
-                        className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase border ${
-                          leave.status === 'APPROVED'
-                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                            : leave.status === 'REJECTED'
-                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/20'
-                            : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20 animate-pulse'
-                        }`}
-                      >
-                        {leave.status}
+          <p className="mt-3 text-sm font-medium text-neutral-900 dark:text-white">
+            {filter === 'PENDING' ? 'All caught up' : 'Nothing here'}
+          </p>
+          <p className="mt-1 text-xs text-neutral-500">
+            {filter === 'PENDING' ? 'There are no leave requests waiting for review.' : 'No leave requests match this filter.'}
+          </p>
+        </div>
+      ) : (
+        <ul key={filter} className="space-y-2.5 stagger-children">
+          {filteredRequests.map((leave) => {
+            const reviewing = actionId === leave.id;
+            return (
+              <li key={leave.id} className="surface-card p-4 sm:p-5">
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-base font-semibold text-neutral-900 dark:text-white">{leave.instructorName}</span>
+                      <StatusPill tone={STATUS_TONE[leave.status]} pulse={leave.status === 'PENDING'}>
+                        {STATUS_LABEL[leave.status]}
+                      </StatusPill>
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-500">
+                      <span className="flex items-center gap-1.5">
+                        <CalendarDays className="size-3.5" />
+                        <span className="font-mono font-medium text-neutral-800 dark:text-neutral-200">
+                          {leave.startDate}
+                          {leave.startDate !== leave.endDate && ` → ${leave.endDate}`}
+                        </span>
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="size-3.5" />
+                        Applied {formatApplicationDateTime(leave.appliedAt || leave.createdAt)}
                       </span>
                     </div>
-
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      <span>
-                        Dates:{' '}
-                        <strong className="text-slate-800 dark:text-slate-200">
-                          {leave.startDate} {leave.startDate !== leave.endDate && `to ${leave.endDate}`}
-                        </strong>
-                      </span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
-                        <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                        <span>Applied: <strong>{formatApplicationDateTime(leave.appliedAt || leave.createdAt)}</strong></span>
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-700 dark:text-slate-300 mt-2 bg-slate-100 dark:bg-slate-800/70 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/60 inline-block max-w-xl">
-                      <strong>Reason:</strong> {leave.reason}
-                    </p>
-
+                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">{leave.reason}</p>
                     {leave.reviewedByName && (
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-2">
-                        Reviewed by <strong className="text-slate-700 dark:text-slate-300">{leave.reviewedByName}</strong>:{' '}
-                        <span className="italic">&ldquo;{leave.reviewComment}&rdquo;</span>
-                      </div>
+                      <p className="mt-2 flex items-start gap-1.5 text-xs text-neutral-500">
+                        <MessageSquare className="mt-0.5 size-3.5 shrink-0" />
+                        <span>
+                          <span className="font-medium text-neutral-700 dark:text-neutral-300">{leave.reviewedByName}</span>
+                          {leave.reviewComment ? <>: &ldquo;{leave.reviewComment}&rdquo;</> : ' reviewed this request'}
+                        </span>
+                      </p>
                     )}
                   </div>
 
-                  {/* Actions if Pending and user is Authorized */}
-                  {leave.status === 'PENDING' && canApprove && (
-                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
-                      {actionId === leave.id ? (
-                        <div className="flex flex-col gap-2 bg-slate-50 dark:bg-[#11192d] p-3 rounded-xl border border-slate-200 dark:border-slate-700">
-                          <input
-                            type="text"
-                            placeholder="Optional feedback notes..."
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
-                            className="text-xs bg-white dark:bg-[#080b12] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                          />
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => setActionId(null)}
-                              className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 px-2 py-1 cursor-pointer active:scale-95"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              disabled={isProcessing}
-                              onClick={() => handleReview(leave.id, 'REJECTED')}
-                              className="text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-500/15 px-3 py-1.5 rounded-lg border border-rose-500/20 transition-all cursor-pointer active:scale-95"
-                            >
-                              Decline
-                            </button>
-                            <button
-                              disabled={isProcessing}
-                              onClick={() => handleReview(leave.id, 'APPROVED')}
-                              className="text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg transition-all shadow-xs cursor-pointer active:scale-95"
-                            >
-                              Approve
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setActionId(leave.id)}
-                          className="text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-all cursor-pointer active:scale-95"
-                        >
-                          Review Application
-                        </button>
-                      )}
+                  {leave.status === 'PENDING' && canApprove && !reviewing && (
+                    <div className="flex shrink-0 gap-2">
+                      <button onClick={() => setActionId(leave.id)} className="btn btn-secondary">
+                        Review
+                      </button>
                     </div>
                   )}
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+
+                {leave.status === 'PENDING' && canApprove && (
+                  <div className="collapse-panel" data-open={reviewing || undefined} inert={!reviewing}>
+                    <div className="collapse-inner">
+                      <div className="mt-4 flex flex-col gap-2 border-t border-neutral-100 pt-4 sm:flex-row sm:items-center dark:border-white/[0.06]">
+                        <input
+                          type="text"
+                          placeholder="Add a note for the instructor (optional)"
+                          value={reviewing ? comment : ''}
+                          onChange={(e) => setComment(e.target.value)}
+                          className="field h-9 flex-1 text-sm"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setActionId(null);
+                              setComment('');
+                            }}
+                            className="btn btn-ghost"
+                          >
+                            Cancel
+                          </button>
+                          <button disabled={!!processing} onClick={() => handleReview(leave.id, 'REJECTED')} className="btn btn-danger">
+                            {processing === 'REJECTED' ? <Loader2 className="animate-spin" /> : <X />}
+                            Decline
+                          </button>
+                          <button disabled={!!processing} onClick={() => handleReview(leave.id, 'APPROVED')} className="btn btn-primary">
+                            {processing === 'APPROVED' ? <Loader2 className="animate-spin" /> : <Check />}
+                            Approve
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 };

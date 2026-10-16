@@ -69,6 +69,25 @@ jobs:
           cd mobile
           npm ci
 
+      - name: Stamp app version from the build number
+        # Every build gets a strictly increasing version (major.minor from
+        # app.json, patch = workflow run number) so installed apps can tell a
+        # newer APK exists. The same values go into version.json for the
+        # in-app update prompt (served by /api/mobile/version).
+        run: |
+          cd mobile
+          node -e "
+            const fs = require('fs');
+            const cfg = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+            const [major, minor] = cfg.expo.version.split('.');
+            const version = major + '.' + minor + '.' + process.env.GITHUB_RUN_NUMBER;
+            cfg.expo.version = version;
+            cfg.expo.android = { ...cfg.expo.android, versionCode: Number(process.env.GITHUB_RUN_NUMBER) };
+            fs.writeFileSync('app.json', JSON.stringify(cfg, null, 2));
+            console.log('Stamped version', version);
+          "
+          echo "APP_VERSION=$(node -p "require('./app.json').expo.version")" >> "$GITHUB_ENV"
+
       - name: Generate Native Android Project (Expo Prebuild)
         run: |
           cd mobile
@@ -147,16 +166,36 @@ jobs:
           *Note: Each rebuild automatically overwrites and updates this release package.*
           EOF
 
+          # Manifest read by the app's update prompt: version, build, and the
+          # recent mobile commit subjects as release notes.
+          NOTES_JSON=$(git log -8 --pretty=format:'%s' -- mobile | node -e "
+            const lines = require('fs').readFileSync(0, 'utf8').split('\n').filter(Boolean);
+            process.stdout.write(JSON.stringify(lines.map(l => l.replace(/^\w+(\([^)]*\))?!?:\s*/, ''))));
+          ")
+          cat <<JSON > version.json
+          {
+            "latestVersion": "$APP_VERSION",
+            "versionCode": ${{ github.run_number }},
+            "releaseName": "NIBM Slate v$APP_VERSION",
+            "releaseNotes": $NOTES_JSON,
+            "apkUrl": "https://github.com/${{ github.repository }}/releases/download/$TAG_NAME/nibm-slate.apk",
+            "releasePageUrl": "https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME",
+            "publishedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "minRequiredVersion": "1.0.0"
+          }
+          JSON
+          cat version.json
+
           if gh release view "$TAG_NAME" >/dev/null 2>&1; then
             echo "Release '$TAG_NAME' exists. Updating release notes and overwriting APK asset..."
-            gh release upload "$TAG_NAME" nibm-slate.apk --clobber
+            gh release upload "$TAG_NAME" nibm-slate.apk version.json --clobber
             gh release edit "$TAG_NAME" \
               --title "$TITLE" \
               --notes-file release_notes.md \
               --latest
           else
             echo "Release '$TAG_NAME' does not exist. Creating new release with APK asset..."
-            gh release create "$TAG_NAME" nibm-slate.apk \
+            gh release create "$TAG_NAME" nibm-slate.apk version.json \
               --title "$TITLE" \
               --notes-file release_notes.md \
               --latest

@@ -1,20 +1,20 @@
 export const colors = {
-  // Canvas & surfaces (Obsidian Velvet Theme)
-  background: '#080b12',
-  surface: '#0d1424',
-  surfaceElevated: '#131c33',
-  surfaceGlass: 'rgba(13, 20, 36, 0.88)',
+  // Canvas & surfaces: near-black and neutral, matching the web app
+  background: '#0a0a0a',
+  surface: '#0a0a0a',
+  surfaceElevated: '#1a1a1a',
+  surfaceGlass: 'rgba(10, 10, 10, 0.88)',
   surfaceHighlight: 'rgba(255, 255, 255, 0.05)',
-  surfaceActive: 'rgba(99, 102, 241, 0.12)',
+  surfaceActive: 'rgba(255, 255, 255, 0.08)',
 
-  card: '#11192d',
-  cardElevated: '#162038',
-  cardBorder: '#1e293b',
+  card: '#141414',
+  cardElevated: '#1a1a1a',
+  cardBorder: 'rgba(255, 255, 255, 0.08)',
   cardBorderSubtle: 'rgba(255, 255, 255, 0.07)',
   cardBorderHighlight: 'rgba(255, 255, 255, 0.12)',
-  cardBorderGlow: 'rgba(99, 102, 241, 0.3)',
+  cardBorderGlow: 'rgba(255, 255, 255, 0.18)',
 
-  border: '#1a243a',
+  border: 'rgba(255, 255, 255, 0.08)',
   divider: 'rgba(255, 255, 255, 0.06)',
 
   // Brand & accents
@@ -42,17 +42,17 @@ export const colors = {
   infoLight: 'rgba(59, 130, 246, 0.14)',
 
   // Typography
-  textPrimary: '#f8fafc',
-  textSecondary: '#94a3b8',
-  textMuted: '#64748b',
-  textInverse: '#080b12',
+  textPrimary: '#fafafa',
+  textSecondary: '#a3a3a3',
+  textMuted: '#737373',
+  textInverse: '#0a0a0a',
 
   // Duty types (Vibrant modern accents)
   dutyTeaching: '#38bdf8', // Sky Blue for Lecture
   dutyCgu: '#a78bfa',      // Soft Violet for Support
   dutyLab: '#34d399',      // Emerald for Practical Lab
   dutyExam: '#fbbf24',     // Amber for Exam Supervision
-  dutyDefault: '#94a3b8',
+  dutyDefault: '#a3a3a3',
 
   // Night duty
   nightBadge: '#a78bfa',

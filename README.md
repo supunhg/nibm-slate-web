@@ -21,7 +21,7 @@ SLATE provides real-time situational awareness across the 9-member academic inst
             ▼                                     ▼                                     ▼
 ┌───────────────────────────────┐   ┌───────────────────────────────┐   ┌───────────────────────────────┐
 │     Full-Fledged Web PWA      │   │   Mobile Companion (Expo SDK) │   │     Public Status Board       │
-│  - Zero-prompt auto-updates   │   │  - Standalone Android APK     │   │  - Zero-auth lobby kiosk      │
+│  - One-tap update prompt      │   │  - Standalone Android APK     │   │  - Zero-auth lobby kiosk      │
 │  - Offline cached shell       │   │  - Native push notifications  │   │  - 3-bucket situational view  │
 │  - iOS / Android standalone   │   │  - In-app APK updates         │   │  - Real-time auto-refresh     │
 └───────────────────────────────┘   └───────────────────────────────┘   └───────────────────────────────┘
@@ -56,7 +56,7 @@ SLATE provides real-time situational awareness across the 9-member academic inst
 - Ultra-clean, read-only display tailored for campus lobby TVs and staff room monitors showing who is teaching, free, on leave, and on night shift.
 
 ### 5. 📱 Progressive Web App (PWA) & Mobile Companion
-- **Silent Zero-Prompt Web Updates**: Every deployment automatically activates in the background via Service Worker (`public/sw.js`) with zero APK downloads or security warnings.
+- **One-Tap Web Updates**: Every deployment is detected (versioned service worker + `/api/version`) and users get an "Update available · Reload now" prompt that swaps to the new build in place.
 - **Offline Shell Resilience**: Cached assets enable instant startup even with intermittent campus Wi-Fi.
 - **Standalone Android Companion (`mobile/`)**: Native React Native / Expo application with automated GitHub Actions APK builds (`.github/workflows/build-apk.yml`) and push notification dispatching.
 

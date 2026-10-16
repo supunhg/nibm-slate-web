@@ -52,3 +52,8 @@
 - **Context**: Multi-agent workflows need a single, fast, deterministic verification signal to validate changes and self-heal before completing tasks.
 - **Decision**: Created `scripts/verify-all.ts` running ESLint, 35 Domain Invariants, 28 Mobile Endpoints, Mobile TypeScript Check, and Next.js Build sequentially in under 35 seconds.
 - **Status**: Bound to `npm run verify` in `package.json`.
+
+## ADR-00X: Prompted updates replace silent updates (Oct 2026)
+- **Context**: `public/sw.js` was byte-identical across deploys, so browsers never saw an update; the "silent" path effectively never ran and users stayed on stale builds. The Android update banner compared against a hard-coded server version while every APK shipped as 1.0.0, so it never cleared.
+- **Decision**: Register the worker as `/sw.js?v=<NEXT_PUBLIC_BUILD_ID>` with a per-version cache; new workers wait until the user taps "Reload now"; `/api/version` is polled on focus and every 5 min as a second signal. CI stamps the APK version as `<major>.<minor>.<run_number>` and publishes `version.json`, which `/api/mobile/version` serves to the app's update modal.
+- **Consequence**: Every web deploy and every APK build reaches users through a one-tap prompt.

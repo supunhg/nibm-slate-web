@@ -50,42 +50,43 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({ curr
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-dvh bg-neutral-50 dark:bg-[#0a0a0a] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+      <div className="animate-page-in">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm text-center">
-        <div className="mx-auto h-11 w-11 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200">
+        <div className="mx-auto flex size-12 items-center justify-center rounded-2xl border border-neutral-200 bg-white text-neutral-700 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-200">
           <Lock className="w-5 h-5" />
         </div>
-        <h1 className="mt-4 text-xl font-semibold text-white tracking-tight">Set a New Password</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="mt-5 text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white">Set a new password</h1>
+        <p className="mt-1.5 text-sm text-neutral-500">
           Hi {currentUser.fullName.split(' ')[0]}, this account was created with a temporary password. Choose a new one to continue.
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm px-4 sm:px-0">
-        <div className="bg-slate-900 py-7 px-6 shadow-sm rounded-xl border border-slate-800 space-y-5">
+        <div className="surface-card space-y-5 px-5 py-6 sm:px-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 bg-rose-950/40 border border-rose-900/60 rounded-lg text-rose-300 text-xs flex items-center space-x-2">
+              <div className="flex animate-pop-in items-center gap-2 rounded-xl border border-rose-500/25 bg-rose-500/10 p-3 text-xs text-rose-700 dark:text-rose-300">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                 <span>{error}</span>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Temporary Password</label>
+              <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">Temporary Password</label>
               <div className="relative">
                 <input
                   type={showCurrent ? 'text' : 'password'}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-3 pr-9 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="field h-11 w-full pr-11 text-base sm:text-sm"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrent((v) => !v)}
                   tabIndex={-1}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer"
+                  className="btn btn-ghost btn-icon absolute right-1 top-1/2 size-9 -translate-y-1/2"
                   title={showCurrent ? 'Hide password' : 'Show password'}
                 >
                   {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -94,21 +95,21 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({ curr
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">New Password</label>
+              <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">New Password</label>
               <div className="relative">
                 <input
                   type={showNew ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="At least 8 characters"
-                  className="w-full text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-3 pr-9 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 placeholder:text-slate-600"
+                  className="field h-11 w-full pr-11 text-base sm:text-sm"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowNew((v) => !v)}
                   tabIndex={-1}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer"
+                  className="btn btn-ghost btn-icon absolute right-1 top-1/2 size-9 -translate-y-1/2"
                   title={showNew ? 'Hide password' : 'Show password'}
                 >
                   {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -117,20 +118,20 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({ curr
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Confirm New Password</label>
+              <label className="mb-1.5 block text-xs font-medium text-neutral-700 dark:text-neutral-300">Confirm New Password</label>
               <div className="relative">
                 <input
                   type={showConfirm ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full text-sm bg-slate-950 border border-slate-700 text-white rounded-lg px-3 pr-9 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="field h-11 w-full pr-11 text-base sm:text-sm"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirm((v) => !v)}
                   tabIndex={-1}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer"
+                  className="btn btn-ghost btn-icon absolute right-1 top-1/2 size-9 -translate-y-1/2"
                   title={showConfirm ? 'Hide password' : 'Show password'}
                 >
                   {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -141,13 +142,14 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({ curr
             <button
               type="submit"
               disabled={busy}
-              className="w-full flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm py-2.5 px-4 rounded-lg transition-colors cursor-pointer"
+              className="btn btn-primary btn-lg w-full"
             >
-              <span>{busy ? 'Saving...' : 'Set Password & Continue'}</span>
+              <span>{busy ? 'Saving…' : 'Save and continue'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
         </div>
+      </div>
       </div>
     </div>
   );
