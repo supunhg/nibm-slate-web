@@ -17,9 +17,16 @@ export const WEB_PUSH_PREFIX = 'webpush:';
 
 const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
-const webPushReady = Boolean(VAPID_PUBLIC && VAPID_PRIVATE);
-if (webPushReady) {
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:admin@nibm.lk', VAPID_PUBLIC!, VAPID_PRIVATE!);
+// A malformed key must not take down every action that imports this module:
+// setVapidDetails throws on bad input, so treat that as "web push off".
+let webPushReady = false;
+if (VAPID_PUBLIC && VAPID_PRIVATE) {
+  try {
+    webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:admin@nibm.lk', VAPID_PUBLIC, VAPID_PRIVATE);
+    webPushReady = true;
+  } catch (err) {
+    console.error('[Push] Invalid VAPID configuration; web push disabled:', (err as Error).message);
+  }
 }
 
 export function isWebPushConfigured(): boolean {
