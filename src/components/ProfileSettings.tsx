@@ -91,15 +91,15 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
   // Define role access permissions for the overview card
   const rolePermissions: Record<User['role'], string[]> = {
     INSTRUCTOR: [
-      'Personal lecture & duty schedule access',
-      'Overnight campus caretaker rotation (Night Duty)',
-      'Self-service holiday & leave applications',
+      'Personal duty schedule',
+      'Night Duty rotation',
+      'Leave requests and withdrawals',
       '1-Click Calendar Sync (.ICS & Google Calendar)',
       'PWA offline caching & instant launch',
     ],
     DEMONSTRATOR: [
       'Flexible 7-Day Planning Studio (Any start date)',
-      'Cadre workload balancer & session duplicates',
+      'Workload balance and week cloning',
       'WhatsApp automated schedule dispatcher',
       'Academic catalog & lab management',
       'Weekly roster publishing authority',
@@ -108,7 +108,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
       'Live Operational Readiness Cockpit (3-Bucket View)',
       'Master 7-day academic cadre timetable',
       'Dual reviewing authority for leave approvals',
-      'Overnight caretaker monitoring & callouts',
+      'Night Duty oversight and callouts',
       'Governance & audit log review',
     ],
     ADMIN: [
@@ -294,7 +294,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentUser, o
                     <span>Web Push Alerts</span>
                   </div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Receive instant system alerts when Sunday roster is published or night shifts are assigned.
+                    Alerts on this device when the roster is published, your duties change, or leave is decided.
                   </p>
                 </div>
                 <div className="mt-3">

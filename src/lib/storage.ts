@@ -656,7 +656,7 @@ export async function addDutyAssignment(
   if (collision) {
     return {
       success: false,
-      error: `Double Booking: ${instructor?.fullName || 'Instructor'} is already assigned to a session at ${input.startTime} on ${input.dutyDate}.`,
+      error: `Double Booking: ${instructor?.fullName || 'Instructor'} already has a duty at ${input.startTime} on ${input.dutyDate}.`,
     };
   }
 
@@ -673,6 +673,26 @@ export async function addDutyAssignment(
     metadata: `${instructor?.fullName || ''}: ${dutyLabel} on ${input.dutyDate} (${input.startTime}-${input.endTime})`,
   });
   return { success: true, assignment: mapDuty(created) };
+}
+
+/** True when the date falls inside a Published Roster Week (changes there are corrections the Cadre must hear about). */
+export async function isDateInPublishedWeek(date: string): Promise<boolean> {
+  const week = await prisma.rosterWeek.findFirst({
+    where: { status: 'PUBLISHED', startDate: { lte: date }, endDate: { gte: date } },
+    select: { id: true },
+  });
+  return week !== null;
+}
+
+/** The duty as it was, so callers can notify after deleting it. */
+export async function getDutyAssignment(assignmentId: string): Promise<DutyAssignment | null> {
+  const a = await prisma.dutyAssignment.findUnique({ where: { id: assignmentId }, include: { instructor: true } });
+  return a ? mapDuty(a) : null;
+}
+
+export async function getNightShiftForDate(shiftDate: string): Promise<NightShift | null> {
+  const n = await prisma.nightShift.findUnique({ where: { shiftDate }, include: { instructor: true } });
+  return n ? mapNightShift(n) : null;
 }
 
 export async function deleteDutyAssignment(assignmentId: string, actorId?: string): Promise<boolean> {
@@ -905,29 +925,49 @@ export async function createLeaveRequest(
   startDate: string,
   endDate: string,
   reason: string,
-  appliedAt?: Date
+  appliedAt?: Date,
+  options: { notified?: boolean } = {}
 ): Promise<LeaveRequest> {
   const instructor = await getUserById(instructorId);
   const now = appliedAt || new Date();
+  // Notified Leave (GLOSSARY.md): a Demonstrator's own leave needs no review,
+  // so it is Approved the moment it is submitted.
+  const notified = options.notified === true;
   const created = await prisma.leaveRequest.create({
     data: {
       instructorId,
       startDate,
       endDate,
       reason,
-      status: 'PENDING',
+      status: notified ? 'APPROVED' : 'PENDING',
       appliedAt: now,
+      ...(notified ? { reviewedAt: now, reviewComment: 'Notified leave (no review needed)' } : {}),
     },
     include: { instructor: true, reviewedBy: true },
   });
 
-  await logAudit('LEAVE_REQUESTED', 'LeaveRequest', {
+  await logAudit(notified ? 'LEAVE_NOTIFIED' : 'LEAVE_REQUESTED', 'LeaveRequest', {
     userId: instructorId,
     targetId: created.id,
-    metadata: `${instructor?.fullName || ''} applied for leave on ${now.toISOString()} (${startDate} to ${endDate}): ${reason}`,
+    metadata: `${instructor?.fullName || ''} ${notified ? 'notified leave' : 'applied for leave'} on ${now.toISOString()} (${startDate} to ${endDate}): ${reason}`,
   });
   return mapLeave(created);
 }
+
+/** Duties and Night Duty the person already holds inside a date range (to warn about on approval/notice). */
+export async function getCommitmentsInRange(
+  instructorId: string,
+  startDate: string,
+  endDate: string
+): Promise<{ duties: number; nightDuties: number }> {
+  const [duties, nightDuties] = await Promise.all([
+    prisma.dutyAssignment.count({ where: { instructorId, dutyDate: { gte: startDate, lte: endDate } } }),
+    prisma.nightShift.count({ where: { instructorId, shiftDate: { gte: startDate, lte: endDate } } }),
+  ]);
+  return { duties, nightDuties };
+}
+
+export class LeaveRuleError extends Error {}
 
 export async function reviewLeaveRequest(
   leaveId: string,
@@ -936,14 +976,25 @@ export async function reviewLeaveRequest(
   reviewComment?: string
 ): Promise<LeaveRequest> {
   const reviewer = await getUserById(reviewerId);
-  const updated = await prisma.leaveRequest.update({
-    where: { id: leaveId },
+  // Guarded in the WHERE clause so two reviewers racing can't both decide it:
+  // only a Pending leave that isn't the reviewer's own can change.
+  const { count } = await prisma.leaveRequest.updateMany({
+    where: { id: leaveId, status: 'PENDING', instructorId: { not: reviewerId } },
     data: {
       status,
       reviewedById: reviewerId,
       reviewedAt: new Date(),
       reviewComment: reviewComment || (status === 'APPROVED' ? 'Approved' : 'Rejected'),
     },
+  });
+  if (count === 0) {
+    const existing = await prisma.leaveRequest.findUnique({ where: { id: leaveId } });
+    if (!existing) throw new LeaveRuleError('Leave request not found.');
+    if (existing.instructorId === reviewerId) throw new LeaveRuleError('You cannot review your own leave.');
+    throw new LeaveRuleError(`This leave has already been ${existing.status.toLowerCase()}.`);
+  }
+  const updated = await prisma.leaveRequest.findUniqueOrThrow({
+    where: { id: leaveId },
     include: { instructor: true, reviewedBy: true },
   });
 
@@ -953,6 +1004,41 @@ export async function reviewLeaveRequest(
     metadata: `${updated.instructor?.fullName || 'Instructor'}'s leave (${updated.startDate} to ${updated.endDate}) ${status.toLowerCase()} by ${reviewer?.fullName || 'Administrator'}: ${updated.reviewComment}`,
   });
   return mapLeave(updated);
+}
+
+/**
+ * Withdrawal (GLOSSARY.md): the applicant cancels their own Pending or
+ * upcoming/ongoing Approved leave. Leave that has already ended is history.
+ */
+export async function withdrawLeaveRequest(
+  leaveId: string,
+  actorId: string,
+  today: string
+): Promise<{ leave: LeaveRequest; wasApproved: boolean }> {
+  const existing = await prisma.leaveRequest.findUnique({ where: { id: leaveId } });
+  if (!existing) throw new LeaveRuleError('Leave request not found.');
+  if (existing.instructorId !== actorId) throw new LeaveRuleError('Only the applicant can withdraw this leave.');
+  if (existing.status !== 'PENDING' && existing.status !== 'APPROVED') {
+    throw new LeaveRuleError(`This leave is already ${existing.status.toLowerCase()}.`);
+  }
+  if (existing.endDate < today) throw new LeaveRuleError('This leave has already ended and cannot be withdrawn.');
+
+  const { count } = await prisma.leaveRequest.updateMany({
+    where: { id: leaveId, status: existing.status },
+    data: { status: 'CANCELLED' },
+  });
+  if (count === 0) throw new LeaveRuleError('This leave changed while you were withdrawing it. Refresh and try again.');
+
+  const updated = await prisma.leaveRequest.findUniqueOrThrow({
+    where: { id: leaveId },
+    include: { instructor: true, reviewedBy: true },
+  });
+  await logAudit('LEAVE_CANCELLED', 'LeaveRequest', {
+    userId: actorId,
+    targetId: leaveId,
+    metadata: `${updated.instructor?.fullName || 'Instructor'} withdrew leave (${updated.startDate} to ${updated.endDate}), previously ${existing.status.toLowerCase()}`,
+  });
+  return { leave: mapLeave(updated), wasApproved: existing.status === 'APPROVED' };
 }
 
 export async function cancelLeaveRequest(

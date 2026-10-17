@@ -29,6 +29,7 @@ import { WeeklyScheduleView } from '@/components/WeeklyScheduleView';
 import { AiCopilotDrawer } from './AiCopilotDrawer';
 import { formatApplicationDateTime } from '@/lib/roster-utils';
 import { PageHeader } from './ui/PageHeader';
+import { useDialog } from './DialogProvider';
 import { Select } from './ui/Select';
 import { Segmented } from './ui/Segmented';
 import { DatePicker } from './ui/DatePicker';
@@ -89,6 +90,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
   const [slotFilter, setSlotFilter] = useState<string>('ALL');
   const [report, setReport] = useState<ExecutiveStatusReport>(initialReport);
   const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const { notify } = useDialog();
 
   // AI Co-Pilot Drawer State
   const [aiDrawerOpen, setAiDrawerOpen] = useState(false);
@@ -171,12 +173,14 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
   const handleQuickReview = async (leaveId: string, status: 'APPROVED' | 'REJECTED') => {
     setReviewingId(leaveId);
     try {
-      await reviewLeaveAction(
+      const res = await reviewLeaveAction(
         leaveId,
         status,
-        status === 'APPROVED' ? 'Approved via Executive Cockpit' : 'Declined via Executive Cockpit'
+        status === 'APPROVED' ? 'Approved via Live Status' : 'Rejected via Live Status'
       );
       onRefresh();
+      if (!res.success) await notify({ title: 'Could not review', message: res.error, danger: true });
+      else if (res.warning) await notify({ title: 'Leave approved', message: res.warning });
       // Re-fetch report
       const updated = await getExecutiveReportAction(selectedDate, slotFilter);
       setReport(updated);
@@ -194,7 +198,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       <PageHeader
         eyebrow={<><Shield className="size-3" /> {currentUser.role === 'EXECUTIVE' ? 'Executive cockpit' : 'Live status'}</>}
         title="Daily readiness"
-        description="Who is teaching, who is free and who is away, slot by slot."
+        description="Who is teaching, who is free and who is away, one time block at a time."
         actions={
           <>
             {rosterWeek && (currentUser.role === 'EXECUTIVE' || currentUser.role === 'ADMIN' || currentUser.role === 'DEMONSTRATOR') && (
@@ -289,7 +293,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           <div>
             <div className="flex items-center space-x-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Night Shift Roster ({dayOfWeek} Night)
+                Night Duty ({dayOfWeek} Night)
               </span>
               <span className="text-[10px] bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-semibold border border-slate-200 dark:border-white/10">
                 7-Day Rotation
@@ -520,11 +524,11 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 Leave requests awaiting review ({pendingLeaves.length})
               </h3>
             </div>
-            <span className="hidden text-xs text-neutral-500 sm:inline">Approve or decline here</span>
+            <span className="hidden text-xs text-neutral-500 sm:inline">Approve or reject here</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {pendingLeaves.map((leave) => (
+            {pendingLeaves.filter((leave) => leave.instructorId !== currentUser.id).map((leave) => (
               <div
                 key={leave.id}
                 className="flex flex-col justify-between rounded-xl border border-neutral-200 bg-neutral-50/60 p-4 dark:border-white/[0.06] dark:bg-white/[0.025]"
@@ -552,7 +556,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                     className="btn btn-danger"
                   >
                     <X className="w-3.5 h-3.5" />
-                    <span>Decline</span>
+                    <span>Reject</span>
                   </button>
                   <button
                     disabled={reviewingId === leave.id}
@@ -560,7 +564,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                     className="btn btn-primary"
                   >
                     <Check className="w-3.5 h-3.5" />
-                    <span>Approve Leave</span>
+                    <span>Approve</span>
                   </button>
                 </div>
               </div>
