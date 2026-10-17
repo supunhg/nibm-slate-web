@@ -191,12 +191,13 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-neutral-200/80 bg-white/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl transition-colors dark:border-white/[0.06] dark:bg-[#0a0a0a]/80 print:hidden">
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+        {/* Three columns (brand | nav | account) so the nav pill is truly centred on desktop. */}
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6 md:grid md:grid-cols-[1fr_auto_1fr] lg:px-8">
           {/* Brand */}
           <button
             type="button"
             onClick={() => items[0] && onSelectTab(items[0].tab)}
-            className="pressable -ml-1 flex items-center gap-2.5 rounded-xl px-1 py-1"
+            className="pressable -ml-1 flex items-center gap-2.5 justify-self-start rounded-xl px-1 py-1"
             aria-label="SLATE home"
           >
             <AppLogo className="size-8 shrink-0" />
@@ -207,7 +208,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* Desktop navigation: segmented pill with a sliding indicator */}
-          <nav aria-label="Primary" className="ml-4 hidden min-w-0 flex-1 md:flex">
+          <nav aria-label="Primary" className="hidden min-w-0 justify-center md:flex">
             <div
               ref={navRef}
               className="no-scrollbar relative flex items-center gap-0.5 overflow-x-auto rounded-xl border border-neutral-200 bg-neutral-100/70 p-1 dark:border-white/[0.06] dark:bg-white/[0.03]"
@@ -247,7 +248,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </nav>
 
-          <div className="ml-auto flex items-center gap-1.5">
+          <div className="ml-auto flex items-center justify-end gap-1.5">
             {/* Live sync status */}
             {autoRefreshSeconds !== undefined && onChangeAutoRefreshSeconds && (
               <div className="relative" ref={syncRef}>
