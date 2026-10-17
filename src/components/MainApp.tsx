@@ -35,7 +35,7 @@ function defaultTabForRole(user: User | null): AppTab {
   if (!user) return 'planner';
   if (user.role === 'INSTRUCTOR') return 'instructor';
   if (user.role === 'EXECUTIVE') return 'executive';
-  if (user.role === 'ADMIN') return 'admin';
+  if (user.role === 'ADMIN') return 'executive'; // Live Status first; Staff & Access is one tap away
   return 'planner';
 }
 
