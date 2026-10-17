@@ -25,6 +25,7 @@ async function main() {
     deleteDutyAssignment,
     createLeaveRequest,
     reviewLeaveRequest,
+    withdrawLeaveRequest,
     setNightShift,
     getExecutiveStatus,
     getInstructors,
@@ -137,6 +138,38 @@ async function main() {
     const validNightShift = await setNightShift(week.id, testDate, inst3.id, 'Caretaker');
     createdNightShiftDates.push(testDate);
     assert(validNightShift.success === true, 'Night duty successfully assigned to available instructor');
+
+    // 4b. Leave review & withdrawal rules (GLOSSARY.md: Leave Reviewer, Notified Leave, Withdrawal).
+    // Uses its own far-future date so it can't interact with the fixtures above.
+    const ruleDate = '2031-01-15';
+    await prisma.leaveRequest.deleteMany({ where: { startDate: ruleDate } });
+    const demonstrator = instructors.find((i) => i.role === 'DEMONSTRATOR');
+    const otherReviewer = instructors.find((i) => i.role === 'DEMONSTRATOR' && i.id !== demonstrator?.id);
+    const plainInstructor = instructors.find((i) => i.role === 'INSTRUCTOR');
+    const rejects = async (fn: () => Promise<unknown>) => fn().then(() => false, () => true);
+
+    if (demonstrator && otherReviewer && plainInstructor) {
+      const notifiedLeave = await createLeaveRequest(demonstrator.id, ruleDate, ruleDate, 'Notified leave test', undefined, { notified: true });
+      createdLeaveIds.push(notifiedLeave.id);
+      assert(notifiedLeave.status === 'APPROVED', "A Demonstrator's notified leave is approved on submission");
+
+      const ownPending = await createLeaveRequest(otherReviewer.id, ruleDate, ruleDate, 'Self review test');
+      createdLeaveIds.push(ownPending.id);
+      assert(await rejects(() => reviewLeaveRequest(ownPending.id, 'APPROVED', otherReviewer.id)), 'Nobody can review their own leave');
+
+      const pending = await createLeaveRequest(plainInstructor.id, ruleDate, ruleDate, 'Re-review test');
+      createdLeaveIds.push(pending.id);
+      await reviewLeaveRequest(pending.id, 'APPROVED', demonstrator.id);
+      assert(await rejects(() => reviewLeaveRequest(pending.id, 'REJECTED', otherReviewer.id)), 'A decided leave cannot be re-decided');
+
+      assert(await rejects(() => withdrawLeaveRequest(pending.id, demonstrator.id, '2031-01-01')), 'Only the applicant can withdraw a leave');
+      assert(await rejects(() => withdrawLeaveRequest(pending.id, plainInstructor.id, '2031-02-01')), 'Leave that has already ended cannot be withdrawn');
+      const withdrawn = await withdrawLeaveRequest(pending.id, plainInstructor.id, '2031-01-01');
+      assert(withdrawn.leave.status === 'CANCELLED' && withdrawn.wasApproved, 'Applicant withdraws upcoming approved leave (becomes CANCELLED)');
+      assert(await rejects(() => withdrawLeaveRequest(pending.id, plainInstructor.id, '2031-01-01')), 'A cancelled leave cannot be withdrawn again');
+    } else {
+      assert(false, 'Leave rule tests need two Demonstrators and one Instructor in the cadre');
+    }
 
     // 5. Dr. Thisara's Mathematical Free Pool Calculation
     // On testDate:

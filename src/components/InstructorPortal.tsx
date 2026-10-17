@@ -28,8 +28,10 @@ import {
   Link2,
   Download,
   Info,
+  Loader2,
+  Undo2,
 } from 'lucide-react';
-import { submitLeaveAction } from '@/lib/actions';
+import { submitLeaveAction, withdrawLeaveAction } from '@/lib/actions';
 import { mergeDutyAssignments, formatApplicationDateTime } from '@/lib/roster-utils';
 import { useDialog } from './DialogProvider';
 import { DateRangePicker } from './ui/DatePicker';
@@ -50,8 +52,8 @@ interface InstructorPortalProps {
 export type InstructorSection = 'schedule' | 'applyLeave' | 'teamLeaves';
 
 const SECTION_COPY: Record<InstructorSection, { eyebrow: string; title?: string; description: string }> = {
-  schedule: { eyebrow: 'My schedule', description: 'Your lectures and night duty for the week.' },
-  applyLeave: { eyebrow: 'Leave', title: 'Apply for leave', description: 'Request time off. Approved leave blocks duty and night shifts automatically.' },
+  schedule: { eyebrow: 'My schedule', description: 'Your duties and Night Duty for the week.' },
+  applyLeave: { eyebrow: 'Leave', title: 'Apply for leave', description: 'Request time off. Approved leave blocks Duty and Night Duty automatically.' },
   teamLeaves: { eyebrow: 'Team', title: "Who's away", description: 'Approved leave across the cadre. Check coverage before you apply.' },
 };
 
@@ -65,7 +67,26 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
   onRefresh,
   section,
 }) => {
-  const { notify } = useDialog();
+  const { notify, confirm } = useDialog();
+  const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
+  // Withdrawal (GLOSSARY.md): own Pending or not-yet-ended Approved leave.
+  const handleWithdraw = async (leave: LeaveRequest) => {
+    const ok = await confirm({
+      title: 'Withdraw this leave?',
+      message: `${leave.startDate}${leave.startDate !== leave.endDate ? ` to ${leave.endDate}` : ''} will be cancelled${leave.status === 'APPROVED' ? ' and you become available for duty again' : ''}.`,
+      confirmLabel: 'Withdraw',
+      danger: true,
+    });
+    if (!ok) return;
+    setWithdrawingId(leave.id);
+    try {
+      const res = await withdrawLeaveAction(leave.id);
+      if (!res.success) await notify({ title: 'Could not withdraw', message: res.error, danger: true });
+      onRefresh();
+    } finally {
+      setWithdrawingId(null);
+    }
+  };
   // The "instructors" account is the one shared kiosk login used by
   // whoever's physically at the terminal; every other account here belongs
   // to one real person, so the header shouldn't call it a shared terminal.
@@ -149,7 +170,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
   // 1-Click direct add to Google Calendar for a night duty (All-day date event, no fixed time)
   const getGoogleCalendarNightShiftUrl = (shift: NightShift): string => {
     const summary = '🌙 Night Duty';
-    const details = [shift.notes, 'NIBM Night Duty / Caretaker Shift', 'NIBM Instructor Roster'].filter(Boolean).join('\n');
+    const details = [shift.notes, 'NIBM Night Duty', 'NIBM Instructor Roster'].filter(Boolean).join('\n');
     const startDateFormatted = shift.shiftDate.replace(/-/g, '');
     const d = new Date(`${shift.shiftDate}T00:00:00Z`);
     d.setUTCDate(d.getUTCDate() + 1);
@@ -227,7 +248,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
       await submitLeaveAction(currentUser.id, startDate, end, reason.trim());
       const appliedTimeStr = formatApplicationDateTime(new Date().toISOString());
       setSuccessMessage(
-        `Holiday application submitted on ${appliedTimeStr}! It is now logged and awaiting review in the Leave Approvals queue.`
+        `Leave request submitted on ${appliedTimeStr}! It is now logged and awaiting review in the Leave Approvals queue.`
       );
       setReason('');
       setStartDate('');
@@ -321,7 +342,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                       Google Calendar refreshes subscribed URL calendars automatically every 8–24 hours.
                     </p>
                     <p className="leading-relaxed mt-1 text-slate-500 dark:text-slate-400">
-                      For an <span className="text-emerald-600 dark:text-emerald-400 font-semibold">immediate update</span>, click <span className="font-semibold text-blue-600 dark:text-blue-300">+ Google Cal</span> / <span className="font-semibold text-blue-600 dark:text-blue-300">+ Cal</span> on any session below or use <span className="font-semibold text-slate-700 dark:text-slate-200">Download .ics</span> to import directly.
+                      For an <span className="text-emerald-600 dark:text-emerald-400 font-semibold">immediate update</span>, click <span className="font-semibold text-blue-600 dark:text-blue-300">+ Google Cal</span> / <span className="font-semibold text-blue-600 dark:text-blue-300">+ Cal</span> on any duty below or use <span className="font-semibold text-slate-700 dark:text-slate-200">Download .ics</span> to import directly.
                     </p>
                   </div>
                 </div>
@@ -337,7 +358,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
       {/* SUBTAB 1: ASSIGNED TASKS & SCHEDULE */}
       {activeSubTab === 'schedule' && (
         <div className="space-y-6 animate-page-in">
-          {/* 7-Day Night Duty Roster Banner */}
+          {/* Night Duty this week Banner */}
           <div className="surface-card p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2.5">
@@ -345,7 +366,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                   <Moon className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-slate-900 dark:text-white">7-Day Night Duty Roster</h4>
+                  <h4 className="font-semibold text-sm text-slate-900 dark:text-white">Night Duty this week</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     Week of {rosterWeek.startDate} to {rosterWeek.endDate}
                   </p>
@@ -408,7 +429,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
               <div className="flex items-center space-x-2">
                 <Calendar className="w-5 h-5 text-purple-600" />
                 <h3 className="font-semibold text-neutral-900 dark:text-white text-sm sm:text-base">
-                  Teaching Duties & Lab Sessions ({displayedAssignments.length})
+                  Your duties ({displayedAssignments.length})
                 </h3>
               </div>
               <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -493,7 +514,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn btn-secondary btn-sm h-7 shrink-0"
-                        title="Instantly add this session to your personal Google Calendar"
+                        title="Add this duty to your Google Calendar"
                       >
                         <CalendarPlus className="w-3 h-3" />
                         <span>+ Google Cal</span>
@@ -613,7 +634,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                         tone={leave.status === 'APPROVED' ? 'emerald' : leave.status === 'REJECTED' ? 'rose' : leave.status === 'PENDING' ? 'amber' : 'neutral'}
                         pulse={leave.status === 'PENDING'}
                       >
-                        {leave.status === 'REJECTED' ? 'Declined' : leave.status.charAt(0) + leave.status.slice(1).toLowerCase()}
+                        {leave.status === 'REJECTED' ? 'Rejected' : leave.status.charAt(0) + leave.status.slice(1).toLowerCase()}
                       </StatusPill>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-slate-500 dark:text-slate-400">
@@ -630,6 +651,19 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                         Reviewed by <strong className="text-slate-700 dark:text-slate-300">{leave.reviewedByName}</strong>: &ldquo;{leave.reviewComment}&rdquo;
                       </div>
                     )}
+                    {leave.instructorId === currentUser.id &&
+                      (leave.status === 'PENDING' || leave.status === 'APPROVED') &&
+                      leave.endDate >= todayYmd() && (
+                        <button
+                          type="button"
+                          onClick={() => handleWithdraw(leave)}
+                          disabled={withdrawingId === leave.id}
+                          className="btn btn-secondary btn-sm mt-2.5 w-full"
+                        >
+                          {withdrawingId === leave.id ? <Loader2 className="animate-spin" /> : <Undo2 />}
+                          Withdraw
+                        </button>
+                      )}
                   </div>
                 ))
               )}

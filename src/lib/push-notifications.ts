@@ -1,6 +1,65 @@
 import 'server-only';
+import webpush from 'web-push';
 import { getPushTokensForUsers, removeInvalidPushTokens, getAllUsers } from './storage';
 import { Role } from '@/types';
+
+// ---------------------------------------------------------------------------
+// Two delivery channels share the PushToken table:
+//  - Expo tokens ("ExponentPushToken[...]") reach the Android app.
+//  - Web Push subscriptions, stored as "webpush:" + subscription JSON, reach
+//    the installed PWA / browser. Sending these needs a VAPID key pair: the
+//    public key is given to the browser when it subscribes, the private key
+//    signs every message so the browser's push service (Google, Apple,
+//    Mozilla) knows it really comes from this server. Without the keys the
+//    web channel is silently skipped and only the Android app is notified.
+// ---------------------------------------------------------------------------
+export const WEB_PUSH_PREFIX = 'webpush:';
+
+const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
+// A malformed key must not take down every action that imports this module:
+// setVapidDetails throws on bad input, so treat that as "web push off".
+let webPushReady = false;
+if (VAPID_PUBLIC && VAPID_PRIVATE) {
+  try {
+    webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:admin@nibm.lk', VAPID_PUBLIC, VAPID_PRIVATE);
+    webPushReady = true;
+  } catch (err) {
+    console.error('[Push] Invalid VAPID configuration; web push disabled:', (err as Error).message);
+  }
+}
+
+export function isWebPushConfigured(): boolean {
+  return webPushReady;
+}
+
+async function sendWebPushNotifications(tokens: string[], payload: PushMessagePayload): Promise<number> {
+  if (!webPushReady || tokens.length === 0) return 0;
+  const body = JSON.stringify({
+    title: payload.title,
+    body: payload.body,
+    tag: typeof payload.data?.type === 'string' ? payload.data.type : undefined,
+    data: { url: '/', ...(payload.data ?? {}) },
+  });
+  const stale: string[] = [];
+  let sent = 0;
+  await Promise.all(
+    tokens.map(async (token) => {
+      try {
+        const subscription = JSON.parse(token.slice(WEB_PUSH_PREFIX.length));
+        await webpush.sendNotification(subscription, body, { TTL: 60 * 60 * 24, urgency: 'high' });
+        sent++;
+      } catch (err) {
+        const code = (err as { statusCode?: number }).statusCode;
+        // 404/410: the browser unsubscribed or the subscription expired.
+        if (code === 404 || code === 410) stale.push(token);
+        else console.warn('[Push] Web push delivery failed:', code ?? err);
+      }
+    }),
+  );
+  if (stale.length) removeInvalidPushTokens(stale).catch((e) => console.error('[Push] Stale web subscription cleanup failed:', e));
+  return sent;
+}
 
 interface PushMessagePayload {
   title: string;
@@ -84,7 +143,12 @@ export async function sendPushNotificationToUsers(
   try {
     const tokens = await getPushTokensForUsers(userIds);
     if (tokens.length === 0) return { success: true, count: 0 };
-    return await sendExpoPushNotifications(tokens, payload);
+    const webTokens = tokens.filter((t) => t.startsWith(WEB_PUSH_PREFIX));
+    const [expo, web] = await Promise.all([
+      sendExpoPushNotifications(tokens.filter((t) => !t.startsWith(WEB_PUSH_PREFIX)), payload),
+      sendWebPushNotifications(webTokens, payload),
+    ]);
+    return { success: expo.success, count: expo.count + web };
   } catch (error) {
     console.error('[Push] Error resolving tokens for users:', error);
     return { success: false, count: 0 };

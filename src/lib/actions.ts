@@ -15,6 +15,15 @@ import {
   publishRosterWeek,
   createLeaveRequest,
   reviewLeaveRequest,
+  withdrawLeaveRequest,
+  getCommitmentsInRange,
+  isDateInPublishedWeek,
+  getDutyAssignment,
+  getNightShiftForDate,
+  savePushToken,
+  deletePushToken,
+  removeInvalidPushTokens,
+  LeaveRuleError,
   getExecutiveStatus,
   getAuditLogs,
   cloneWeekAssignments,
@@ -52,7 +61,8 @@ import { redirect } from 'next/navigation';
 import {
   broadcastPushNotification,
   sendPushNotificationToUsers,
-  sendPushNotificationToRoles,
+  WEB_PUSH_PREFIX,
+  isWebPushConfigured,
 } from './push-notifications';
 
 // Every mutating/sensitive action below re-derives the acting user from the
@@ -190,29 +200,68 @@ export async function adminResetPasswordAction(
 // ----------------------------------------------------
 // Roster Planning: Demonstrator & Admin only
 // ----------------------------------------------------
+// Changes to a Published Roster Week are corrections the Cadre has already
+// been told about, so the affected person is notified. Draft weeks stay quiet;
+// everyone hears about them once at publish time.
+function notifyIfPublished(date: string, userIds: string[], title: string, body: string, type: string) {
+  isDateInPublishedWeek(date)
+    .then((published) =>
+      published ? sendPushNotificationToUsers(userIds, { title, body, data: { type, date } }) : undefined,
+    )
+    .catch((e) => console.error('[Push] Roster change alert error:', e));
+}
+
+const dutyLabel = (d: { batchName?: string; moduleName?: string; dutyType?: string }) =>
+  [d.moduleName, d.batchName].filter(Boolean).join(' · ') || d.dutyType || 'Duty';
+
 export async function addDutyAction(input: AddDutyInput) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
   const res = await addDutyAssignment(input, actor.id);
+  if (res.success) {
+    notifyIfPublished(
+      input.dutyDate,
+      [input.instructorId],
+      'New duty added',
+      `${dutyLabel(input)} on ${input.dutyDate}, ${input.startTime}–${input.endTime}${input.roomLab ? ` (${input.roomLab})` : ''}.`,
+      'DUTY_ADDED',
+    );
+  }
   revalidatePath('/');
   return res;
 }
 
 export async function deleteDutyAction(assignmentId: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
+  const before = await getDutyAssignment(assignmentId);
   const success = await deleteDutyAssignment(assignmentId, actor.id);
+  if (success && before) {
+    notifyIfPublished(
+      before.dutyDate,
+      [before.instructorId],
+      'Duty removed',
+      `${dutyLabel(before)} on ${before.dutyDate}, ${before.startTime}–${before.endTime} is no longer yours.`,
+      'DUTY_REMOVED',
+    );
+  }
   revalidatePath('/');
   return { success };
 }
 
 export async function setNightShiftAction(rosterWeekId: string, shiftDate: string, instructorId: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
+  const before = await getNightShiftForDate(shiftDate);
   const res = await setNightShift(rosterWeekId, shiftDate, instructorId, undefined, actor.id);
-  if (res.success) {
-    sendPushNotificationToUsers([instructorId], {
-      title: '🌙 Night Duty Assignment',
-      body: `You have been scheduled for Night Duty on ${shiftDate}.`,
-      data: { type: 'NIGHT_DUTY', shiftDate },
-    }).catch((e) => console.error('[Push] Night shift alert error:', e));
+  if (res.success && before?.instructorId !== instructorId) {
+    notifyIfPublished(shiftDate, [instructorId], 'Night Duty assigned', `You have Night Duty on ${shiftDate}.`, 'NIGHT_DUTY');
+    if (before) {
+      notifyIfPublished(
+        shiftDate,
+        [before.instructorId],
+        'Night Duty changed',
+        `You no longer have Night Duty on ${shiftDate}.`,
+        'NIGHT_DUTY_REMOVED',
+      );
+    }
   }
   revalidatePath('/');
   return res;
@@ -220,7 +269,17 @@ export async function setNightShiftAction(rosterWeekId: string, shiftDate: strin
 
 export async function removeNightShiftAction(shiftDate: string) {
   const actor = await requireRole('DEMONSTRATOR', 'ADMIN');
+  const before = await getNightShiftForDate(shiftDate);
   const success = await removeNightShift(shiftDate, actor.id);
+  if (success && before) {
+    notifyIfPublished(
+      shiftDate,
+      [before.instructorId],
+      'Night Duty removed',
+      `You no longer have Night Duty on ${shiftDate}.`,
+      'NIGHT_DUTY_REMOVED',
+    );
+  }
   revalidatePath('/');
   return { success };
 }
@@ -358,6 +417,21 @@ export async function updateAutoRefreshIntervalAction(seconds: number) {
 // Security Invariant: No user (not even an admin) can apply for leave on
 // someone else's behalf. The leave request is ALWAYS filed strictly for the
 // currently authenticated session caller.
+const REVIEWER_ROLES: Role[] = ['DEMONSTRATOR', 'EXECUTIVE', 'ADMIN'];
+
+async function activeUserIdsWithRoles(roles: Role[], exceptId: string): Promise<string[]> {
+  const users = await getAllUsers();
+  return users.filter((u) => u.isActive && roles.includes(u.role) && u.id !== exceptId).map((u) => u.id);
+}
+
+function commitmentWarning(c: { duties: number; nightDuties: number }): string | undefined {
+  const parts = [
+    c.duties ? `${c.duties} ${c.duties === 1 ? 'duty' : 'duties'}` : '',
+    c.nightDuties ? `${c.nightDuties} Night ${c.nightDuties === 1 ? 'Duty' : 'Duties'}` : '',
+  ].filter(Boolean);
+  return parts.length ? `Already rostered for ${parts.join(' and ')} in these dates; reassign them in the planner.` : undefined;
+}
+
 export async function submitLeaveAction(
   arg1: string,
   arg2: string,
@@ -370,26 +444,99 @@ export async function submitLeaveAction(
   const endDate = arg4 !== undefined ? arg3 : arg2;
   const reason = arg4 !== undefined ? arg4 : arg3;
 
-  const leave = await createLeaveRequest(caller.id, startDate, endDate, reason);
-  sendPushNotificationToRoles(['ADMIN', 'EXECUTIVE'], {
-    title: '🌴 New Leave Request',
-    body: `${caller.fullName} submitted a leave request (${startDate} to ${endDate}).`,
-    data: { type: 'LEAVE_REQUEST', leaveId: leave.id },
-  }).catch((e) => console.error('[Push] Leave submit alert error:', e));
+  // Notified Leave: Demonstrators tell the others instead of asking.
+  const notified = caller.role === 'DEMONSTRATOR';
+  const leave = await createLeaveRequest(caller.id, startDate, endDate, reason, undefined, { notified });
+  const range = startDate === endDate ? startDate : `${startDate} to ${endDate}`;
+
+  activeUserIdsWithRoles(REVIEWER_ROLES, caller.id)
+    .then((ids) =>
+      sendPushNotificationToUsers(ids, {
+        title: notified ? `${caller.fullName} is on leave` : 'New leave request',
+        body: notified ? `${caller.fullName} will be away ${range}.` : `${caller.fullName} asked for leave ${range}. Review it in Leaves.`,
+        data: { type: notified ? 'LEAVE_NOTIFIED' : 'LEAVE_REQUEST', leaveId: leave.id },
+      }),
+    )
+    .catch((e) => console.error('[Push] Leave submit alert error:', e));
+
+  const warning = notified ? commitmentWarning(await getCommitmentsInRange(caller.id, startDate, endDate)) : undefined;
   revalidatePath('/');
-  return { success: true, leave };
+  return { success: true, leave, notified, warning };
 }
 
 export async function reviewLeaveAction(leaveId: string, status: 'APPROVED' | 'REJECTED', comment?: string) {
-  const actor = await requireRole('DEMONSTRATOR', 'EXECUTIVE', 'ADMIN');
-  const updated = await reviewLeaveRequest(leaveId, status, actor.id, comment);
+  const actor = await requireRole(...REVIEWER_ROLES);
+  let updated;
+  try {
+    updated = await reviewLeaveRequest(leaveId, status, actor.id, comment);
+  } catch (e) {
+    if (e instanceof LeaveRuleError) return { success: false as const, error: e.message };
+    throw e;
+  }
   sendPushNotificationToUsers([updated.instructorId], {
-    title: status === 'APPROVED' ? '🌴 Leave Request Approved' : '❌ Leave Request Rejected',
-    body: `Your leave request for ${updated.startDate} to ${updated.endDate} was ${status.toLowerCase()} by ${actor.fullName}.`,
+    title: status === 'APPROVED' ? 'Leave approved' : 'Leave rejected',
+    body: `Your leave for ${updated.startDate} to ${updated.endDate} was ${status.toLowerCase()} by ${actor.fullName}.`,
     data: { type: 'LEAVE_REVIEW', leaveId: updated.id, status },
   }).catch((e) => console.error('[Push] Leave review alert error:', e));
+  const warning =
+    status === 'APPROVED'
+      ? commitmentWarning(await getCommitmentsInRange(updated.instructorId, updated.startDate, updated.endDate))
+      : undefined;
   revalidatePath('/');
-  return { success: true, leave: updated };
+  return { success: true as const, leave: updated, warning };
+}
+
+export async function withdrawLeaveAction(leaveId: string) {
+  const actor = await requireAuth();
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Colombo' });
+  let result;
+  try {
+    result = await withdrawLeaveRequest(leaveId, actor.id, today);
+  } catch (e) {
+    if (e instanceof LeaveRuleError) return { success: false as const, error: e.message };
+    throw e;
+  }
+  const { leave, wasApproved } = result;
+  // Reviewers only need to hear about it if coverage changes (it was approved)
+  // or a request vanishes from their queue (it was pending).
+  activeUserIdsWithRoles(REVIEWER_ROLES, actor.id)
+    .then((ids) =>
+      sendPushNotificationToUsers(ids, {
+        title: 'Leave withdrawn',
+        body: `${actor.fullName} withdrew ${wasApproved ? 'approved' : 'pending'} leave for ${leave.startDate} to ${leave.endDate}.`,
+        data: { type: 'LEAVE_CANCELLED', leaveId: leave.id },
+      }),
+    )
+    .catch((e) => console.error('[Push] Leave withdrawal alert error:', e));
+  revalidatePath('/');
+  return { success: true as const, leave };
+}
+
+// ----------------------------------------------------
+// Web Push (PWA) subscriptions
+// ----------------------------------------------------
+export async function getWebPushConfigAction() {
+  return { enabled: isWebPushConfigured(), publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? null };
+}
+
+export async function saveWebPushSubscriptionAction(subscription: { endpoint: string; keys: { p256dh: string; auth: string } }) {
+  // Called on app start too, possibly before sign-in: just decline quietly.
+  const user = await getCurrentUser();
+  if (!user) return { success: false, error: 'Not signed in' };
+  if (!subscription?.endpoint?.startsWith('https://') || !subscription.keys?.p256dh || !subscription.keys?.auth) {
+    return { success: false, error: 'Invalid push subscription' };
+  }
+  const token = WEB_PUSH_PREFIX + JSON.stringify({ endpoint: subscription.endpoint, keys: subscription.keys });
+  // A browser belongs to whoever is signed in now: drop the same subscription
+  // from any previous user so a shared device doesn't get their alerts.
+  await removeInvalidPushTokens([token]);
+  return savePushToken(user.id, token, 'web');
+}
+
+export async function removeWebPushSubscriptionAction(subscription: { endpoint: string; keys: { p256dh: string; auth: string } }) {
+  const user = await requireAuth();
+  const token = WEB_PUSH_PREFIX + JSON.stringify({ endpoint: subscription.endpoint, keys: subscription.keys });
+  return deletePushToken(user.id, token);
 }
 
 // ----------------------------------------------------

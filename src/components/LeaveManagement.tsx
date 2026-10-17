@@ -2,8 +2,11 @@
 
 import React, { useState } from 'react';
 import { User, LeaveRequest } from '@/types';
-import { CalendarDays, Check, ClipboardCheck, Clock, Inbox, Loader2, MessageSquare, X } from 'lucide-react';
-import { reviewLeaveAction } from '@/lib/actions';
+import { CalendarDays, Check, ClipboardCheck, Clock, Inbox, Loader2, MessageSquare, Send, Undo2, X } from 'lucide-react';
+import { reviewLeaveAction, submitLeaveAction, withdrawLeaveAction } from '@/lib/actions';
+import { useDialog } from './DialogProvider';
+import { DateRangePicker } from './ui/DatePicker';
+import { todayYmd } from '@/lib/week-start';
 import { formatApplicationDateTime } from '@/lib/roster-utils';
 import { PageHeader, StatusPill } from './ui/PageHeader';
 import { Segmented } from './ui/Segmented';
@@ -14,16 +17,67 @@ interface LeaveManagementProps {
   onRefresh: () => void;
 }
 
-type Filter = 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED';
+type Filter = 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
 
 const STATUS_TONE = { APPROVED: 'emerald', REJECTED: 'rose', PENDING: 'amber', CANCELLED: 'neutral' } as const;
-const STATUS_LABEL = { APPROVED: 'Approved', REJECTED: 'Declined', PENDING: 'Pending', CANCELLED: 'Cancelled' } as const;
+const STATUS_LABEL = { APPROVED: 'Approved', REJECTED: 'Rejected', PENDING: 'Pending', CANCELLED: 'Cancelled' } as const;
 
 export const LeaveManagement: React.FC<LeaveManagementProps> = ({ currentUser, leaveRequests, onRefresh }) => {
   const [filter, setFilter] = useState<Filter>('PENDING');
   const [actionId, setActionId] = useState<string | null>(null);
   const [comment, setComment] = useState<string>('');
   const [processing, setProcessing] = useState<'APPROVED' | 'REJECTED' | null>(null);
+  const { confirm, notify } = useDialog();
+  const today = todayYmd();
+  // Notified Leave (Demonstrators tell the team instead of asking).
+  const isDemonstrator = currentUser.role === 'DEMONSTRATOR';
+  const [noticeOpen, setNoticeOpen] = useState(false);
+  const [noticeDates, setNoticeDates] = useState({ from: '', to: '' });
+  const [noticeReason, setNoticeReason] = useState('');
+  const [noticeBusy, setNoticeBusy] = useState(false);
+  const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
+
+  const canWithdraw = (l: LeaveRequest) =>
+    l.instructorId === currentUser.id && (l.status === 'PENDING' || l.status === 'APPROVED') && l.endDate >= today;
+
+  const handleNotice = async () => {
+    if (!noticeDates.from || !noticeReason.trim()) {
+      await notify({ title: 'Almost there', message: 'Pick your dates and add a short reason.' });
+      return;
+    }
+    setNoticeBusy(true);
+    try {
+      const res = await submitLeaveAction(noticeDates.from, noticeDates.to || noticeDates.from, noticeReason.trim());
+      setNoticeOpen(false);
+      setNoticeDates({ from: '', to: '' });
+      setNoticeReason('');
+      onRefresh();
+      await notify({
+        title: 'Leave noted',
+        message: `The other reviewers have been told.${res.warning ? `\n\n${res.warning}` : ''}`,
+      });
+    } finally {
+      setNoticeBusy(false);
+    }
+  };
+
+  const handleWithdraw = async (leave: LeaveRequest) => {
+    const ok = await confirm({
+      title: 'Withdraw this leave?',
+      message: `${leave.startDate}${leave.startDate !== leave.endDate ? ` to ${leave.endDate}` : ''} will be cancelled${leave.status === 'APPROVED' ? ' and you become available for duty again' : ''}.`,
+      confirmLabel: 'Withdraw',
+      danger: true,
+    });
+    if (!ok) return;
+    setWithdrawingId(leave.id);
+    try {
+      const res = await withdrawLeaveAction(leave.id);
+      if (!res.success) await notify({ title: 'Could not withdraw', message: res.error, danger: true });
+      onRefresh();
+    } finally {
+      setWithdrawingId(null);
+    }
+  };
 
   const canApprove =
     currentUser.role === 'DEMONSTRATOR' || currentUser.role === 'EXECUTIVE' || currentUser.role === 'ADMIN';
@@ -34,10 +88,12 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ currentUser, l
   const handleReview = async (leaveId: string, status: 'APPROVED' | 'REJECTED') => {
     setProcessing(status);
     try {
-      await reviewLeaveAction(leaveId, status, comment.trim());
+      const res = await reviewLeaveAction(leaveId, status, comment.trim());
       setActionId(null);
       setComment('');
       onRefresh();
+      if (!res.success) await notify({ title: 'Could not review', message: res.error, danger: true });
+      else if (res.warning) await notify({ title: 'Leave approved', message: res.warning });
     } catch (err) {
       console.error('Error updating leave status:', err);
     } finally {
@@ -49,13 +105,60 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ currentUser, l
     <div className="space-y-6">
       <PageHeader
         eyebrow={<><ClipboardCheck className="size-3" /> Leave</>}
-        title="Leave approvals"
+        title="Leave"
         description={
           canApprove
-            ? 'Review leave requests. Approved leave automatically blocks duty and night-shift assignment.'
-            : 'You can view leave requests, but your role cannot approve or decline them.'
+            ? 'Review Cadre leave. Approved leave blocks Duty and Night Duty on those dates.'
+            : 'You can view leave, but your role cannot review it.'
+        }
+        actions={
+          isDemonstrator && (
+            <button type="button" onClick={() => setNoticeOpen((v) => !v)} className="btn btn-secondary">
+              <Send className="text-neutral-400" />
+              Notify my leave
+            </button>
+          )
         }
       />
+
+      {isDemonstrator && (
+        <div className="collapse-panel" data-open={noticeOpen || undefined} inert={!noticeOpen}>
+          <div className="collapse-inner">
+            <div className="surface-card space-y-3 p-4 sm:p-5">
+              <div>
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Notify your leave</h3>
+                <p className="mt-0.5 text-xs text-neutral-500">
+                  As a Demonstrator your leave is approved straight away; the other reviewers are notified.
+                </p>
+              </div>
+              <DateRangePicker
+                label="Leave dates"
+                placeholder="Tap a start day, then an end day"
+                className="w-full"
+                min={today}
+                value={noticeDates}
+                onChange={setNoticeDates}
+              />
+              <input
+                type="text"
+                value={noticeReason}
+                onChange={(e) => setNoticeReason(e.target.value)}
+                placeholder="Reason, e.g. medical appointment"
+                className="field"
+              />
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={() => setNoticeOpen(false)} className="btn btn-ghost">
+                  Cancel
+                </button>
+                <button type="button" onClick={handleNotice} disabled={noticeBusy} className="btn btn-primary">
+                  {noticeBusy ? <Loader2 className="animate-spin" /> : <Send />}
+                  Notify team
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Segmented<Filter>
@@ -65,7 +168,7 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ currentUser, l
             setFilter(v);
             setActionId(null);
           }}
-          options={(['PENDING', 'APPROVED', 'REJECTED', 'ALL'] as const).map((st) => ({
+          options={(['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED', 'ALL'] as const).map((st) => ({
             value: st,
             label: (
               <>
@@ -129,7 +232,21 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ currentUser, l
                     )}
                   </div>
 
-                  {leave.status === 'PENDING' && canApprove && !reviewing && (
+                  {canWithdraw(leave) && (
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleWithdraw(leave)}
+                        disabled={withdrawingId === leave.id}
+                        className="btn btn-secondary"
+                      >
+                        {withdrawingId === leave.id ? <Loader2 className="animate-spin" /> : <Undo2 />}
+                        Withdraw
+                      </button>
+                    </div>
+                  )}
+
+                  {leave.status === 'PENDING' && canApprove && leave.instructorId !== currentUser.id && !reviewing && (
                     <div className="flex shrink-0 gap-2">
                       <button onClick={() => setActionId(leave.id)} className="btn btn-secondary">
                         Review
@@ -138,7 +255,7 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ currentUser, l
                   )}
                 </div>
 
-                {leave.status === 'PENDING' && canApprove && (
+                {leave.status === 'PENDING' && canApprove && leave.instructorId !== currentUser.id && (
                   <div className="collapse-panel" data-open={reviewing || undefined} inert={!reviewing}>
                     <div className="collapse-inner">
                       <div className="mt-4 flex flex-col gap-2 border-t border-neutral-100 pt-4 sm:flex-row sm:items-center dark:border-white/[0.06]">
@@ -161,7 +278,7 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ currentUser, l
                           </button>
                           <button disabled={!!processing} onClick={() => handleReview(leave.id, 'REJECTED')} className="btn btn-danger">
                             {processing === 'REJECTED' ? <Loader2 className="animate-spin" /> : <X />}
-                            Decline
+                            Reject
                           </button>
                           <button disabled={!!processing} onClick={() => handleReview(leave.id, 'APPROVED')} className="btn btn-primary">
                             {processing === 'APPROVED' ? <Loader2 className="animate-spin" /> : <Check />}

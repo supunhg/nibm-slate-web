@@ -154,10 +154,13 @@ body {
   background: color-mix(in oklab, var(--foreground) 22%, transparent);
 }
 
-/* Quiet scrollbars that match the surfaces. */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklab, var(--foreground) 18%, transparent) transparent;
+/* Quiet scrollbars that match the surfaces. In the base layer so utilities
+   such as .no-scrollbar can still override them. */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--foreground) 18%, transparent) transparent;
+  }
 }
 
 :focus-visible {

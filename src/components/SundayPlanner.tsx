@@ -227,7 +227,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
     setIsSubmitting(false);
 
     if (!res.success) {
-      await notify(res.error || 'Failed to copy session');
+      await notify(res.error || 'Failed to copy duty');
     } else {
       onRefresh();
     }
@@ -283,7 +283,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
       return;
     }
 
-    // If "Also assign to other slot" is checked (Full Day session)
+    // If "Also assign the other time block" is checked (full day)
     if (repeatForOtherSlot) {
       const isMorning = modalData.startTime === '09:00';
       const otherStartTime = isMorning ? '13:00' : '09:00';
@@ -348,11 +348,11 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
     }
   };
 
-  // Clone the preceding 7 days' assignments and night shifts into this week's draft
+  // Clone the preceding 7 days' duties and Night Duty into this week's draft
   const handleCloneWeek = async () => {
     const proceed = await confirm({
       title: 'Clone previous week',
-      message: `Clone last week's duties and night shifts into the week starting ${planningStartDate}? Collisions and approved-leave conflicts will be skipped automatically.`,
+      message: `Clone last week's duties and Night Duty into the week starting ${planningStartDate}? Collisions and approved-leave conflicts will be skipped automatically.`,
       confirmLabel: 'Clone',
     });
     if (!proceed) {
@@ -635,7 +635,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
     const entries = getInstructorWeekEntries(inst.id);
     const bodyLines =
       entries.length === 0
-        ? ['No teaching duties or night shifts assigned this week.']
+        ? ['No duties or Night Duty assigned this week.']
         : entries.flatMap((d) => [`*${d.dayName}, ${d.formattedDate}*`, ...d.items.map((i) => `  • ${i}`)]);
 
     return [
@@ -697,7 +697,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
         <PageHeader
           eyebrow={<><Sparkles className="size-3" /> Planning Studio</>}
           title="Weekly duty planner"
-          description="Assign sessions and night duty, check balance, then publish the week to the cadre."
+          description="Assign duties and Night Duty, check the balance, then publish the week to the Cadre."
           status={
             rosterWeek.status === 'PUBLISHED' ? (
               <StatusPill tone="emerald">Published</StatusPill>
@@ -818,10 +818,10 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
             <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-white">
               <Layers className="size-4 text-neutral-400" /> Workload balance
             </h3>
-            <p className="mt-0.5 text-xs text-neutral-500">Sessions and night duties per instructor this week.</p>
+            <p className="mt-0.5 text-xs text-neutral-500">Duties and Night Duty per Cadre member this week.</p>
           </div>
           <div className="hidden items-center gap-3 text-[11px] text-neutral-500 sm:flex">
-            <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-neutral-900 dark:bg-white" /> Sessions</span>
+            <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-neutral-900 dark:bg-white" /> Duties</span>
             <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-amber-400" /> Night</span>
           </div>
         </div>
@@ -858,7 +858,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                       />
                     </div>
                     <div className="mt-1.5 text-[10px] text-neutral-500">
-                      {data.sessions} sess · {data.nightShifts} night
+                      {data.sessions} duties · {data.nightShifts} night
                     </div>
                     {inst.phone && (
                       <a
@@ -885,7 +885,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
             <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-white">
               <Calendar className="size-4 text-neutral-400" /> Week matrix
             </h3>
-            <p className="mt-0.5 text-xs text-neutral-500">Tap + in a slot to assign. Morning and afternoon for the same class merge into a full day.</p>
+            <p className="mt-0.5 text-xs text-neutral-500">Tap + in a time block to assign. Morning and afternoon for the same class merge into a full day.</p>
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-neutral-500">
             <span className="flex items-center gap-1.5"><span className="h-3 w-[3px] rounded-full bg-emerald-500" /> Morning 9–12</span>
@@ -933,7 +933,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                         )
                       }
                       className="p-1 hover:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded transition-colors active:scale-95 cursor-pointer"
-                      title="Assign morning slot"
+                      title="Assign a morning duty"
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
@@ -969,7 +969,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                                     )
                                   }
                                   className="p-1 text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 bg-emerald-500/15 hover:bg-emerald-500/25 rounded transition-colors cursor-pointer"
-                                  title="Copy session to Afternoon (13:00 - 16:00)"
+                                  title="Copy to the afternoon (13:00 – 16:00)"
                                 >
                                   <Copy className="w-3 h-3" />
                                 </button>
@@ -1043,7 +1043,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                         )
                       }
                       className="p-1 hover:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded transition-colors active:scale-95 cursor-pointer"
-                      title="Assign afternoon slot"
+                      title="Assign an afternoon duty"
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
@@ -1079,7 +1079,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                                     )
                                   }
                                   className="p-1 text-blue-600 dark:text-blue-400 hover:text-blue-500 bg-blue-500/15 hover:bg-blue-500/25 rounded transition-colors cursor-pointer"
-                                  title="Copy session to Morning (09:00 - 12:00)"
+                                  title="Copy to the morning (09:00 – 12:00)"
                                 >
                                   <Copy className="w-3 h-3" />
                                 </button>
@@ -1154,7 +1154,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                           )
                         }
                         className="p-1 hover:bg-purple-500/25 text-purple-700 dark:text-purple-400 rounded transition-colors active:scale-95 cursor-pointer"
-                        title="Assign Sunday CCS slot"
+                        title="Assign a Sunday CCS duty"
                       >
                         <Plus className="w-3.5 h-3.5" />
                       </button>
@@ -1545,7 +1545,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                   disabled={isSubmitting}
                   className="btn btn-primary"
                 >
-                  {isSubmitting ? 'Validating...' : 'Assign Slot'}
+                  {isSubmitting ? 'Validating...' : 'Assign duty'}
                 </button>
               </div>
             </form>

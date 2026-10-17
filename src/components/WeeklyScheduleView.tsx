@@ -120,7 +120,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
               setPopoverOpen((prev) => !prev);
             }}
             className="inline-flex items-center gap-1 text-[9.5px] text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white bg-neutral-100 hover:bg-neutral-200 dark:bg-white/[0.06] dark:hover:bg-white/10 px-1.5 py-0.5 rounded border border-neutral-200 dark:border-white/10 transition-colors cursor-pointer max-w-full"
-            title="Click to view full session notes"
+            title="View the full duty notes"
           >
             <FileText className="w-2.5 h-2.5 text-blue-400 shrink-0" />
             <span className="truncate max-w-[130px]">{duty.notes}</span>
@@ -156,7 +156,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
             setPopoverOpen((prev) => !prev);
           }}
           className="lg:hidden text-slate-400 hover:text-slate-200 p-0.5 rounded cursor-pointer"
-          title="Session details"
+          title="Duty details"
         >
           <Info className="w-3 h-3 text-slate-400" />
         </button>
@@ -173,7 +173,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
           <div className="flex items-start justify-between gap-2 pb-2 border-b border-slate-800">
             <div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-blue-400">
-                {isFullDay ? 'Full-Day Session (09:00 - 16:00)' : `${duty.startTime} - ${duty.endTime}`}
+                {isFullDay ? 'Full day (09:00 – 16:00)' : `${duty.startTime} - ${duty.endTime}`}
               </div>
               <div className="text-xs font-bold text-white mt-0.5 leading-snug">
                 {duty.moduleName ?? duty.dutyType}
@@ -227,7 +227,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
               <div className="mt-2 pt-2 border-t border-slate-800">
                 <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1 mb-1">
                   <FileText className="w-3 h-3 text-blue-400" />
-                  <span>Session Notes & Instructions</span>
+                  <span>Duty notes</span>
                 </div>
                 <div className="bg-slate-900 p-2 rounded-lg border border-slate-800 text-[11px] text-slate-200 whitespace-pre-wrap leading-relaxed">
                   {duty.notes}
@@ -457,7 +457,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
       <PageHeader
         eyebrow={<><Shield className="size-3" /> Week overview</>}
         title="Week schedule"
-        description="Every session and night duty across the seven-day window."
+        description="Every duty and Night Duty across the seven-day window."
         status={
           rosterWeek.status === 'PUBLISHED' ? (
             <StatusPill tone="emerald">Published</StatusPill>
@@ -584,7 +584,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
             </div>
 
             <div className="text-[11px] text-slate-400 font-medium">
-              Showing <span className="font-bold text-slate-200">{filteredAssignments.length}</span> lectures
+              Showing <span className="font-semibold text-neutral-900 dark:text-white">{filteredAssignments.length}</span> duties
             </div>
           </div>
         )}
@@ -653,7 +653,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
       {/* Week at a glance */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 print:hidden stagger-children">
         {[
-          { label: 'Sessions', value: totalWeeklySessions, hint: 'this week', dot: 'bg-neutral-400' },
+          { label: 'Duties', value: totalWeeklySessions, hint: 'this week', dot: 'bg-neutral-400' },
           { label: 'Night coverage', value: `${totalWeeklyNightShifts}/7`, hint: 'nights', dot: 'bg-indigo-400' },
           { label: 'Absences', value: totalWeeklyLeaves, hint: 'person-days', dot: 'bg-rose-500' },
           { label: 'Cadre', value: allInstructors.length, hint: 'instructors', dot: 'bg-emerald-500' },
@@ -791,7 +791,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
                       {morningDuties.length === 0 ? (
                         <div className="rounded-lg border border-dashed border-neutral-200 p-2 dark:border-white/[0.06] print:bg-slate-50 print:rounded print:p-1 print:border-slate-300 text-center">
-                          <span className="text-[10px] print:text-[8.5px] text-slate-400 print:text-slate-500 italic">No lectures</span>
+                          <span className="text-[10px] print:text-[8.5px] text-slate-400 print:text-slate-500 italic">No duties</span>
                         </div>
                       ) : (
                         morningDuties.map((duty) => {
@@ -825,7 +825,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
                       {afternoonDuties.length === 0 ? (
                         <div className="rounded-lg border border-dashed border-neutral-200 p-2 dark:border-white/[0.06] print:bg-slate-50 print:rounded print:p-1 print:border-slate-300 text-center">
-                          <span className="text-[10px] print:text-[8.5px] text-slate-400 print:text-slate-500 italic">No lectures</span>
+                          <span className="text-[10px] print:text-[8.5px] text-slate-400 print:text-slate-500 italic">No duties</span>
                         </div>
                       ) : (
                         afternoonDuties.map((duty) => {
@@ -855,7 +855,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
                         {sundayDuties.length === 0 ? (
                           <div className="bg-purple-500/10 print:bg-purple-50/50 rounded-lg print:rounded p-2 print:p-1 border border-dashed border-purple-500/20 print:border-purple-200 text-center">
-                            <span className="text-[10px] print:text-[8.5px] text-purple-400 print:text-purple-600 italic">No CCS session</span>
+                            <span className="text-[10px] print:text-[8.5px] text-purple-400 print:text-purple-600 italic">No CCS duty</span>
                           </div>
                         ) : (
                           sundayDuties.map((duty) => (
@@ -879,7 +879,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                       <div className="flex items-center justify-between text-[10px] print:text-[9px] font-bold text-indigo-300 print:text-indigo-800 uppercase tracking-wider">
                         <span className="flex items-center gap-1">
                           <Moon className="w-3 h-3 text-amber-300 print:text-indigo-600 shrink-0" />
-                          <span>Night Shift</span>
+                          <span>Night Duty</span>
                         </span>
                       </div>
                       <div className="mt-1 font-bold text-white print:text-indigo-950 text-[11px] print:text-[9.5px] truncate">
@@ -959,9 +959,9 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                 <th className="px-3 py-3 text-center print:px-1.5 print:py-1.5">Morning (09-12)</th>
                 <th className="px-3 py-3 text-center print:px-1.5 print:py-1.5">Afternoon (13-16)</th>
                 <th className="px-3 py-3 text-center print:px-1.5 print:py-1.5">Sunday CCS</th>
-                <th className="px-3 py-3 text-center print:px-1.5 print:py-1.5">Total Sessions</th>
+                <th className="px-3 py-3 text-center print:px-1.5 print:py-1.5">Total duties</th>
                 <th className="px-3 py-3 text-center print:px-1.5 print:py-1.5">Est. Teaching Hrs</th>
-                <th className="px-4 py-3 text-center print:px-2 print:py-1.5">Night Shifts</th>
+                <th className="px-4 py-3 text-center print:px-2 print:py-1.5">Night Duties</th>
                 <th className="px-4 py-3 text-center print:px-2 print:py-1.5">Leave Status</th>
                 <th className="px-4 py-3 text-center print:px-2 print:py-1.5">Workload Balance</th>
               </tr>

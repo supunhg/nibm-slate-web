@@ -437,12 +437,12 @@ export const AiCopilotDrawer: React.FC<AiCopilotDrawerProps> = ({
                               </span>
                               <span
                                 className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
-                                  change.dutyType === 'Night Shift'
+                                  change.dutyType === 'Night Duty'
                                     ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
                                     : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                                 }`}
                               >
-                                {change.dutyType === 'Night Shift' ? '🌙 Night Shift' : '+ New Lecture'}
+                                {change.dutyType === 'Night Duty' ? '🌙 Night Duty' : '+ New duty'}
                               </span>
                             </div>
 
@@ -646,7 +646,7 @@ export const AiCopilotDrawer: React.FC<AiCopilotDrawerProps> = ({
                     <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
                       Slot Date:
                     </label>
-                    <DatePicker label="Slot date" size="sm" value={subDate} onChange={setSubDate} className="w-full" />
+                    <DatePicker label="Date" size="sm" value={subDate} onChange={setSubDate} className="w-full" />
                   </div>
 
                   <div>
@@ -654,7 +654,7 @@ export const AiCopilotDrawer: React.FC<AiCopilotDrawerProps> = ({
                       Time Slot:
                     </label>
                     <Select
-                      label="Time slot"
+                      label="Time block"
                       size="sm"
                       value={subTime}
                       onChange={setSubTime}

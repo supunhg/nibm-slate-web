@@ -1,6 +1,39 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback, useSyncExternalStore } from 'react';
+import { getWebPushConfigAction, saveWebPushSubscriptionAction } from '@/lib/actions';
+
+function base64UrlToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
+  const padded = (base64 + '='.repeat((4 - (base64.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(padded);
+  const out = new Uint8Array(new ArrayBuffer(raw.length));
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+
+/**
+ * Register this browser for Web Push and store the subscription server-side.
+ * Idempotent: safe to call on every app start (keeps the server copy fresh,
+ * and re-subscribes if the server's VAPID key changed). No-op when the server
+ * has no VAPID keys configured or the user hasn't granted permission.
+ */
+async function syncWebPushSubscription(): Promise<boolean> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || Notification.permission !== 'granted') return false;
+  const { enabled, publicKey } = await getWebPushConfigAction();
+  if (!enabled || !publicKey) return false;
+  const reg = await navigator.serviceWorker.ready;
+  const key = base64UrlToUint8Array(publicKey);
+  let sub = await reg.pushManager.getSubscription();
+  const current = sub?.options.applicationServerKey ? new Uint8Array(sub.options.applicationServerKey) : null;
+  if (sub && current && (current.length !== key.length || current.some((b, i) => b !== key[i]))) {
+    await sub.unsubscribe();
+    sub = null;
+  }
+  if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+  const json = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } };
+  const res = await saveWebPushSubscriptionAction(json);
+  return res.success;
+}
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -16,6 +49,8 @@ interface PWAContextType {
   installPwa: () => Promise<boolean>;
   applyUpdate: () => void;
   dismissUpdate: () => void;
+  /** Re-register this browser for push (call after sign-in). */
+  syncPush: () => void;
   requestNotificationPermission: () => Promise<NotificationPermission>;
   notificationPermission: NotificationPermission;
 }
@@ -29,6 +64,7 @@ const PWAContext = createContext<PWAContextType>({
   installPwa: async () => false,
   applyUpdate: () => {},
   dismissUpdate: () => {},
+  syncPush: () => {},
   requestNotificationPermission: async () => 'default',
   notificationPermission: 'default',
 });
@@ -158,6 +194,7 @@ export const PWAProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .then((reg) => {
           swRegistrationRef.current = reg;
           watchWorker(reg);
+          syncWebPushSubscription().catch((err) => console.warn('[PWA] Web push re-sync failed:', err));
         })
         .catch((err) => console.warn('[PWA] Service worker registration failed:', err));
     }
@@ -223,6 +260,11 @@ export const PWAProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const dismissUpdate = useCallback(() => setIsUpdateAvailable(false), []);
 
+  const syncPush = useCallback(() => {
+    if (typeof window === 'undefined' || process.env.NODE_ENV === 'development') return;
+    syncWebPushSubscription().catch((err) => console.warn('[PWA] Web push re-sync failed:', err));
+  }, []);
+
   // Request Web Push notification permission
   const requestNotificationPermission = useCallback(async (): Promise<NotificationPermission> => {
     if (typeof window === 'undefined' || !('Notification' in window)) {
@@ -232,6 +274,9 @@ export const PWAProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const permission = await Notification.requestPermission();
       setPermissionState(permission);
+      if (permission === 'granted') {
+        syncWebPushSubscription().catch((err) => console.warn('[PWA] Web push subscription failed:', err));
+      }
       return permission;
     } catch (err) {
       console.warn('[PWA] Permission request failed:', err);
@@ -250,6 +295,7 @@ export const PWAProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         installPwa,
         applyUpdate,
         dismissUpdate,
+        syncPush,
         requestNotificationPermission,
         notificationPermission: permissionState,
       }}

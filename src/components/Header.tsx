@@ -68,7 +68,7 @@ function navItemsFor(user: User, pendingLeaves: number): NavItem[] {
     items.push({ tab: 'planner', label: 'Planning Studio', short: 'Planner', icon: LayoutDashboard });
   }
   if (role === 'DEMONSTRATOR' || role === 'EXECUTIVE' || role === 'ADMIN') {
-    items.push({ tab: 'leaves', label: 'Leave Approvals', short: 'Leaves', icon: ClipboardCheck, badge: pendingLeaves });
+    items.push({ tab: 'leaves', label: 'Leave', short: 'Leave', icon: ClipboardCheck, badge: pendingLeaves });
   }
   if (role === 'ADMIN') {
     items.push({ tab: 'admin', label: 'Staff & Access', short: 'Staff', icon: ShieldCheck });
@@ -133,7 +133,12 @@ export const Header: React.FC<HeaderProps> = ({
   const accountRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
-  const { isInstallable, isInstalled, installPwa } = usePWA();
+  const { isInstallable, isInstalled, installPwa, syncPush } = usePWA();
+
+  // Signed in: make sure this device's push subscription belongs to this user.
+  useEffect(() => {
+    syncPush();
+  }, [syncPush, currentUser.id]);
   const { theme, setTheme } = useTheme();
 
   useClickOutside(syncRef, syncOpen, () => setSyncOpen(false));
