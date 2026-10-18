@@ -101,7 +101,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
   const [dutyType, setDutyType] = useState<string>('');
   const [batchName, setBatchName] = useState<string>('');
   const [moduleName, setModuleName] = useState<string>('');
-  const [roomLab, setRoomLab] = useState<string>('Lab 01');
+  const [roomLab, setRoomLab] = useState<string>('');
   const [dutyNotes, setDutyNotes] = useState<string>('');
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1461,7 +1461,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
                   <input
                     type="text"
                     list="room-catalog-options"
-                    placeholder="e.g. Lab 01"
+                    placeholder="Optional, leave empty if not decided"
                     value={roomLab}
                     onChange={(e) => setRoomLab(e.target.value)}
                     className="field flex-1 min-w-0 text-sm"

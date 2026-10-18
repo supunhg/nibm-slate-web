@@ -573,6 +573,12 @@ export async function unpublishRosterWeek(weekId: string, actorId: string): Prom
 // ----------------------------------------------------
 // Duty Assignments
 // ----------------------------------------------------
+/** A room is optional: empty or placeholder values ("-") mean unassigned. */
+export function normalizeRoom(room: string | null | undefined): string | undefined {
+  const r = room?.trim();
+  return r && r !== '-' ? r : undefined;
+}
+
 function mapDuty(a: Prisma.DutyAssignmentGetPayload<{ include: { instructor: true } }>): DutyAssignment {
   return {
     id: a.id,
@@ -587,7 +593,7 @@ function mapDuty(a: Prisma.DutyAssignmentGetPayload<{ include: { instructor: tru
     dutyType: a.dutyType,
     batchName: a.batchName ?? undefined,
     moduleName: a.moduleName ?? undefined,
-    roomLab: a.roomLab ?? undefined,
+    roomLab: normalizeRoom(a.roomLab),
     notes: a.notes ?? undefined,
   };
 }
@@ -661,7 +667,7 @@ export async function addDutyAssignment(
   }
 
   const created = await prisma.dutyAssignment.create({
-    data: input,
+    data: { ...input, roomLab: normalizeRoom(input.roomLab) ?? null },
     include: { instructor: true },
   });
 

@@ -566,12 +566,10 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                             Batch: {a.batchName}
                           </span>
                         )}
-                        {a.roomLab && (
-                          <span className="flex items-center space-x-1 text-slate-500 font-medium text-[11px]">
-                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                            <span>{a.roomLab}</span>
-                          </span>
-                        )}
+                        <span className="flex items-center space-x-1 text-slate-500 font-medium text-[11px]">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                          <span className={a.roomLab ? '' : 'italic'}>{a.roomLab || 'Room unassigned'}</span>
+                        </span>
                       </div>
                       <a
                         href={getGoogleCalendarEventUrl(a)}
