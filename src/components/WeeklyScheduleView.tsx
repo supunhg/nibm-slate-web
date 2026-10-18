@@ -28,90 +28,102 @@ import {
 } from 'lucide-react';
 import { DatePicker } from './ui/DatePicker';
 
+type SlotType = 'fullday' | 'morning' | 'afternoon' | 'sunday';
+
+/** Same task, same place, same time block: shown as one card with everyone on it. */
+const groupKey = (d: DutyAssignment) =>
+  [d.moduleName ?? '', d.dutyType ?? '', d.batchName ?? '', d.roomLab ?? ''].join('|');
+
+function groupDuties(duties: DutyAssignment[]): DutyAssignment[][] {
+  const groups = new Map<string, DutyAssignment[]>();
+  for (const d of duties) {
+    const k = groupKey(d);
+    const g = groups.get(k);
+    if (g) g.push(d);
+    else groups.set(k, [d]);
+  }
+  return [...groups.values()];
+}
+
 interface SessionCardProps {
-  duty: DutyAssignment;
-  slotType: 'morning' | 'afternoon' | 'sunday';
-  isFullDay: boolean;
+  duties: DutyAssignment[];
+  slotType: SlotType;
   allInstructors: User[];
 }
 
-const SessionCard: React.FC<SessionCardProps> = ({
-  duty,
-  slotType,
-  isFullDay,
-  allInstructors,
-}) => {
-  const [popoverOpen, setPopoverOpen] = useState(false);
-  const instructor = allInstructors.find((i) => i.id === duty.instructorId);
+const SLOT_STYLES: Record<SlotType, { stripe: string; batch: string; avatarBg: string; timeLabel: string }> = {
+  fullday: {
+    stripe: 'before:bg-gradient-to-b before:from-blue-500 before:to-amber-400 print:bg-indigo-50/80 print:border-indigo-300',
+    batch: 'print:bg-indigo-200 print:text-indigo-900',
+    avatarBg: 'bg-indigo-600 print:bg-indigo-700',
+    timeLabel: 'Full day · 09:00 – 16:00',
+  },
+  morning: {
+    stripe: 'before:bg-blue-500 print:bg-blue-50/80 print:border-blue-300',
+    batch: 'print:bg-blue-200 print:text-blue-900',
+    avatarBg: 'bg-blue-600 print:bg-blue-700',
+    timeLabel: 'Morning · 09:00 – 12:00',
+  },
+  afternoon: {
+    stripe: 'before:bg-amber-400 print:bg-amber-50/80 print:border-amber-300',
+    batch: 'print:bg-amber-200 print:text-amber-900',
+    avatarBg: 'bg-amber-600 print:bg-amber-700',
+    timeLabel: 'Afternoon · 13:00 – 16:00',
+  },
+  sunday: {
+    stripe: 'before:bg-indigo-500 print:bg-purple-50/80 print:border-purple-300',
+    batch: 'print:bg-purple-200 print:text-purple-900',
+    avatarBg: 'bg-purple-700 print:bg-purple-800',
+    timeLabel: 'Sunday CCS · 16:30 – 17:30',
+  },
+};
 
-  const colorStyles = {
-    morning: {
-      card: 'bg-white dark:bg-white/[0.03] border-neutral-200 dark:border-white/[0.06] hover:border-neutral-300 dark:hover:border-white/[0.14] before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-r-full print:before:hidden pl-2.5 before:bg-blue-500 print:bg-blue-50/80 print:border-blue-300',
-      title: 'text-neutral-900 dark:text-white print:text-blue-950',
-      batch: 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 print:bg-blue-200 print:text-blue-900',
-      avatarBg: 'bg-blue-600 print:bg-blue-700',
-      badgeBorder: 'border-neutral-100 dark:border-white/[0.06] print:border-blue-200',
-      fullDayBadge:
-        'text-blue-800 dark:text-blue-300 print:text-indigo-950 bg-blue-500/15 dark:bg-blue-500/20 print:bg-indigo-100 border-blue-500/30 print:border-indigo-300',
-    },
-    afternoon: {
-      card: 'bg-white dark:bg-white/[0.03] border-neutral-200 dark:border-white/[0.06] hover:border-neutral-300 dark:hover:border-white/[0.14] before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-r-full print:before:hidden pl-2.5 before:bg-amber-400 print:bg-amber-50/80 print:border-amber-300',
-      title: 'text-neutral-900 dark:text-white print:text-amber-950',
-      batch: 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 print:bg-amber-200 print:text-amber-900',
-      avatarBg: 'bg-amber-600 print:bg-amber-700',
-      badgeBorder: 'border-neutral-100 dark:border-white/[0.06] print:border-amber-200',
-      fullDayBadge:
-        'text-amber-900 dark:text-amber-300 print:text-amber-950 bg-amber-500/15 dark:bg-amber-500/20 print:bg-amber-100 border-amber-500/30 print:border-amber-300',
-    },
-    sunday: {
-      card: 'bg-white dark:bg-white/[0.03] border-neutral-200 dark:border-white/[0.06] hover:border-neutral-300 dark:hover:border-white/[0.14] before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-r-full print:before:hidden pl-2.5 before:bg-indigo-500 print:bg-purple-50/80 print:border-purple-300',
-      title: 'text-neutral-900 dark:text-white print:text-purple-950',
-      batch: 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 print:bg-purple-200 print:text-purple-900',
-      avatarBg: 'bg-purple-700 print:bg-purple-800',
-      badgeBorder: 'border-neutral-100 dark:border-white/[0.06] print:border-purple-200',
-      fullDayBadge:
-        'text-purple-900 dark:text-purple-300 print:text-purple-950 bg-purple-500/15 dark:bg-purple-500/20 print:bg-purple-100 border-purple-500/30 print:border-purple-300',
-    },
-  }[slotType];
+const SessionCard: React.FC<SessionCardProps> = ({ duties, slotType, allInstructors }) => {
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const duty = duties[0];
+  const styles = SLOT_STYLES[slotType];
+  const notes = [...new Set(duties.map((d) => d.notes?.trim()).filter((n): n is string => !!n))];
+  const people = duties.map((d) => ({ duty: d, instructor: allInstructors.find((i) => i.id === d.instructorId) }));
 
   return (
     <div
-      className={`relative overflow-hidden rounded-lg print:rounded p-2 print:p-1 border transition-[border-color,background-color] duration-200 shadow-2xs print:shadow-none print-avoid-break group animate-rise-in ${colorStyles.card}`}
+      className={`relative rounded-lg print:rounded p-2 print:p-1 pl-2.5 border bg-white dark:bg-white/[0.03] border-neutral-200 dark:border-white/[0.06] hover:border-neutral-300 dark:hover:border-white/[0.14] transition-[border-color,background-color] duration-200 shadow-2xs print:shadow-none print-avoid-break group animate-rise-in before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-r-full print:before:hidden ${styles.stripe}`}
       onMouseEnter={() => setPopoverOpen(true)}
       onMouseLeave={() => setPopoverOpen(false)}
     >
-      {/* Session Title / Module */}
-      <div className={`text-xs print:text-[9.5px] font-bold line-clamp-2 leading-snug ${colorStyles.title}`}>
-        {duty.moduleName ?? duty.dutyType}
+      {/* Task / Module */}
+      <div className="flex items-start justify-between gap-1.5">
+        <div className="text-xs print:text-[9.5px] font-bold line-clamp-2 leading-snug text-neutral-900 dark:text-white print:text-slate-950">
+          {duty.moduleName ?? duty.dutyType}
+        </div>
+        {duties.length > 1 && (
+          <span className="shrink-0 rounded-full bg-neutral-100 px-1.5 py-px text-[10px] print:text-[8px] font-semibold tabular-nums text-neutral-600 dark:bg-white/[0.08] dark:text-neutral-300">
+            ×{duties.length}
+          </span>
+        )}
       </div>
 
       {/* Batch & Room */}
-      <div className="mt-1 print:mt-0.5 flex items-center justify-between text-[11px] print:text-[8.5px]">
-        {duty.batchName && (
-          <span className={`font-bold px-1.5 py-0.2 rounded text-[10px] print:text-[8px] ${colorStyles.batch}`}>
-            {duty.batchName}
-          </span>
-        )}
-        {duty.roomLab && (
-          <span className="text-slate-400 print:text-slate-600 font-medium text-[10px] print:text-[8.5px] flex items-center gap-0.5">
-            <MapPin className="w-2.5 h-2.5 text-slate-400 print:text-slate-600" />
-            {duty.roomLab}
-          </span>
-        )}
-      </div>
-
-      {/* Full Day Indicator */}
-      {isFullDay && (
-        <div
-          className={`mt-1.5 print:mt-0.5 inline-flex items-center gap-1 text-[10px] print:text-[8px] font-bold px-1.5 py-0.5 print:py-0.2 rounded border shadow-2xs ${colorStyles.fullDayBadge}`}
-        >
-          <Clock className="w-2.5 h-2.5 shrink-0" />
-          <span>09:00 - 16:00 (Full Day)</span>
+      {(duty.batchName || duty.roomLab) && (
+        <div className="mt-1 print:mt-0.5 flex items-center justify-between gap-1 text-[11px] print:text-[8.5px]">
+          {duty.batchName ? (
+            <span className={`font-bold px-1.5 py-0.2 rounded text-[10px] print:text-[8px] bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 ${styles.batch}`}>
+              {duty.batchName}
+            </span>
+          ) : (
+            <span />
+          )}
+          {duty.roomLab && (
+            <span className="text-slate-400 print:text-slate-600 font-medium text-[10px] print:text-[8.5px] flex items-center gap-0.5">
+              <MapPin className="w-2.5 h-2.5 text-slate-400 print:text-slate-600" />
+              {duty.roomLab}
+            </span>
+          )}
         </div>
       )}
 
       {/* Interactive Compact Note Pill on Screen */}
-      {duty.notes && (
+      {notes.length > 0 && (
         <div className="mt-1 print:hidden">
           <button
             type="button"
@@ -123,29 +135,29 @@ const SessionCard: React.FC<SessionCardProps> = ({
             title="View the full duty notes"
           >
             <FileText className="w-2.5 h-2.5 text-blue-400 shrink-0" />
-            <span className="truncate max-w-[130px]">{duty.notes}</span>
+            <span className="truncate max-w-[130px]">{notes[0]}</span>
           </button>
         </div>
       )}
 
       {/* Printed Notes (Preserved on Paper) */}
-      {duty.notes && (
-        <div className="hidden print:block mt-0.5 text-[8px] text-slate-600 italic line-clamp-2">
-          {duty.notes}
-        </div>
+      {notes.length > 0 && (
+        <div className="hidden print:block mt-0.5 text-[8px] text-slate-600 italic line-clamp-2">{notes.join(' · ')}</div>
       )}
 
-      {/* Instructor Footer */}
-      <div
-        className={`mt-1.5 print:mt-0.5 pt-1 border-t flex items-center justify-between text-[11px] print:text-[8.5px] font-semibold text-neutral-700 dark:text-neutral-200 print:text-slate-800 ${colorStyles.badgeBorder}`}
-      >
-        <div className="flex items-center space-x-1 min-w-0">
-          <div
-            className={`w-4 h-4 print:w-3.5 print:h-3.5 rounded-full text-white font-bold flex items-center justify-center text-[9px] print:text-[7.5px] shrink-0 ${colorStyles.avatarBg}`}
-          >
-            {duty.instructorName ? duty.instructorName.substring(0, 1) : 'I'}
-          </div>
-          <span className="truncate">{duty.instructorName}</span>
+      {/* People */}
+      <div className="mt-1.5 print:mt-0.5 pt-1 border-t border-neutral-100 dark:border-white/[0.06] print:border-slate-200 flex items-start justify-between gap-1">
+        <div className="flex min-w-0 flex-wrap gap-x-2 gap-y-1 text-[11px] print:text-[8.5px] font-semibold text-neutral-700 dark:text-neutral-200 print:text-slate-800">
+          {people.map(({ duty: d }) => (
+            <span key={d.id} className="flex min-w-0 items-center gap-1">
+              <span
+                className={`w-4 h-4 print:w-3.5 print:h-3.5 rounded-full text-white font-bold flex items-center justify-center text-[9px] print:text-[7.5px] shrink-0 ${styles.avatarBg}`}
+              >
+                {d.instructorName ? d.instructorName.substring(0, 1) : 'I'}
+              </span>
+              <span className="truncate">{d.instructorName}</span>
+            </span>
+          ))}
         </div>
 
         {/* Info button on mobile for quick tap popover */}
@@ -155,7 +167,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
             e.stopPropagation();
             setPopoverOpen((prev) => !prev);
           }}
-          className="lg:hidden text-slate-400 hover:text-slate-200 p-0.5 rounded cursor-pointer"
+          className="lg:hidden text-slate-400 hover:text-slate-200 p-0.5 rounded cursor-pointer shrink-0"
           title="Duty details"
         >
           <Info className="w-3 h-3 text-slate-400" />
@@ -166,18 +178,14 @@ const SessionCard: React.FC<SessionCardProps> = ({
       {popoverOpen && (
         <div
           className={`absolute z-40 left-0 right-0 sm:left-1/2 sm:-translate-x-1/2 ${
-            slotType === 'morning' ? 'top-full mt-2' : 'bottom-full mb-2'
+            slotType === 'morning' || slotType === 'fullday' ? 'top-full mt-2' : 'bottom-full mb-2'
           } w-72 max-w-[85vw] p-3 rounded-xl bg-slate-950 text-slate-100 border border-slate-700 shadow-2xl backdrop-blur-md animate-pop-in print:hidden`}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-start justify-between gap-2 pb-2 border-b border-slate-800">
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-blue-400">
-                {isFullDay ? 'Full day (09:00 – 16:00)' : `${duty.startTime} - ${duty.endTime}`}
-              </div>
-              <div className="text-xs font-bold text-white mt-0.5 leading-snug">
-                {duty.moduleName ?? duty.dutyType}
-              </div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-blue-400">{styles.timeLabel}</div>
+              <div className="text-xs font-bold text-white mt-0.5 leading-snug">{duty.moduleName ?? duty.dutyType}</div>
             </div>
             <button
               type="button"
@@ -192,7 +200,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
           <div className="mt-2 space-y-1.5 text-[11px]">
             {duty.batchName && (
               <div className="flex items-center justify-between text-slate-300">
-                <span className="text-slate-400">Target Batch:</span>
+                <span className="text-slate-400">Batch</span>
                 <span className="font-bold text-white bg-slate-800 px-1.5 py-0.2 rounded border border-slate-700">
                   {duty.batchName}
                 </span>
@@ -200,37 +208,40 @@ const SessionCard: React.FC<SessionCardProps> = ({
             )}
             {duty.roomLab && (
               <div className="flex items-center justify-between text-slate-300">
-                <span className="text-slate-400">Room / Facility:</span>
+                <span className="text-slate-400">Room</span>
                 <span className="font-bold text-slate-200 flex items-center gap-1">
                   <MapPin className="w-3 h-3 text-blue-400" />
                   {duty.roomLab}
                 </span>
               </div>
             )}
-            <div className="flex items-center justify-between text-slate-300 pt-1 border-t border-slate-800/80">
-              <span className="text-slate-400">Assigned Instructor:</span>
-              <span className="font-bold text-white">{duty.instructorName}</span>
-            </div>
-            {instructor?.phone && (
-              <div className="flex items-center justify-between text-slate-300">
-                <span className="text-slate-400">Contact:</span>
-                <a
-                  href={`tel:${instructor.phone.replace(/\s+/g, '')}`}
-                  className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-bold hover:underline"
-                >
-                  <Phone className="w-2.5 h-2.5" />
-                  <span>{instructor.phone}</span>
-                </a>
+            <div className="pt-1.5 border-t border-slate-800/80">
+              <div className="mb-1 text-slate-400">{people.length > 1 ? `On duty (${people.length})` : 'On duty'}</div>
+              <div className="space-y-1">
+                {people.map(({ duty: d, instructor }) => (
+                  <div key={d.id} className="flex items-center justify-between gap-2">
+                    <span className="truncate font-bold text-white">{d.instructorName}</span>
+                    {instructor?.phone && (
+                      <a
+                        href={`tel:${instructor.phone.replace(/\s+/g, '')}`}
+                        className="inline-flex shrink-0 items-center gap-1 text-emerald-400 hover:text-emerald-300 font-bold hover:underline"
+                      >
+                        <Phone className="w-2.5 h-2.5" />
+                        <span>{instructor.phone}</span>
+                      </a>
+                    )}
+                  </div>
+                ))}
               </div>
-            )}
-            {duty.notes && (
+            </div>
+            {notes.length > 0 && (
               <div className="mt-2 pt-2 border-t border-slate-800">
                 <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1 mb-1">
                   <FileText className="w-3 h-3 text-blue-400" />
                   <span>Duty notes</span>
                 </div>
                 <div className="bg-slate-900 p-2 rounded-lg border border-slate-800 text-[11px] text-slate-200 whitespace-pre-wrap leading-relaxed">
-                  {duty.notes}
+                  {notes.join('\n\n')}
                 </div>
               </div>
             )}
@@ -686,6 +697,9 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
           <div className="flex items-center gap-2.5 text-xs text-slate-600 dark:text-slate-300">
             <span className="flex items-center gap-1 font-medium">
+              <span className="w-2.5 h-2.5 rounded bg-gradient-to-b from-blue-500 to-amber-400"></span> Full day (09-16)
+            </span>
+            <span className="flex items-center gap-1 font-medium">
               <span className="w-2.5 h-2.5 rounded bg-blue-500"></span> Morning (09-12)
             </span>
             <span className="flex items-center gap-1 font-medium">
@@ -700,15 +714,16 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
         {/* 7-Column Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 print:grid-cols-7 divide-y lg:divide-y-0 lg:divide-x print:divide-y-0 print:divide-x divide-slate-200 dark:divide-white/[0.06] print:divide-slate-300 bg-slate-200 dark:bg-white/[0.06] print:bg-white print:border print:border-slate-300 print:rounded-lg print:overflow-hidden print:w-full">
           {weekDays.map((day) => {
-            // Find morning assignments for this day
-            const morningDuties = filteredAssignments.filter(
+            const morningAll = filteredAssignments.filter(
               (a) => a.dutyDate === day.dateStr && (a.startTime === '09:00' || a.slotLabel.includes('Morning'))
             );
-
-            // Find afternoon assignments for this day
-            const afternoonDuties = filteredAssignments.filter(
+            const afternoonAll = filteredAssignments.filter(
               (a) => a.dutyDate === day.dateStr && (a.startTime === '13:00' || a.slotLabel.includes('Afternoon'))
             );
+            // A full-day duty is stored as a morning and an afternoon record; show it once.
+            const fullDayDuties = morningAll.filter((m) => afternoonAll.some((a) => isSameSession(m, a)));
+            const morningDuties = morningAll.filter((m) => !fullDayDuties.includes(m));
+            const afternoonDuties = afternoonAll.filter((a) => !fullDayDuties.some((m) => isSameSession(m, a)));
 
             // Find Sunday CCS assignment
             const sundayDuties = filteredAssignments.filter(
@@ -775,73 +790,48 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                 {/* Day Slots Container */}
                 <div className="p-2 print:p-1 space-y-3 print:space-y-1 flex-1 flex flex-col justify-between">
                   <div className="space-y-3 print:space-y-1">
-                    {/* 1. MORNING SLOT (09:00 - 12:00) */}
-                    <div className="space-y-1.5 print:space-y-0.5">
-                      <div className="flex items-center justify-between text-[11px] print:text-[9.5px] font-semibold text-neutral-500 print:text-slate-800 uppercase tracking-wider px-1">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-blue-600 print:text-blue-700" />
-                          <span>09:00 - 12:00</span>
-                        </span>
-                        {morningDuties.length > 0 && (
-                          <span className="text-[10px] print:text-[8px] font-semibold text-blue-400 print:text-blue-900 bg-blue-500/10 print:bg-blue-100 px-1 rounded">
-                            {morningDuties.length}
-                          </span>
-                        )}
-                      </div>
+                    {(
+                      [
+                        { type: 'fullday', label: '09:00 - 16:00', duties: fullDayDuties, icon: 'text-indigo-500 print:text-indigo-700', count: 'text-indigo-400 print:text-indigo-900 bg-indigo-500/10 print:bg-indigo-100' },
+                        { type: 'morning', label: '09:00 - 12:00', duties: morningDuties, icon: 'text-blue-600 print:text-blue-700', count: 'text-blue-400 print:text-blue-900 bg-blue-500/10 print:bg-blue-100' },
+                        { type: 'afternoon', label: '13:00 - 16:00', duties: afternoonDuties, icon: 'text-amber-600 print:text-amber-700', count: 'text-amber-400 print:text-amber-900 bg-amber-500/10 print:bg-amber-100' },
+                      ] as const
+                    )
+                      // The full-day band only appears when there is something in it.
+                      .filter((slot) => slot.type !== 'fullday' || slot.duties.length > 0)
+                      .map((slot) => (
+                        <div key={slot.type} className="space-y-1.5 print:space-y-0.5">
+                          <div className="flex items-center justify-between text-[11px] print:text-[9.5px] font-semibold text-neutral-500 print:text-slate-800 uppercase tracking-wider px-1">
+                            <span className="flex items-center gap-1">
+                              <Clock className={`w-3 h-3 ${slot.icon}`} />
+                              <span>{slot.label}</span>
+                            </span>
+                            {slot.duties.length > 0 && (
+                              <span
+                                className={`text-[10px] print:text-[8px] font-semibold px-1 rounded ${slot.count}`}
+                                title={`${slot.duties.length} ${slot.duties.length === 1 ? 'person' : 'people'} on duty`}
+                              >
+                                {slot.duties.length}
+                              </span>
+                            )}
+                          </div>
 
-                      {morningDuties.length === 0 ? (
-                        <div className="rounded-lg border border-dashed border-neutral-200 p-2 dark:border-white/[0.06] print:bg-slate-50 print:rounded print:p-1 print:border-slate-300 text-center">
-                          <span className="text-[10px] print:text-[8.5px] text-slate-400 print:text-slate-500 italic">No duties</span>
+                          {slot.duties.length === 0 ? (
+                            <div className="rounded-lg border border-dashed border-neutral-200 p-2 dark:border-white/[0.06] print:bg-slate-50 print:rounded print:p-1 print:border-slate-300 text-center">
+                              <span className="text-[10px] print:text-[8.5px] text-slate-400 print:text-slate-500 italic">No duties</span>
+                            </div>
+                          ) : (
+                            groupDuties(slot.duties).map((group) => (
+                              <SessionCard
+                                key={group[0].id}
+                                duties={group}
+                                slotType={slot.type}
+                                allInstructors={allInstructors}
+                              />
+                            ))
+                          )}
                         </div>
-                      ) : (
-                        morningDuties.map((duty) => {
-                          const isFullDay = afternoonDuties.some((a) => isSameSession(duty, a));
-                          return (
-                            <SessionCard
-                              key={duty.id}
-                              duty={duty}
-                              slotType="morning"
-                              isFullDay={isFullDay}
-                              allInstructors={allInstructors}
-                            />
-                          );
-                        })
-                      )}
-                    </div>
-
-                    {/* 2. AFTERNOON SLOT (13:00 - 16:00) */}
-                    <div className="space-y-1.5 print:space-y-0.5">
-                      <div className="flex items-center justify-between text-[11px] print:text-[9.5px] font-semibold text-neutral-500 print:text-slate-800 uppercase tracking-wider px-1">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-amber-600 print:text-amber-700" />
-                          <span>13:00 - 16:00</span>
-                        </span>
-                        {afternoonDuties.length > 0 && (
-                          <span className="text-[10px] print:text-[8px] font-semibold text-amber-400 print:text-amber-900 bg-amber-500/10 print:bg-amber-100 px-1 rounded">
-                            {afternoonDuties.length}
-                          </span>
-                        )}
-                      </div>
-
-                      {afternoonDuties.length === 0 ? (
-                        <div className="rounded-lg border border-dashed border-neutral-200 p-2 dark:border-white/[0.06] print:bg-slate-50 print:rounded print:p-1 print:border-slate-300 text-center">
-                          <span className="text-[10px] print:text-[8.5px] text-slate-400 print:text-slate-500 italic">No duties</span>
-                        </div>
-                      ) : (
-                        afternoonDuties.map((duty) => {
-                          const isFullDay = morningDuties.some((m) => isSameSession(duty, m));
-                          return (
-                            <SessionCard
-                              key={duty.id}
-                              duty={duty}
-                              slotType="afternoon"
-                              isFullDay={isFullDay}
-                              allInstructors={allInstructors}
-                            />
-                          );
-                        })
-                      )}
-                    </div>
+                      ))}
 
                     {/* 3. SUNDAY CCS SPECIAL SLOT (16:30 - 17:30) */}
                     {day.isSunday && (
@@ -858,14 +848,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                             <span className="text-[10px] print:text-[8.5px] text-purple-400 print:text-purple-600 italic">No CCS duty</span>
                           </div>
                         ) : (
-                          sundayDuties.map((duty) => (
-                            <SessionCard
-                              key={duty.id}
-                              duty={duty}
-                              slotType="sunday"
-                              isFullDay={false}
-                              allInstructors={allInstructors}
-                            />
+                          groupDuties(sundayDuties).map((group) => (
+                            <SessionCard key={group[0].id} duties={group} slotType="sunday" allInstructors={allInstructors} />
                           ))
                         )}
                       </div>
