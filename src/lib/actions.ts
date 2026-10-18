@@ -18,6 +18,7 @@ import {
   withdrawLeaveRequest,
   getCommitmentsInRange,
   isDateInPublishedWeek,
+  getPublishedDatesInRange,
   getDutyAssignment,
   getNightShiftForDate,
   savePushToken,
@@ -103,10 +104,11 @@ export async function getAppData(weekStartDate?: string, selectedDate?: string) 
   const instructors = await getInstructors(users);
 
   // Parallelize dependent queries, reusing preloaded instructors in getExecutiveStatus
-  const [dutyAssignments, nightShifts, executiveReport] = await Promise.all([
+  const [dutyAssignments, nightShifts, executiveReport, publishedDates] = await Promise.all([
     getDutyAssignments(rosterWeek.id),
     getNightShifts(rosterWeek.id),
     getExecutiveStatus(todayStr, undefined, instructors),
+    getPublishedDatesInRange(rosterWeek.startDate, rosterWeek.endDate),
   ]);
 
   return {
@@ -118,6 +120,7 @@ export async function getAppData(weekStartDate?: string, selectedDate?: string) 
     leaveRequests,
     executiveReport,
     catalog,
+    publishedDates,
   };
 }
 

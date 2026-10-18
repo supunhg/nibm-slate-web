@@ -28,6 +28,8 @@ interface MainAppProps {
     leaveRequests: LeaveRequest[];
     executiveReport: ExecutiveStatusReport;
     catalog: AcademicCatalog;
+    /** Dates in the loaded week covered by a Published Roster Week. */
+    publishedDates: string[];
   };
   initialCurrentUser: User | null;
 }
@@ -290,6 +292,7 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
               leaveRequests={data.leaveRequests}
               rosterWeek={data.rosterWeek}
               onRefresh={handleRefresh}
+              publishedDates={data.publishedDates}
               week={selectedWeekStart === currentWeekStart ? 'this' : 'next'}
               isWeekLoading={isWeekLoading}
               onSelectWeek={(w) => handleWeekChange(w === 'this' ? currentWeekStart : addDaysYmd(currentWeekStart, 7))}
@@ -322,6 +325,7 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
               leaveRequests={data.leaveRequests}
               allInstructors={data.instructors}
               onWeekChange={handleWeekChange}
+              publishedDates={data.publishedDates}
               onSelectDateForCockpit={() => {
                 handleSelectTab('executive');
               }}
@@ -339,6 +343,7 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
               catalog={data.catalog}
               onRefresh={handleRefresh}
               onWeekChange={handleWeekChange}
+              publishedDates={data.publishedDates}
             />
           )}
 

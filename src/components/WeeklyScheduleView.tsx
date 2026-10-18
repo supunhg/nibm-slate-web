@@ -4,6 +4,7 @@ import { Select } from './ui/Select';
 import React, { useState, useMemo } from 'react';
 import { User, RosterWeek, DutyAssignment, NightShift, LeaveRequest } from '@/types';
 import { isSameSession } from '@/lib/roster-utils';
+import { publishCoverage } from '@/lib/publish-coverage';
 import { PageHeader, StatusPill } from './ui/PageHeader';
 import {
   Calendar,
@@ -260,6 +261,8 @@ interface WeeklyScheduleViewProps {
   allInstructors: User[];
   onWeekChange?: (newStartDate: string) => void;
   onSelectDateForCockpit?: (dateStr: string) => void;
+  /** Dates in this window covered by any Published Roster Week. */
+  publishedDates?: string[];
 }
 
 export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
@@ -270,7 +273,9 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
   allInstructors,
   onWeekChange,
   onSelectDateForCockpit,
+  publishedDates,
 }) => {
+  const coverage = publishCoverage(rosterWeek, publishedDates);
   const [planningStartDate, setPlanningStartDate] = useState<string>(rosterWeek.startDate);
   const [prevRosterStartDate, setPrevRosterStartDate] = useState<string>(rosterWeek.startDate);
   const [selectedInstructorId, setSelectedInstructorId] = useState<string>('ALL');
@@ -470,8 +475,10 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
         title="Week schedule"
         description="Every duty and Night Duty across the seven-day window."
         status={
-          rosterWeek.status === 'PUBLISHED' ? (
+          coverage === 'published' ? (
             <StatusPill tone="emerald">Published</StatusPill>
+          ) : coverage === 'partial' ? (
+            <StatusPill tone="amber">Partly published</StatusPill>
           ) : (
             <StatusPill tone="amber" pulse>Draft</StatusPill>
           )

@@ -684,6 +684,26 @@ export async function isDateInPublishedWeek(date: string): Promise<boolean> {
   return week !== null;
 }
 
+/**
+ * Dates in [startDate, endDate] covered by any Published Roster Week. Roster
+ * Weeks can be planned from any start day, so "is this published?" is a
+ * per-date question, not a property of one week row.
+ */
+export async function getPublishedDatesInRange(startDate: string, endDate: string): Promise<string[]> {
+  const weeks = await prisma.rosterWeek.findMany({
+    where: { status: 'PUBLISHED', startDate: { lte: endDate }, endDate: { gte: startDate } },
+    select: { startDate: true, endDate: true },
+  });
+  const dates: string[] = [];
+  const cursor = new Date(`${startDate}T00:00:00Z`);
+  for (let date = startDate; date <= endDate; ) {
+    if (weeks.some((w) => w.startDate <= date && w.endDate >= date)) dates.push(date);
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+    date = cursor.toISOString().slice(0, 10);
+  }
+  return dates;
+}
+
 /** The duty as it was, so callers can notify after deleting it. */
 export async function getDutyAssignment(assignmentId: string): Promise<DutyAssignment | null> {
   const a = await prisma.dutyAssignment.findUnique({ where: { id: assignmentId }, include: { instructor: true } });

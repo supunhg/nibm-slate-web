@@ -55,6 +55,7 @@ import {
   updateDutyTypeAction,
 } from '@/lib/actions';
 import { getMatchingOppositeSlotDuty, mergeDutyAssignments } from '@/lib/roster-utils';
+import { publishCoverage } from '@/lib/publish-coverage';
 import { useDialog } from './DialogProvider';
 import { AiCopilotDrawer } from './AiCopilotDrawer';
 import { PageHeader, StatusPill } from './ui/PageHeader';
@@ -70,6 +71,8 @@ interface SundayPlannerProps {
   catalog: AcademicCatalog;
   onRefresh: () => void;
   onWeekChange?: (newStartDate: string) => void;
+  /** Dates in this window covered by any Published Roster Week. */
+  publishedDates?: string[];
 }
 
 export const SundayPlanner: React.FC<SundayPlannerProps> = ({
@@ -81,8 +84,10 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
   catalog,
   onRefresh,
   onWeekChange,
+  publishedDates,
 }) => {
   const { confirm, notify } = useDialog();
+  const coverage = publishCoverage(rosterWeek, publishedDates);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalData, setModalData] = useState<{
     date: string;
@@ -699,8 +704,10 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
           title="Weekly duty planner"
           description="Assign duties and Night Duty, check the balance, then publish the week to the Cadre."
           status={
-            rosterWeek.status === 'PUBLISHED' ? (
+            coverage === 'published' ? (
               <StatusPill tone="emerald">Published</StatusPill>
+            ) : coverage === 'partial' ? (
+              <StatusPill tone="amber">Partly published</StatusPill>
             ) : (
               <StatusPill tone="amber" pulse>Draft</StatusPill>
             )
@@ -727,11 +734,11 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
               </button>
               <button
                 onClick={handlePublish}
-                disabled={rosterWeek.status === 'PUBLISHED'}
+                disabled={coverage === 'published'}
                 className="btn btn-primary btn-lg col-span-3 sm:h-9 sm:px-4 sm:text-xs"
               >
-                {rosterWeek.status === 'PUBLISHED' ? <CheckCircle2 /> : <Send />}
-                {rosterWeek.status === 'PUBLISHED' ? 'Published' : 'Publish week'}
+                {coverage === 'published' ? <CheckCircle2 /> : <Send />}
+                {coverage === 'published' ? 'Published' : 'Publish week'}
               </button>
             </div>
           }

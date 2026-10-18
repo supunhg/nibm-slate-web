@@ -48,6 +48,8 @@ interface InstructorPortalProps {
   onRefresh: () => void;
   /** Which Roster Week the schedule shows: the current one or the next. */
   week: 'this' | 'next';
+  /** Dates in the loaded week covered by a Published Roster Week. */
+  publishedDates: string[];
   isWeekLoading?: boolean;
   onSelectWeek: (week: 'this' | 'next') => void;
   /** Which part of the portal to show; driven by the main app navigation. */
@@ -65,19 +67,28 @@ const SECTION_COPY: Record<InstructorSection, { eyebrow: string; title?: string;
 export const InstructorPortal: React.FC<InstructorPortalProps> = ({
   currentUser,
   allInstructors,
-  dutyAssignments,
-  nightShifts,
+  dutyAssignments: loadedDuties,
+  nightShifts: loadedNightShifts,
   leaveRequests,
   rosterWeek,
   onRefresh,
   section,
   week,
+  publishedDates,
   isWeekLoading = false,
   onSelectWeek,
 }) => {
-  // A Draft week hasn't been announced yet (GLOSSARY.md), so next week stays
-  // hidden until it is Published. This week shows as before.
-  const nextWeekUnpublished = week === 'next' && rosterWeek.status !== 'PUBLISHED';
+  // Draft plans haven't been announced yet (GLOSSARY.md), so next week only
+  // shows the days a Published Roster Week covers. Weeks can start on any
+  // day, so this is checked per date. This week shows as before.
+  const published = new Set(publishedDates);
+  const dutyAssignments = week === 'next' ? loadedDuties.filter((d) => published.has(d.dutyDate)) : loadedDuties;
+  const nightShifts = week === 'next' ? loadedNightShifts.filter((n) => published.has(n.shiftDate)) : loadedNightShifts;
+  const nextWeekUnpublished = week === 'next' && publishedDates.length === 0;
+  const unpublishedNextDays =
+    week === 'next' && !nextWeekUnpublished
+      ? Array.from({ length: 7 }, (_, i) => addDaysYmd(rosterWeek.startDate, i)).filter((d) => !published.has(d))
+      : [];
   const shortDate = (ymd: string) =>
     new Date(`${ymd}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const { notify, confirm } = useDialog();
@@ -403,6 +414,12 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
 
       {activeSubTab === 'schedule' && !nextWeekUnpublished && (
         <div className={`space-y-6 animate-page-in transition-opacity ${isWeekLoading ? 'opacity-60' : ''}`}>
+          {unpublishedNextDays.length > 0 && (
+            <p className="flex items-center gap-2 rounded-xl border border-neutral-200 px-3.5 py-2.5 text-xs text-neutral-500 dark:border-white/[0.06]">
+              <CalendarClock className="size-3.5 shrink-0" />
+              Not published yet: {unpublishedNextDays.map((d) => new Date(`${d}T00:00:00`).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })).join(', ')}.
+            </p>
+          )}
           {/* Night Duty this week Banner */}
           <div className="surface-card p-5">
             <div className="flex items-center justify-between mb-3">
