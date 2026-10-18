@@ -14,6 +14,7 @@ const getServerOrigin = () => null;
 import { User, DutyAssignment, NightShift, LeaveRequest, RosterWeek } from '@/types';
 import {
   Calendar,
+  CalendarClock,
   Clock,
   Moon,
   MapPin,
@@ -45,6 +46,10 @@ interface InstructorPortalProps {
   leaveRequests: LeaveRequest[];
   rosterWeek: RosterWeek;
   onRefresh: () => void;
+  /** Which Roster Week the schedule shows: the current one or the next. */
+  week: 'this' | 'next';
+  isWeekLoading?: boolean;
+  onSelectWeek: (week: 'this' | 'next') => void;
   /** Which part of the portal to show; driven by the main app navigation. */
   section: InstructorSection;
 }
@@ -66,7 +71,15 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
   rosterWeek,
   onRefresh,
   section,
+  week,
+  isWeekLoading = false,
+  onSelectWeek,
 }) => {
+  // A Draft week hasn't been announced yet (GLOSSARY.md), so next week stays
+  // hidden until it is Published. This week shows as before.
+  const nextWeekUnpublished = week === 'next' && rosterWeek.status !== 'PUBLISHED';
+  const shortDate = (ymd: string) =>
+    new Date(`${ymd}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const { notify, confirm } = useDialog();
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
   // Withdrawal (GLOSSARY.md): own Pending or not-yet-ended Approved leave.
@@ -277,6 +290,25 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
         }
       />
 
+      {/* Week switch: this week / next week */}
+      {section === 'schedule' && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Segmented
+            label="Week"
+            value={week}
+            onChange={onSelectWeek}
+            options={[
+              { value: 'this', label: 'This week' },
+              { value: 'next', label: 'Next week' },
+            ]}
+          />
+          <span className="flex items-center gap-2 text-xs text-neutral-500">
+            {isWeekLoading && <Loader2 className="size-3.5 animate-spin" />}
+            {shortDate(rosterWeek.startDate)} – {shortDate(rosterWeek.endDate)}
+          </span>
+        </div>
+      )}
+
       {/* Who + calendar sync */}
       {section === 'schedule' && (
       <div className="surface-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-3.5">
@@ -356,8 +388,21 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
       )}
 
       {/* SUBTAB 1: ASSIGNED TASKS & SCHEDULE */}
-      {activeSubTab === 'schedule' && (
-        <div className="space-y-6 animate-page-in">
+      {activeSubTab === 'schedule' && nextWeekUnpublished && (
+        <div className="surface-card flex flex-col items-center px-6 py-14 text-center animate-page-in">
+          <div className="mb-3 flex size-11 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-500 dark:bg-white/[0.06] dark:text-neutral-400">
+            <CalendarClock className="size-5" />
+          </div>
+          <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Next week isn&apos;t published yet</h3>
+          <p className="mt-1 max-w-xs text-xs text-neutral-500">
+            The roster for {shortDate(rosterWeek.startDate)} – {shortDate(rosterWeek.endDate)} is still being planned. It
+            shows here as soon as it&apos;s published, and you&apos;ll get a notification if alerts are on.
+          </p>
+        </div>
+      )}
+
+      {activeSubTab === 'schedule' && !nextWeekUnpublished && (
+        <div className={`space-y-6 animate-page-in transition-opacity ${isWeekLoading ? 'opacity-60' : ''}`}>
           {/* Night Duty this week Banner */}
           <div className="surface-card p-5">
             <div className="flex items-center justify-between mb-3">
@@ -366,7 +411,9 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                   <Moon className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-slate-900 dark:text-white">Night Duty this week</h4>
+                  <h4 className="font-semibold text-sm text-slate-900 dark:text-white">
+                    Night Duty {week === 'next' ? 'next week' : 'this week'}
+                  </h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     Week of {rosterWeek.startDate} to {rosterWeek.endDate}
                   </p>

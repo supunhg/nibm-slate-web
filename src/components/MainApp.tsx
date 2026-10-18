@@ -16,6 +16,7 @@ import { AdminUserManagement } from '@/components/AdminUserManagement';
 import { ProfileSettings } from '@/components/ProfileSettings';
 import { DialogProvider } from '@/components/DialogProvider';
 import { getAppData, logoutAction, updateAutoRefreshIntervalAction } from '@/lib/actions';
+import { addDaysYmd } from '@/lib/week-start';
 
 interface MainAppProps {
   initialData: {
@@ -52,6 +53,9 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
   const [isPublicMode, setIsPublicMode] = useState(false);
   const [activeTab, setActiveTab] = useState<AppTab>(() => defaultTabForRole(initialCurrentUser));
   const [selectedWeekStart, setSelectedWeekStart] = useState<string>(data.rosterWeek.startDate);
+  // The week the server resolved as "this week" on load; instructors can flip to the one after it.
+  const [currentWeekStart] = useState<string>(initialData.rosterWeek.startDate);
+  const [isWeekLoading, setIsWeekLoading] = useState(false);
 
   // Auto-refresh state (defaults to system setting in catalog, e.g. 5s)
   const defaultInterval = data.catalog.autoRefreshSeconds ?? 5;
@@ -127,11 +131,14 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
 
   const handleWeekChange = async (newStartDate: string) => {
     setSelectedWeekStart(newStartDate);
+    setIsWeekLoading(true);
     try {
       const refreshed = await getAppData(newStartDate);
       setData(refreshed);
     } catch (err) {
       console.error('Failed to load week data:', err);
+    } finally {
+      setIsWeekLoading(false);
     }
   };
 
@@ -283,6 +290,9 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
               leaveRequests={data.leaveRequests}
               rosterWeek={data.rosterWeek}
               onRefresh={handleRefresh}
+              week={selectedWeekStart === currentWeekStart ? 'this' : 'next'}
+              isWeekLoading={isWeekLoading}
+              onSelectWeek={(w) => handleWeekChange(w === 'this' ? currentWeekStart : addDaysYmd(currentWeekStart, 7))}
             />
           )}
 
