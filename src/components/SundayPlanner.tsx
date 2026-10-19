@@ -56,6 +56,7 @@ import {
 } from '@/lib/actions';
 import { getMatchingOppositeSlotDuty, mergeDutyAssignments } from '@/lib/roster-utils';
 import { publishCoverage } from '@/lib/publish-coverage';
+import { rosterWeekStart } from '@/lib/roster-week';
 import { useDialog } from './DialogProvider';
 import { AiCopilotDrawer } from './AiCopilotDrawer';
 import { PageHeader, StatusPill } from './ui/PageHeader';
@@ -139,7 +140,9 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
     setPlanningStartDate(rosterWeek.startDate);
   }
 
-  const handleDateChange = (newDateStr: string) => {
+  // Roster Weeks always run Sunday to Saturday: any picked date snaps to its Sunday.
+  const handleDateChange = (pickedDate: string) => {
+    const newDateStr = rosterWeekStart(pickedDate);
     setPlanningStartDate(newDateStr);
     onWeekChange?.(newDateStr);
   };
@@ -151,14 +154,6 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
     handleDateChange(newDateStr);
   };
 
-  const handleJumpToSunday = () => {
-    const now = new Date();
-    const day = now.getDay();
-    const diff = (7 - day) % 7;
-    const nextSunday = new Date(now);
-    nextSunday.setDate(now.getDate() + diff);
-    handleDateChange(nextSunday.toISOString().split('T')[0]);
-  };
 
   // Generate the 7 days of the week starting from ANY chosen start date
   const weekDays = Array.from({ length: 7 }).map((_, i) => {
@@ -780,7 +775,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
         </div>
 
         <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
-          <div className="grid grid-cols-4 items-center rounded-lg border border-neutral-200 p-0.5 sm:flex dark:border-white/[0.08]">
+          <div className="grid grid-cols-3 items-center rounded-lg border border-neutral-200 p-0.5 sm:flex dark:border-white/[0.08]">
             <button type="button" onClick={() => handleShiftDate(-7)} className="btn btn-ghost btn-sm" title="Previous week">
               <ChevronLeft /> Prev
             </button>
@@ -789,10 +784,7 @@ export const SundayPlanner: React.FC<SundayPlannerProps> = ({
               onClick={() => handleDateChange(new Date().toISOString().split('T')[0])}
               className="btn btn-ghost btn-sm"
             >
-              Today
-            </button>
-            <button type="button" onClick={handleJumpToSunday} className="btn btn-ghost btn-sm" title="Start the window on this Sunday">
-              Sunday
+              This week
             </button>
             <button type="button" onClick={() => handleShiftDate(7)} className="btn btn-ghost btn-sm" title="Next week">
               Next <ChevronRight />

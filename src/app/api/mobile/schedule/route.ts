@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server';
 import { authenticateMobileRequest, mobileAuthErrorResponse } from '@/lib/mobile-auth';
 import {
   getOrCreateRosterWeek,
-  getDutyAssignments,
-  getNightShifts,
+  getDutyAssignmentsInRange,
+  getNightShiftsInRange,
   getCatalog,
   getInstructors,
 } from '@/lib/storage';
 import { mergeDutyAssignments } from '@/lib/roster-utils';
-import { startOfWeek, format } from 'date-fns';
+import { addDaysToYmd, rosterWeekStart, todayInColombo } from '@/lib/roster-week';
 
 export async function GET(request: Request) {
   const auth = await authenticateMobileRequest(request);
@@ -18,17 +18,17 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    let startDate = searchParams.get('startDate');
-
-    if (!startDate) {
-      // Default to Monday of current week
-      startDate = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
-    }
+    // Roster Weeks run Sunday to Saturday. Older app builds still ask for a
+    // Monday and draw seven days from it, so the duties returned cover the
+    // window that was asked for, while `week` is the Roster Week it falls in.
+    const requested = searchParams.get('startDate');
+    const startDate = /^\d{4}-\d{2}-\d{2}$/.test(requested ?? '') ? requested! : rosterWeekStart(todayInColombo());
+    const endDate = addDaysToYmd(startDate, 6);
 
     const week = await getOrCreateRosterWeek(startDate);
     const [rawDuties, nightShifts, catalog, instructors] = await Promise.all([
-      getDutyAssignments(week.id),
-      getNightShifts(week.id),
+      getDutyAssignmentsInRange(startDate, endDate),
+      getNightShiftsInRange(startDate, endDate),
       getCatalog(),
       getInstructors(),
     ]);

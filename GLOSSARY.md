@@ -71,7 +71,7 @@ _Avoid_: Available, idle, spare
 ## Planning
 
 **Roster Week**:
-The seven-day unit that is planned as a Draft and then Published to the Cadre.
+The seven-day unit, always Sunday to Saturday, that is planned as a Draft and then Published to the Cadre.
 _Avoid_: Week (unqualified), schedule
 
 **Published**:

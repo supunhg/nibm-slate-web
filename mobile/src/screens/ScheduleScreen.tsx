@@ -57,7 +57,8 @@ export const ScheduleScreen: React.FC = () => {
   const canManage = user?.role === 'DEMONSTRATOR' || user?.role === 'ADMIN';
 
   const [currentWeekStart, setCurrentWeekStart] = useState<string>(() =>
-    format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
+    // Roster Weeks run Sunday to Saturday.
+    format(startOfWeek(new Date(), { weekStartsOn: 0 }), 'yyyy-MM-dd')
   );
   const [selectedDate, setSelectedDate] = useState<string>(() =>
     format(new Date(), 'yyyy-MM-dd')
@@ -124,9 +125,9 @@ export const ScheduleScreen: React.FC = () => {
   // Compute 7 days of the selected week
   const weekDays = useMemo(() => {
     try {
-      const monday = parseISO(currentWeekStart);
+      const weekStart = parseISO(currentWeekStart);
       return Array.from({ length: 7 }, (_, i) => {
-        const d = addDays(monday, i);
+        const d = addDays(weekStart, i);
         return {
           dateStr: format(d, 'yyyy-MM-dd'),
           dayName: format(d, 'EEE'),
@@ -141,17 +142,17 @@ export const ScheduleScreen: React.FC = () => {
 
   // Navigate weeks
   const handlePrevWeek = () => {
-    const monday = parseISO(currentWeekStart);
-    const prevMonday = subDays(monday, 7);
-    const prevStr = format(prevMonday, 'yyyy-MM-dd');
+    const weekStart = parseISO(currentWeekStart);
+    const prevWeekStart = subDays(weekStart, 7);
+    const prevStr = format(prevWeekStart, 'yyyy-MM-dd');
     setCurrentWeekStart(prevStr);
     setSelectedDate(prevStr);
   };
 
   const handleNextWeek = () => {
-    const monday = parseISO(currentWeekStart);
-    const nextMonday = addDays(monday, 7);
-    const nextStr = format(nextMonday, 'yyyy-MM-dd');
+    const weekStart = parseISO(currentWeekStart);
+    const nextWeekStart = addDays(weekStart, 7);
+    const nextStr = format(nextWeekStart, 'yyyy-MM-dd');
     setCurrentWeekStart(nextStr);
     setSelectedDate(nextStr);
   };

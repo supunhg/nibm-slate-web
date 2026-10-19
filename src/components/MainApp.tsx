@@ -17,6 +17,7 @@ import { ProfileSettings } from '@/components/ProfileSettings';
 import { DialogProvider } from '@/components/DialogProvider';
 import { getAppData, logoutAction, updateAutoRefreshIntervalAction } from '@/lib/actions';
 import { addDaysYmd } from '@/lib/week-start';
+import { rosterWeekStart } from '@/lib/roster-week';
 
 interface MainAppProps {
   initialData: {
@@ -131,7 +132,8 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
     await logoutAction();
   };
 
-  const handleWeekChange = async (newStartDate: string) => {
+  const handleWeekChange = async (requestedDate: string) => {
+    const newStartDate = rosterWeekStart(requestedDate);
     setSelectedWeekStart(newStartDate);
     setIsWeekLoading(true);
     try {

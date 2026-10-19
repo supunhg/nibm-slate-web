@@ -12,7 +12,7 @@ import {
   AuditLog,
   AcademicCatalog,
 } from '@/types';
-import { getMondayOfCurrentWeek, getSundayOfWeek } from './seed-data';
+import { rosterWeekStart, rosterWeekEnd, todayInColombo } from './roster-week';
 import { mergeDutyAssignments } from './roster-utils';
 
 const SALT_ROUNDS = 10;
@@ -516,8 +516,9 @@ function mapRosterWeek(w: Prisma.RosterWeekGetPayload<Record<string, never>>, pu
 }
 
 export async function getOrCreateRosterWeek(startDateStr?: string): Promise<RosterWeek> {
-  const start = startDateStr || getMondayOfCurrentWeek();
-  const end = getSundayOfWeek(start);
+  // Any date resolves to its Sunday-to-Saturday Roster Week.
+  const start = rosterWeekStart(startDateStr || todayInColombo());
+  const end = rosterWeekEnd(start);
 
   const existing = await prisma.rosterWeek.findUnique({
     where: { startDate_endDate: { startDate: start, endDate: end } },
@@ -596,6 +597,15 @@ function mapDuty(a: Prisma.DutyAssignmentGetPayload<{ include: { instructor: tru
     roomLab: normalizeRoom(a.roomLab),
     notes: a.notes ?? undefined,
   };
+}
+
+/** Duties dated inside [startDate, endDate], whichever Roster Week row they were saved under. */
+export async function getDutyAssignmentsInRange(startDate: string, endDate: string): Promise<DutyAssignment[]> {
+  const rows = await prisma.dutyAssignment.findMany({
+    where: { dutyDate: { gte: startDate, lte: endDate } },
+    include: { instructor: true },
+  });
+  return rows.map(mapDuty);
 }
 
 export async function getDutyAssignments(weekId?: string): Promise<DutyAssignment[]> {
@@ -755,7 +765,8 @@ export interface CloneWeekResult {
 // Clones every duty assignment and night shift from the 7 days immediately
 // before `currentWeekStart` into the current draft, re-running the same
 // collision/leave checks as a manual assignment for each item.
-export async function cloneWeekAssignments(currentWeekStart: string, actorId?: string): Promise<CloneWeekResult> {
+export async function cloneWeekAssignments(requestedWeekStart: string, actorId?: string): Promise<CloneWeekResult> {
+  const currentWeekStart = rosterWeekStart(requestedWeekStart);
   const prevWeekStart = shiftDateStr(currentWeekStart, -7);
   const prevWeekEnd = shiftDateStr(currentWeekStart, -1);
 
@@ -847,6 +858,15 @@ function mapNightShift(s: Prisma.NightShiftGetPayload<{ include: { instructor: t
     shiftDate: s.shiftDate,
     notes: s.notes ?? undefined,
   };
+}
+
+/** Night Duty dated inside [startDate, endDate]. */
+export async function getNightShiftsInRange(startDate: string, endDate: string): Promise<NightShift[]> {
+  const rows = await prisma.nightShift.findMany({
+    where: { shiftDate: { gte: startDate, lte: endDate } },
+    include: { instructor: true },
+  });
+  return rows.map(mapNightShift);
 }
 
 export async function getNightShifts(weekId?: string): Promise<NightShift[]> {

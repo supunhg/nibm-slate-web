@@ -27,6 +27,7 @@ import {
   FileText,
   Info,
 } from 'lucide-react';
+import { rosterWeekStart } from '@/lib/roster-week';
 import { DatePicker } from './ui/DatePicker';
 
 type SlotType = 'fullday' | 'morning' | 'afternoon' | 'sunday';
@@ -292,7 +293,9 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
     setPlanningStartDate(rosterWeek.startDate);
   }
 
-  const handleDateChange = (newDateStr: string) => {
+  // Roster Weeks always run Sunday to Saturday: any picked date snaps to its Sunday.
+  const handleDateChange = (pickedDate: string) => {
+    const newDateStr = rosterWeekStart(pickedDate);
     setPlanningStartDate(newDateStr);
     onWeekChange?.(newDateStr);
   };
@@ -304,14 +307,6 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
     handleDateChange(newDateStr);
   };
 
-  const handleJumpToSunday = () => {
-    const now = new Date();
-    const day = now.getDay();
-    const diff = (7 - day) % 7;
-    const nextSunday = new Date(now);
-    nextSunday.setDate(now.getDate() + diff);
-    handleDateChange(nextSunday.toISOString().split('T')[0]);
-  };
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -503,15 +498,12 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
             className="w-auto min-w-52"
           />
         </div>
-        <div className="grid grid-cols-4 items-center rounded-lg border border-neutral-200 p-0.5 sm:flex sm:w-fit dark:border-white/[0.08]">
+        <div className="grid grid-cols-3 items-center rounded-lg border border-neutral-200 p-0.5 sm:flex sm:w-fit dark:border-white/[0.08]">
           <button onClick={() => handleShiftDate(-7)} className="btn btn-ghost btn-sm" title="Previous week">
             <ChevronLeft /> Prev
           </button>
           <button onClick={() => handleDateChange(todayStr)} className="btn btn-ghost btn-sm" title="Jump to the current week">
             This week
-          </button>
-          <button onClick={handleJumpToSunday} className="btn btn-ghost btn-sm" title="Start the window on Sunday">
-            Sunday
           </button>
           <button onClick={() => handleShiftDate(7)} className="btn btn-ghost btn-sm" title="Next week">
             Next <ChevronRight />

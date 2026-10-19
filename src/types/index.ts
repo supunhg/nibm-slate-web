@@ -70,8 +70,8 @@ export interface LeaveRequest {
 
 export interface RosterWeek {
   id: string;
-  startDate: string; // Monday YYYY-MM-DD
-  endDate: string;   // Sunday YYYY-MM-DD
+  startDate: string; // Sunday YYYY-MM-DD
+  endDate: string;   // Saturday YYYY-MM-DD
   status: RosterStatus;
   publishedAt?: string;
   publishedById?: string;
