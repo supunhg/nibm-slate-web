@@ -295,6 +295,7 @@ export const MainApp: React.FC<MainAppProps> = ({ initialData, initialCurrentUse
               rosterWeek={data.rosterWeek}
               onRefresh={handleRefresh}
               publishedDates={data.publishedDates}
+              rooms={data.catalog.rooms}
               week={selectedWeekStart === currentWeekStart ? 'this' : 'next'}
               isWeekLoading={isWeekLoading}
               onSelectWeek={(w) => handleWeekChange(w === 'this' ? currentWeekStart : addDaysYmd(currentWeekStart, 7))}

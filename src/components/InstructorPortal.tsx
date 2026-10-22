@@ -32,7 +32,7 @@ import {
   Loader2,
   Undo2,
 } from 'lucide-react';
-import { submitLeaveAction, withdrawLeaveAction } from '@/lib/actions';
+import { setOwnDutyRoomAction, submitLeaveAction, withdrawLeaveAction } from '@/lib/actions';
 import { mergeDutyAssignments, formatApplicationDateTime } from '@/lib/roster-utils';
 import { useDialog } from './DialogProvider';
 import { DateRangePicker } from './ui/DatePicker';
@@ -50,6 +50,8 @@ interface InstructorPortalProps {
   week: 'this' | 'next';
   /** Dates in the loaded week covered by a Published Roster Week. */
   publishedDates: string[];
+  /** Catalog rooms, suggested when an instructor fills in their own room. */
+  rooms?: string[];
   isWeekLoading?: boolean;
   onSelectWeek: (week: 'this' | 'next') => void;
   /** Which part of the portal to show; driven by the main app navigation. */
@@ -75,6 +77,7 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
   section,
   week,
   publishedDates,
+  rooms = [],
   isWeekLoading = false,
   onSelectWeek,
 }) => {
@@ -93,6 +96,26 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
     new Date(`${ymd}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const { notify, confirm } = useDialog();
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
+  // Self-assigned room: the assigned person fills in an unassigned room.
+  const [roomEditId, setRoomEditId] = useState<string | null>(null);
+  const [roomDraft, setRoomDraft] = useState('');
+  const [roomSaving, setRoomSaving] = useState(false);
+  const handleSaveRoom = async (assignmentId: string) => {
+    if (!roomDraft.trim()) return;
+    setRoomSaving(true);
+    try {
+      const res = await setOwnDutyRoomAction(assignmentId, roomDraft.trim());
+      if (!res.success) {
+        await notify({ title: 'Could not set the room', message: res.error ?? 'Please try again.', danger: true });
+        return;
+      }
+      setRoomEditId(null);
+      setRoomDraft('');
+      onRefresh();
+    } finally {
+      setRoomSaving(false);
+    }
+  };
   // Withdrawal (GLOSSARY.md): own Pending or not-yet-ended Approved leave.
   const handleWithdraw = async (leave: LeaveRequest) => {
     const ok = await confirm({
@@ -300,6 +323,12 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
             : SECTION_COPY[section].description
         }
       />
+
+      <datalist id="self-room-options">
+        {rooms.map((r) => (
+          <option key={r} value={r} />
+        ))}
+      </datalist>
 
       {/* Week switch: this week / next week */}
       {section === 'schedule' && (
@@ -566,10 +595,48 @@ export const InstructorPortal: React.FC<InstructorPortalProps> = ({
                             Batch: {a.batchName}
                           </span>
                         )}
-                        <span className="flex items-center space-x-1 text-slate-500 font-medium text-[11px]">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                          <span className={a.roomLab ? '' : 'italic'}>{a.roomLab || 'Room unassigned'}</span>
-                        </span>
+                        {roomEditId === a.id ? (
+                          <form
+                            className="flex w-full items-center gap-1.5"
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              handleSaveRoom(a.id);
+                            }}
+                          >
+                            <input
+                              autoFocus
+                              list="self-room-options"
+                              value={roomDraft}
+                              onChange={(e) => setRoomDraft(e.target.value)}
+                              placeholder="Room or venue"
+                              maxLength={80}
+                              className="field h-8 min-w-0 flex-1 text-xs"
+                            />
+                            <button type="submit" disabled={roomSaving || !roomDraft.trim()} className="btn btn-primary btn-sm h-8">
+                              {roomSaving ? <Loader2 className="animate-spin" /> : 'Save'}
+                            </button>
+                            <button type="button" onClick={() => setRoomEditId(null)} className="btn btn-ghost btn-sm h-8">
+                              Cancel
+                            </button>
+                          </form>
+                        ) : (
+                          <span className="flex items-center space-x-1 text-slate-500 font-medium text-[11px]">
+                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                            <span className={a.roomLab ? '' : 'italic'}>{a.roomLab || 'Room unassigned'}</span>
+                            {!a.roomLab && a.instructorId === currentUser.id && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setRoomEditId(a.id);
+                                  setRoomDraft('');
+                                }}
+                                className="ml-1 font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
+                              >
+                                Set room
+                              </button>
+                            )}
+                          </span>
+                        )}
                       </div>
                       <a
                         href={getGoogleCalendarEventUrl(a)}

@@ -30,6 +30,7 @@ async function main() {
     getExecutiveStatus,
     getInstructors,
     getOrCreateRosterWeek,
+    setOwnDutyRoom,
   } = await import('../src/lib/storage');
   const { isSameSession, getMatchingOppositeSlotDuty, mergeDutyAssignments } = await import('../src/lib/roster-utils');
   const { prisma } = await import('../src/lib/prisma');
@@ -319,6 +320,28 @@ async function main() {
       'AI Substitute Finder excludes instructor busy teaching during that slot'
     );
     assert(subs.every((s) => s.score > 0), 'All suggested substitutes have positive fitness scores');
+
+    // 9b. Self-assigned room: only the assigned person, only while unassigned
+    const roomDuty = await addDutyAssignment({
+      rosterWeekId: week.id,
+      instructorId: inst1.id,
+      dutyDate: testDate,
+      slotLabel: 'Sunday CCS (16:30 - 17:30)',
+      startTime: '16:30',
+      endTime: '17:30',
+      dutyType: 'Lab Inspection',
+    });
+    if (roomDuty.assignment) {
+      const byOther = await setOwnDutyRoom(roomDuty.assignment.id, inst2.id, 'PC Lab 03');
+      assert(!byOther.success, 'Self room: someone else cannot set the room of your duty');
+      const byOwner = await setOwnDutyRoom(roomDuty.assignment.id, inst1.id, 'PC Lab 03');
+      assert(byOwner.success, 'Self room: the assigned instructor sets an unassigned room');
+      const again = await setOwnDutyRoom(roomDuty.assignment.id, inst1.id, 'PC Lab 05');
+      assert(!again.success, 'Self room: a room that is already set cannot be overwritten by the instructor');
+      await deleteDutyAssignment(roomDuty.assignment.id);
+    } else {
+      assert(false, 'Self room: fixture duty could be created');
+    }
 
     // 10. AI Deterministic CSP Scheduler Verification
     const proposed = runDeterministicScheduler({

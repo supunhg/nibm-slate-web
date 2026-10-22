@@ -19,6 +19,7 @@ import {
   getCommitmentsInRange,
   isDateInPublishedWeek,
   getPublishedDatesInRange,
+  setOwnDutyRoom,
   getDutyAssignment,
   getNightShiftForDate,
   savePushToken,
@@ -285,6 +286,14 @@ export async function removeNightShiftAction(shiftDate: string) {
   }
   revalidatePath('/');
   return { success };
+}
+
+/** Assigned instructor fills in the room of their own unassigned duty. */
+export async function setOwnDutyRoomAction(assignmentId: string, room: string) {
+  const actor = await requireAuth();
+  const res = await setOwnDutyRoom(assignmentId, actor.id, room);
+  if (res.success) revalidatePath('/');
+  return res;
 }
 
 export async function publishRosterAction(weekId: string) {

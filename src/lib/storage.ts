@@ -720,6 +720,49 @@ export async function getPublishedDatesInRange(startDate: string, endDate: strin
   return dates;
 }
 
+/**
+ * The assigned person may fill in the room of their own duty while it is
+ * unassigned. Both halves of a full-day duty get the same room. A room that
+ * is already set can only be changed by a Demonstrator or Admin.
+ */
+export async function setOwnDutyRoom(
+  assignmentId: string,
+  actorId: string,
+  room: string
+): Promise<{ success: boolean; error?: string; updated?: number }> {
+  const roomLab = normalizeRoom(room);
+  if (!roomLab) return { success: false, error: 'Enter a room or venue.' };
+  if (roomLab.length > 80) return { success: false, error: 'Room name is too long.' };
+
+  const duty = await prisma.dutyAssignment.findUnique({ where: { id: assignmentId } });
+  if (!duty) return { success: false, error: 'Duty not found.' };
+  if (duty.instructorId !== actorId) return { success: false, error: 'You can only set the room for your own duty.' };
+  if (normalizeRoom(duty.roomLab)) {
+    return { success: false, error: 'This duty already has a room. Ask a Demonstrator to change it.' };
+  }
+
+  // Only rows still unassigned change, so a room set meanwhile is never overwritten.
+  const { count } = await prisma.dutyAssignment.updateMany({
+    where: {
+      instructorId: actorId,
+      dutyDate: duty.dutyDate,
+      dutyType: duty.dutyType,
+      batchName: duty.batchName,
+      moduleName: duty.moduleName,
+      OR: [{ roomLab: null }, { roomLab: '' }, { roomLab: '-' }],
+    },
+    data: { roomLab },
+  });
+  if (count === 0) return { success: false, error: 'This duty already has a room. Refresh to see it.' };
+
+  await logAudit('DUTY_ROOM_SET', 'DutyAssignment', {
+    userId: actorId,
+    targetId: assignmentId,
+    metadata: `Room set to "${roomLab}" by the assigned instructor for ${duty.moduleName || duty.dutyType} on ${duty.dutyDate}`,
+  });
+  return { success: true, updated: count };
+}
+
 /** The duty as it was, so callers can notify after deleting it. */
 export async function getDutyAssignment(assignmentId: string): Promise<DutyAssignment | null> {
   const a = await prisma.dutyAssignment.findUnique({ where: { id: assignmentId }, include: { instructor: true } });
